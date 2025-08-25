@@ -13,19 +13,56 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Validate secrets are available
+        run: |
+          if [ -z "${{ secrets.OSSRH_USERNAME }}" ]; then
+            echo "ERROR: OSSRH_USERNAME secret is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.OSSRH_TOKEN }}" ]; then
+            echo "ERROR: OSSRH_TOKEN secret is not set"
+            exit 1
+          fi
+          echo "✅ Both OSSRH_USERNAME and OSSRH_TOKEN secrets are available"
+          echo "Username length: ${#MAVEN_USERNAME}"
+          echo "Token length: ${#MAVEN_PASSWORD}"
+        env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+
+
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: 24
+          server-id: sonatype-oss-snapshots
           server-username: MAVEN_USERNAME
           server-password: MAVEN_PASSWORD
+
+      - name: Verify Maven settings
+        run: |
+          echo "Generated Maven settings.xml:"
+          cat ~/.m2/settings.xml || echo "No settings.xml found"
+        env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
 
       - name: Grant execute permission for mvnw
         run: chmod +x mvnw
 
+      - name: Test authentication (dry run)
+        run: |
+          echo "Testing connection to Sonatype repository..."
+          curl -I -u "$MAVEN_USERNAME:$MAVEN_PASSWORD" \
+            "https://oss.sonatype.org/content/repositories/snapshots/" \
+            --fail-with-body || echo "Authentication test failed - this might be expected if the endpoint doesn't support HEAD requests"
+        env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+
       - name: Build with Maven
-        run: ./mvnw clean deploy
+        run: ./mvnw clean deploy -X
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
