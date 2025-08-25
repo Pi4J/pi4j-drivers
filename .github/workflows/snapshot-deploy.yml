@@ -18,6 +18,9 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: 24
+          server-id: sonatype-oss-snapshots
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
 
       - name: Grant execute permission for mvnw
         run: chmod +x mvnw
