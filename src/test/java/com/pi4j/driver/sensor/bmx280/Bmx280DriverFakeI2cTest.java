@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class Bmx280DriverTest {
+public class Bmx280DriverFakeI2cTest {
 
     @Test
     public void testBmx280DriverUnrecognizedChipId() {
