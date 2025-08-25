@@ -102,12 +102,12 @@
         <repository>
             <id>sonatype-oss-staging</id>
             <name>Sonatype Open Source Maven Repository</name>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2</url>
         </repository>
         <snapshotRepository>
             <id>sonatype-oss-snapshots</id>
             <name>Sonatype Open Source Maven Snapshots Repository</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
     </distributionManagement>
 

@@ -51,12 +51,24 @@ jobs:
       - name: Grant execute permission for mvnw
         run: chmod +x mvnw
 
-      - name: Test authentication (dry run)
+      - name: Test both old and new endpoints
         run: |
-          echo "Testing connection to Sonatype repository..."
+          echo "Testing OLD Sonatype endpoint..."
           curl -I -u "$MAVEN_USERNAME:$MAVEN_PASSWORD" \
             "https://oss.sonatype.org/content/repositories/snapshots/" \
-            --fail-with-body || echo "Authentication test failed - this might be expected if the endpoint doesn't support HEAD requests"
+            --fail-with-body || echo "❌ Old endpoint failed"
+          
+          echo ""
+          echo "Testing NEW Sonatype endpoint..."
+          curl -I -u "$MAVEN_USERNAME:$MAVEN_PASSWORD" \
+            "https://s01.oss.sonatype.org/content/repositories/snapshots/" \
+            --fail-with-body || echo "❌ New endpoint failed"
+          
+          echo ""
+          echo "Testing login to Sonatype web interface..."
+          curl -u "$MAVEN_USERNAME:$MAVEN_PASSWORD" \
+            "https://s01.oss.sonatype.org/service/local/authentication/login" \
+            --fail-with-body || echo "❌ Web login failed"
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
