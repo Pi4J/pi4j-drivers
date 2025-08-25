@@ -9,13 +9,9 @@ public class Bmx280DriverTest {
     @Test
     public void testBmx280DriverUnrecognizedChipId() {
         FakeI2CRegisterDataReaderWriter access = new FakeI2CRegisterDataReaderWriter(
-                FakeI2CRegisterDataReaderWriter.READ, Bmp280Constants.CHIP_ID, 123
-        );
+                FakeI2CRegisterDataReaderWriter.READ, Bmp280Constants.CHIP_ID, 123);
 
-        assertThrows(
-                IllegalStateException.class,
-                () -> new Bmx280Driver(access),
-                "Unrecognized chip ID: 123");
+        assertThrows(IllegalStateException.class, () -> new Bmx280Driver(access), "Unrecognized chip ID: 123");
     }
 
 }

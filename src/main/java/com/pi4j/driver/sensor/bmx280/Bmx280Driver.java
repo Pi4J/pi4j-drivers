@@ -28,8 +28,8 @@ import com.pi4j.io.spi.Spi;
  */
 public class Bmx280Driver {
 
-    private final static double[] BME_280_STANDBY_TIMES = {0.5, 62.5, 125, 250, 500, 1000, 2000, 4000};
-    private final static double[] BMP_280_STANDBY_TIMES = {0.5, 62.5, 125, 250, 500, 1000, 10, 20};
+    private final static double[] BME_280_STANDBY_TIMES = { 0.5, 62.5, 125, 250, 500, 1000, 2000, 4000 };
+    private final static double[] BMP_280_STANDBY_TIMES = { 0.5, 62.5, 125, 250, 500, 1000, 10, 20 };
 
     private final I2CRegisterDataReaderWriter registerAccess;
     private final SensorType sensorType;
@@ -56,18 +56,18 @@ public class Bmx280Driver {
     private SensorMode humidityMode;
 
     /**
-     * Creates a BMx280 SPI driver using the given Spi instance. The additional pin is used
-     * to signal SPI access, as per the device SPI specification.
+     * Creates a BMx280 SPI driver using the given Spi instance. The additional pin is used to signal SPI access, as per
+     * the device SPI specification.
      */
     public Bmx280Driver(Spi spi, DigitalOutput csb) {
-        this (new SpiRegisterAccess(spi, csb));
+        this(new SpiRegisterAccess(spi, csb));
     }
 
     /**
      * Creates a BMx280 I2C driver using the given parameter
      */
     public Bmx280Driver(I2C i2c) {
-        this ((I2CRegisterDataReaderWriter) i2c);
+        this((I2CRegisterDataReaderWriter) i2c);
     }
 
     // Visible for testing
@@ -136,9 +136,7 @@ public class Bmx280Driver {
 
         materializeSleep(false);
 
-        int config = (spi3WireMode ? 1 : 0)
-                | (filterCoefficientIndex << 2)
-                | (standByTimeIndex << 5);
+        int config = (spi3WireMode ? 1 : 0) | (filterCoefficientIndex << 2) | (standByTimeIndex << 5);
         registerAccess.writeRegister(Bmp280Constants.CONFIG, config);
 
         if (sensorType == SensorType.BME280) {
@@ -147,8 +145,7 @@ public class Bmx280Driver {
             registerAccess.writeRegister(Bme280Constants.CTRL_HUM, ctlHum);
         }
 
-        int ctlReg = Bmp280Constants.POWERMODE_FORCED
-                | (temperatureMode.ordinal() << Bmp280Constants.CTRL_TEMP_POS)
+        int ctlReg = Bmp280Constants.POWERMODE_FORCED | (temperatureMode.ordinal() << Bmp280Constants.CTRL_TEMP_POS)
                 | (pressureMode.ordinal() << Bmp280Constants.CTRL_PRESS_POS);
 
         registerAccess.writeRegister(Bmp280Constants.CTRL_MEAS, ctlReg);
@@ -158,10 +155,9 @@ public class Bmx280Driver {
 
     /** Measurement time for the current sensor modes, as documented in section 9.1 */
     public float getMeasurementTime() {
-        return (1.25f +
-                (temperatureMode == SensorMode.DISABLED ? 0 : (2.3f * (1 << temperatureMode.ordinal()) + 0.5f)) +
-                (pressureMode == SensorMode.DISABLED ? 0 : (2.3f * (1 << pressureMode.ordinal()) + 0.575f)) +
-                (temperatureMode == SensorMode.DISABLED ? 0 : 2.3f * (1 << temperatureMode.ordinal()) + 0.575f));
+        return (1.25f + (temperatureMode == SensorMode.DISABLED ? 0 : (2.3f * (1 << temperatureMode.ordinal()) + 0.5f))
+                + (pressureMode == SensorMode.DISABLED ? 0 : (2.3f * (1 << pressureMode.ordinal()) + 0.575f))
+                + (temperatureMode == SensorMode.DISABLED ? 0 : 2.3f * (1 << temperatureMode.ordinal()) + 0.575f));
     }
 
     /**
@@ -188,11 +184,11 @@ public class Bmx280Driver {
     }
 
     /**
-     * Sets the IIR filter coefficient to the best match of the requested coefficient (0, 2, 4, 8 or 16).
-     * The best available match is returned.
+     * Sets the IIR filter coefficient to the best match of the requested coefficient (0, 2, 4, 8 or 16). The best
+     * available match is returned.
      */
     public int setFilterCoefficient(int coefficient) {
-        int index = (int) Math.round(Math.log(coefficient / 2.0)/Math.log(2));
+        int index = (int) Math.round(Math.log(coefficient / 2.0) / Math.log(2));
         filterCoefficientIndex = index < 0 ? 0 : index > 8 ? 8 : index;
         return filterCoefficientIndex == 0 ? 0 : (2 >> filterCoefficientIndex);
     }
@@ -213,11 +209,11 @@ public class Bmx280Driver {
     }
 
     /**
-     * Read measure registers 0xF7 - 0xFC in single read to ensure all the data pertains to
-     * a single measurement. The result is returned in a "Measurement" instance.
+     * Read measure registers 0xF7 - 0xFC in single read to ensure all the data pertains to a single measurement. The
+     * result is returned in a "Measurement" instance.
      * <p>
-     * If the current mode is SLEEPING, a single measurement will be requested and the code will block
-     * for the time determined by getMeasurementTime.
+     * If the current mode is SLEEPING, a single measurement will be requested and the code will block for the time
+     * determined by getMeasurementTime.
      * <p>
      * Blocking can be avoided by setting FORCED or NORMAL mode ahead of time.
      */
@@ -235,8 +231,7 @@ public class Bmx280Driver {
 
         // Temperature
         double var1 = (adcT / 16384.0 - digT1 / 1024.0) * digT2;
-        double var2 = ((adcT / 131072.0 - digT1 / 8192.0) *
-                    (adcT / 131072.0 - digT1 / 8192.0)) * digT3;
+        double var2 = ((adcT / 131072.0 - digT1 / 8192.0) * (adcT / 131072.0 - digT1 / 8192.0)) * digT3;
         double tFine = var1 + var2;
         double temperature = tFine / 5120.0;
 
@@ -250,14 +245,14 @@ public class Bmx280Driver {
             var1 = (digP3 * var1 * var1 / 524288.0 + digP2 * var1) / 524288.0;
             var1 = (1.0 + var1 / 32768.0) * digP1;
             if (var1 == 0.0) {
-                pressure = 0;   // // avoid exception caused by division by zero
+                pressure = 0; // // avoid exception caused by division by zero
             } else {
                 pressure = 1048576.0 - adcP;
                 pressure = (pressure - (var2 / 4096.0)) * 6250.0 / var1;
                 var1 = digP9 * pressure * pressure / 2147483648.0;
                 var2 = pressure * digP8 / 32768.0;
                 pressure = pressure + (var1 + var2 + digP7) / 16.0;
-           }
+            }
         }
         float adcH = Float.NaN;
         double humidity = Double.NaN;
@@ -267,10 +262,8 @@ public class Bmx280Driver {
             adcH = ((ioBuf[6] & 0xFF) << 8) | (ioBuf[7] & 0xFF);
 
             double varH = tFine - 76800.0;
-            varH = (adcH - (digH4 * 64.0 + digH5 / 16384.0 *
-                    varH)) * (digH2 / 65536.0 * (1.0 + digH6 /
-                    67108864.0 * varH *
-                    (1.0 + digH3 / 67108864.0 * varH)));
+            varH = (adcH - (digH4 * 64.0 + digH5 / 16384.0 * varH))
+                    * (digH2 / 65536.0 * (1.0 + digH6 / 67108864.0 * varH * (1.0 + digH3 / 67108864.0 * varH)));
             varH = varH * (1.0 - digH1 * varH / 524288.0);
 
             if (varH > 100.0) {
@@ -285,9 +278,8 @@ public class Bmx280Driver {
             measurementMode = MeasurementMode.SLEEPING;
         }
 
-        return new Measurement(
-                adcT / 1024.0f, adcP / 1024.0f, adcH / 1024.0f,
-                (float) temperature, (float) pressure, (float) humidity);
+        return new Measurement(adcT / 1024.0f, adcP / 1024.0f, adcH / 1024.0f, (float) temperature, (float) pressure,
+                (float) humidity);
     }
 
     /**
@@ -339,9 +331,8 @@ public class Bmx280Driver {
         private final float pressure;
         private final float humidity;
 
-        Measurement(
-                float rawTemperature, float rawPressure, float rawHumidity,
-                float temperature, float pressure, float humidity) {
+        Measurement(float rawTemperature, float rawPressure, float rawHumidity, float temperature, float pressure,
+                float humidity) {
             this.rawTemperature = rawTemperature;
             this.rawPressure = rawPressure;
             this.rawHumidity = rawHumidity;
@@ -376,7 +367,8 @@ public class Bmx280Driver {
 
         @Override
         public String toString() {
-            return "Temperature = " + temperature + " °C; Humidity = " + humidity + " %; Pressure = " + pressure + " Pa";
+            return "Temperature = " + temperature + " °C; Humidity = " + humidity + " %; Pressure = " + pressure
+                    + " Pa";
         }
     }
 
@@ -388,28 +380,23 @@ public class Bmx280Driver {
          */
         DISABLED,
         /** Perform measurements without any oversampling */
-        ENABLED,
-        OVERSAMPLE_2X,
-        OVERSAMPLE_4X,
-        OVERSAMPLE_8X,
-        OVERSAMPLE_16X
+        ENABLED, OVERSAMPLE_2X, OVERSAMPLE_4X, OVERSAMPLE_8X, OVERSAMPLE_16X
     }
 
     public enum MeasurementMode {
         /**
-         * The initial "default" mode. The chip will not perform any measurements in this mode.
-         * Certain configuration commands will only work in this mode.
+         * The initial "default" mode. The chip will not perform any measurements in this mode. Certain configuration
+         * commands will only work in this mode.
          */
         SLEEPING,
         /**
-         * Continuous measuring mode. The chip will perform a measurement (taking getMeasurementTime() ms,
-         * depending on the sampling settings), then sleep for the time set via setStandbyTime() in
-         * a continuous loop.
+         * Continuous measuring mode. The chip will perform a measurement (taking getMeasurementTime() ms, depending on
+         * the sampling settings), then sleep for the time set via setStandbyTime() in a continuous loop.
          */
         CONTINUOUS,
         /**
-         * Forces a single measurement and then goes back to SLEEPING. The measured values
-         * will be available after getMeasurementTime().
+         * Forces a single measurement and then goes back to SLEEPING. The measured values will be available after
+         * getMeasurementTime().
          */
         FORCED
     }

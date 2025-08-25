@@ -56,7 +56,6 @@ class SpiRegisterAccess implements I2CRegisterDataReaderWriter {
         return bytesRead;
     }
 
-
     @Override
     public int writeRegister(int register, byte data) {
         // send read request to BMP chip via SPI channel
@@ -65,7 +64,6 @@ class SpiRegisterAccess implements I2CRegisterDataReaderWriter {
         csb.high();
         return result;
     }
-
 
     @Override
     public int writeRegister(int register, byte[] buffer, int i1, int i2) {

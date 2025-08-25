@@ -6,11 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Fake I2C register access implementation that can play back / expect a given communication
- * pattern.
+ * Fake I2C register access implementation that can play back / expect a given communication pattern.
  * <p>
- * For the given test, a mock would have been more straightforward, but I didn't want to pull in
- * additional dependencies.
+ * For the given test, a mock would have been more straightforward, but I didn't want to pull in additional
+ * dependencies.
  */
 public class FakeI2CRegisterDataReaderWriter implements I2CRegisterDataReaderWriter {
 
@@ -43,7 +42,7 @@ public class FakeI2CRegisterDataReaderWriter implements I2CRegisterDataReaderWri
 
         for (int i = 0; i < length; i++) {
             int input = expectedCommunication[position++];
-            assertTrue (input >= 0, "Read data expected");
+            assertTrue(input >= 0, "Read data expected");
             data[offset + i] = (byte) input;
         }
 
@@ -72,8 +71,7 @@ public class FakeI2CRegisterDataReaderWriter implements I2CRegisterDataReaderWri
 
     @Override
     public int writeRegister(byte[] register, byte[] data, int offset, int length) {
-       throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException();
     }
-
 
 }
