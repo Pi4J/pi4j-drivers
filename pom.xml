@@ -206,7 +206,7 @@
             </build>
         </profile>
 
-        <!-- profile to deploy to sonatype nexus -->
+        <!-- Profile to deploy to sonatype nexus -->
         <profile>
             <id>deploy</id>
             <build>
