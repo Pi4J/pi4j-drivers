@@ -132,8 +132,6 @@
             </build>
         </profile>
 
-
-
         <!-- BUILD & INCLUDE JAVA SOURCES JAR  -->
         <profile>
             <id>sources</id>
