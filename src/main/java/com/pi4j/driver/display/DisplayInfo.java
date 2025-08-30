@@ -4,7 +4,7 @@ public class DisplayInfo {
 
     private final int width;
     private final int height;
-    private PixelFormat pixelFormat;
+    private final PixelFormat pixelFormat;
 
     public DisplayInfo(int width, int height, PixelFormat pixelFormat) {
         this.width = width;
@@ -12,15 +12,15 @@ public class DisplayInfo {
         this.pixelFormat = pixelFormat;
     }
 
-    int getWidth() {
+    public int getWidth() {
         return width;
     } // In pixel
 
-    int getHeight() {
+    public int getHeight() {
         return height;
     }
 
-    PixelFormat getPixelFormat() {
+    public PixelFormat getPixelFormat() {
         return pixelFormat;
     }
 }

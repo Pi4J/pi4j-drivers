@@ -1,7 +1,5 @@
 package com.pi4j.driver.display.st7789;
 
-import java.io.IOException;
-
 import com.pi4j.driver.display.GraphicsDisplayDriver;
 import com.pi4j.driver.display.PixelFormat;
 import com.pi4j.driver.display.DisplayInfo;
@@ -20,12 +18,11 @@ import org.slf4j.LoggerFactory;
 public class St7789Driver implements GraphicsDisplayDriver {
 
     private static Logger log = LoggerFactory.getLogger(St7789Driver.class);
+    private final static int WIDTH = 240;
 
     // This chip controls 240x320
     // An offset of 80 allows it to control 240x240
-    private final int OFFSET = 80;
-    private final int WIDTH = 240;
-    private final int HEIGHT = 240;
+    private final int yOffset;
 
     private static final int SWRESET = 0x01;
     private static final int SLPOUT = 0x11;
@@ -45,60 +42,53 @@ public class St7789Driver implements GraphicsDisplayDriver {
     private static final int MADCTL_RGB_ORDER = 0x00;
     private static final int MADCTL_BGR_ORDER = 0x08;
 
-    private Spi spi;
-    private DigitalOutput dc;
-    private PixelFormat pixelFormat;
+    private static final byte[] addrBuf = new byte[4];
 
-    public St7789Driver(Spi spi, DigitalOutput dc, PixelFormat pixelFormat) {
+    private final Spi spi;
+    private final DigitalOutput dc;
+    private final DisplayInfo displayInfo;
 
+    public St7789Driver(Spi spi, DigitalOutput dc, int displayHeight, PixelFormat pixelFormat) {
         this.spi = spi;
         this.dc = dc;
-        this.pixelFormat = pixelFormat;
+        this.displayInfo = new DisplayInfo(WIDTH, displayHeight, pixelFormat);
+        this.yOffset = 320 - displayHeight;
 
-        try {
-            init();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        init();
     }
 
-    private void init() throws java.io.IOException, InterruptedException {
+    private void init() {
 
         command(SWRESET);
-        Thread.sleep(200);
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        }
 
         command(SLPOUT);
 
         command(COLMOD);
-        if (PixelFormat.RGB_444 == pixelFormat) {
-            data(COLMOD_RGB_65K | COLMOD_CONTROL_12BIT);
-        } else {
-            data(COLMOD_RGB_65K | COLMOD_CONTROL_16BIT);
+        switch (displayInfo.getPixelFormat()) {
+            case RGB_444:
+                data(COLMOD_RGB_65K | COLMOD_CONTROL_12BIT);
+                break;
+            case RGB_565:
+                data(COLMOD_RGB_65K | COLMOD_CONTROL_16BIT);
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported pixel format: " + displayInfo.getPixelFormat());
         }
 
         command(MADCTL);
         data(MADCTL_BGR_ORDER);
 
-        command(CASET); // Column addr set
-        byte[] cols = new byte[4];
-        cols[0] = 0x00;
-        cols[1] = 0x00;
-        cols[2] = (byte) (WIDTH >> 8);
-        cols[3] = (byte) (WIDTH & 0xff);
-        data(cols);
-
-        command(RASET); // Row addr set
-        byte[] rows = new byte[4];
-        rows[0] = 0x00;
-        rows[1] = 0x50;
-        rows[2] = (byte) ((OFFSET + HEIGHT) >> 8);
-        rows[3] = (byte) ((OFFSET + HEIGHT) & 0xff);
-        data(rows);
+        command(CASET, 0, WIDTH); // Column addr set
+        command(RASET, yOffset, displayInfo.getHeight() + yOffset); // Row addr set
 
         command(INVON);
-
         command(NORON);
-
         command(DISPON);
 
         command(MADCTL);
@@ -106,8 +96,7 @@ public class St7789Driver implements GraphicsDisplayDriver {
 
     }
 
-    private void command(int x) throws com.pi4j.io.exception.IOException, IOException {
-
+    private void command(int x)  {
         if (x < 0 || x > 0xff) {
             throw new IllegalArgumentException("ST7789 bad command value " + x);
         }
@@ -115,32 +104,37 @@ public class St7789Driver implements GraphicsDisplayDriver {
         log.trace("Command: {}", x);
 
         dc.off();
-        byte[] buffer = new byte[1];
-        buffer[0] = (byte) x;
-        spi.write(buffer);
+        spi.write(x);
     }
 
-    private void data(int x) throws IOException, com.pi4j.io.exception.IOException {
+    /** Sends a command parameterized with screen address data */
+    private void command(int commandCode, int min, int max) {
+        command(commandCode);
+        addrBuf[0] = (byte) (min >> 8);
+        addrBuf[1] = (byte) min;
+        addrBuf[2] = (byte) (max >> 8);
+        addrBuf[3] = (byte) max;
+        data(addrBuf);
+    }
 
+    private void data(int x) {
         if (x < 0 || x > 0xff) {
             throw new IllegalArgumentException("ST7789 bad data value " + x);
         }
-
-        byte[] buffer = new byte[1];
-        buffer[0] = (byte) x;
-
-        data(buffer);
+        dc.on();
+        spi.write(x);
+        dc.off();
     }
 
-    private void data(byte[] x) throws IOException, com.pi4j.io.exception.IOException {
-
-        String raw = java.util.HexFormat.of().formatHex(x);
-        if (raw.length() > 100) {
-            log.trace("Data: {} {}", x.length, raw.substring(0, 80));
-        } else {
-            log.trace("Data: {} {}", x.length, raw);
+    private void data(byte[] x) {
+        if (log.isTraceEnabled()) {  // Avoid large string allocation if logging is off.
+            String raw = java.util.HexFormat.of().formatHex(x);
+            if (raw.length() > 100) {
+                log.trace("Data: {} {}", x.length, raw.substring(0, 80));
+            } else {
+                log.trace("Data: {} {}", x.length, raw);
+            }
         }
-
         dc.on();
         spi.write(x);
         dc.off();
@@ -148,30 +142,14 @@ public class St7789Driver implements GraphicsDisplayDriver {
 
     @Override
     public DisplayInfo getDisplayInfo() {
-
-        return new DisplayInfo(WIDTH, HEIGHT, pixelFormat);
+        return displayInfo;
     }
 
     @Override
-    public void setPixels(int x, int y, int width, int height, byte[] data) throws IOException {
-
+    public void setPixels(int x, int y, int width, int height, byte[] data) {
         log.trace("setPixels {}", data.length);
-        command(CASET); // Column addr set
-        byte[] cols = new byte[4];
-        cols[0] = (byte) (x >> 8);
-        cols[1] = (byte) (x & 0xFF);
-        cols[2] = (byte) (x + width - 1 >> 8);
-        cols[3] = (byte) (x + width - 1 & 0xff);
-        data(cols);
-
-        command(RASET); // Row addr set
-        byte[] rows = new byte[4];
-        rows[0] = (byte) (OFFSET + y >> 8);
-        rows[1] = (byte) (OFFSET + y & 0xFF);
-        rows[2] = (byte) ((OFFSET + y + height - 1) >> 8);
-        rows[3] = (byte) ((OFFSET + y + height - 1) & 0xff);
-        data(rows);
-
+        command(CASET, x, x + width - 1); // Column addr set
+        command(RASET, yOffset + y, yOffset + y + height - 1); // Row addr set
         command(RAMWR); // write to RAM
         data(data);
     }

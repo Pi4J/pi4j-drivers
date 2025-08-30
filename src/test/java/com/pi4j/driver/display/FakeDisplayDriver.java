@@ -28,7 +28,7 @@ public class FakeDisplayDriver implements GraphicsDisplayDriver {
     }
 
     @Override
-    public void setPixels(int x, int y, int width, int height, byte[] data) throws IOException {
+    public void setPixels(int x, int y, int width, int height, byte[] data) {
         log.trace("setPixels: {} {} {} {}", x, y, width, height);
         log.trace("\t" + HexFormat.of().formatHex(data));
         this.data = data;
