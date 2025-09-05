@@ -38,11 +38,10 @@ public class BaseGraphicsDisplayComponentTest {
         mockDisplay.fillRect(0, 0, 48, 1, Color.RED.getRGB());
 
         byte[] data = display.getData();
-        byte zeroZero = data[0];
 
         log.trace("Size of Data: {}", data.length);
         assertEquals((byte) 0xF8, data[0]);
-        assertEquals(48 * 16 / 8, data.length);
+        assertEquals(100 * 100 * 2, data.length);
     }
 
 }

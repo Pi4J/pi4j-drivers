@@ -24,6 +24,5 @@ public class AwtGraphicsDisplayComponent extends BaseGraphicsDisplayComponent {
 
         int[] rgb888pixels = img.getRGB(0, 0, img.getWidth(), img.getHeight(), null, 0, img.getWidth());
         drawImage(0, 0, img.getWidth(), img.getHeight(), rgb888pixels);
-
     }
 }
