@@ -1,5 +1,6 @@
 package com.pi4j.drivers.display.text.hd44780;
 
+import com.pi4j.drivers.io.expander.mcp23008.Mcp23008Driver;
 import com.pi4j.io.OnOffWrite;
 import com.pi4j.io.i2c.I2C;
 import com.pi4j.drivers.io.expander.pcf8574.Pcf8574OutputDriver;
@@ -81,9 +82,12 @@ public class Hd44780Driver {
     }
 
     /**
-     * Creates a HD 44680 Driver for a text LCD connected via I2C using a PCF 8574 IO expander. This implementation
+     * Creates a HD 44780 Driver for a text LCD connected via I2C using a PCF 8574 IO expander. This implementation
      * uses the Pcf8574OutputDriver class to illustrate how different drivers can be combined (opposed to a simple
      * direct AbstractConnection subclass).
+     * <p>
+     * This method assumes the following pin connections:
+     * 0: RS, 2: Enable, 3: Backlight, 4-7: D4-D7
      * <p>
      * Most PCF 8574 based text LCDs seem to have a "daughter board" with the PC 8574 chip attached to the back
      * of the main LCD board, connected to the data and control lines of the main LCD controller board.
@@ -91,15 +95,40 @@ public class Hd44780Driver {
     public static Hd44780Driver withPcf8574Connection(I2C i2c, int width, int height) {
         Pcf8574OutputDriver pcf8574 = new Pcf8574OutputDriver(i2c);
         pcf8574.setTriggerMask(0b0100);
-        pcf8574.setState(0);
+        pcf8574.setOutput(0);
         return with4BitConnection(
-                pcf8574.getOutput(0),
-                pcf8574.getOutput(2),
-                pcf8574.getOutput(3),
-                pcf8574.getOutput(4),
-                pcf8574.getOutput(5),
-                pcf8574.getOutput(6),
-                pcf8574.getOutput(7),
+                /* rs */ pcf8574.getOnOffWrite(0),
+                /* enable */ pcf8574.getOnOffWrite(2),
+                /* backlight*/ pcf8574.getOnOffWrite(3),
+                /* d4 */ pcf8574.getOnOffWrite(4),
+                /* d5 */ pcf8574.getOnOffWrite(5),
+                /* d6 */ pcf8574.getOnOffWrite(6),
+                /* d7 */ pcf8574.getOnOffWrite(7),
+                width,
+                height);
+    }
+
+    /**
+     * Creates a HD 44680 Driver for a text LCD connected via I2C using a MCP 23008 IO expander. This implementation
+     * uses the Mcp23008Driver class to illustrate how different drivers can be combined (opposed to a simple
+     * direct AbstractConnection subclass).
+     * <p>
+     * This call assumes the following pin connections, as used in CrowPi2:
+     * 1: RS, 2: Enable, 3-6: Data 4-7, 7: Backlight.
+     */
+    public static Hd44780Driver withMcp23008Connection(I2C i2c, int width, int height) {
+        Mcp23008Driver mcp23008 = new Mcp23008Driver(i2c);
+        mcp23008.setIoDir(0); // All pins configured for output.
+        mcp23008.setTriggerMask(0b0100);
+        mcp23008.setOutput(0);
+        return with4BitConnection(
+                /* registerSelect */ mcp23008.getOnOffWrite(1),
+                /* enable */ mcp23008.getOnOffWrite(2),
+                /* backLight */ mcp23008.getOnOffWrite(7),
+                /* d4 */ mcp23008.getOnOffWrite(3),
+                /* d5 */ mcp23008.getOnOffWrite(4),
+                /* d6 */ mcp23008.getOnOffWrite(5),
+                /* d7 */ mcp23008.getOnOffWrite(6),
                 width,
                 height);
     }
