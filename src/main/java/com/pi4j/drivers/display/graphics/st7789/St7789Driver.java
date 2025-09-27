@@ -161,4 +161,10 @@ public class St7789Driver implements GraphicsDisplayDriver {
         command(RAMWR); // write to RAM
         data(data, (width * height * displayInfo.getPixelFormat().getBitCount() + 7) / 8);
     }
+
+    @Override
+    public void close() {
+        spi.close();
+        dc.shutdown(dc.provider().context());
+    }
 }

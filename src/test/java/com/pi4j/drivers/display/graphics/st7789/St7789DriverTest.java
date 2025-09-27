@@ -9,10 +9,13 @@ import com.pi4j.io.gpio.digital.DigitalOutputConfigBuilder;
 import com.pi4j.io.spi.Spi;
 import com.pi4j.io.spi.SpiConfigBuilder;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Disabled;
 
 /**
  * This test assumes the waveshare 1.3inch IPS display HAT pinout, see https://www.waveshare.com/1.3inch-lcd-hat.htm
  */
+// TODO(b/488): Re-enable when we can safely detect the chip and skip the test if absent.
+@Disabled
 public class St7789DriverTest extends AbstractGraphicsDisplayDriverTest {
     private static final int BACKLIGHT_ADDRESS = 24;
     private static final int DC_ADDRESS = 25;

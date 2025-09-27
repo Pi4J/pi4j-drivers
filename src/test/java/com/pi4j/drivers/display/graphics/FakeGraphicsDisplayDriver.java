@@ -1,5 +1,7 @@
 package com.pi4j.drivers.display.graphics;
 
+import java.io.IOException;
+
 public class FakeGraphicsDisplayDriver implements GraphicsDisplayDriver {
 
     private final byte[] data;
@@ -43,6 +45,10 @@ public class FakeGraphicsDisplayDriver implements GraphicsDisplayDriver {
             int count = (width * pixelFormat.getBitCount() + 7) / 8;
             System.arraycopy(data, srcPos, this.data, dstPos, count);
         }
+    }
+
+    @Override
+    public void close() {
     }
 
     private void checkAlignment(int x, String target) {

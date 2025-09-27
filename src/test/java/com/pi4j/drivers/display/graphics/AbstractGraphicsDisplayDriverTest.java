@@ -28,11 +28,9 @@ public abstract class AbstractGraphicsDisplayDriverTest {
 
     @Test
     public void testFillRect() throws InterruptedException {
-        GraphicsDisplayDriver driver = createDriver(pi4j);
-        GraphicsDisplay display = new GraphicsDisplay(driver);
-        GraphicsDisplayInfo displayInfo = driver.getDisplayInfo();
-        int width = displayInfo.getWidth();
-        int height = displayInfo.getHeight();
+        GraphicsDisplay display = new GraphicsDisplay(createDriver(pi4j));
+        int width = display.getWidth();
+        int height = display.getHeight();
         display.fillRect(0, 0, width, height, 0x0);
         Random random = new Random(0);
         for (int i = 0; i < 10; i++) {
@@ -42,43 +40,55 @@ public abstract class AbstractGraphicsDisplayDriverTest {
             int h = random.nextInt(height - y);
             int color = random.nextInt(0xffffff);
             display.fillRect(x, y, w, h, color);
-            Thread.sleep(100);
         }
-        display.flush(); // Make sure we don't get writes later.
+        display.close();
+    }
+
+    // Text makes rotation (bugs) quite obvious, so we use this to test both.
+    @Test
+    public void testBitmapFont0() throws InterruptedException {
+        renderBitmapFont(GraphicsDisplay.Rotation.ROTATE_0);
     }
 
     @Test
-    public void testBitmapFont() throws InterruptedException {
-        GraphicsDisplayDriver driver = createDriver(pi4j);
-        for (GraphicsDisplay.Rotation rotation : GraphicsDisplay.Rotation.values()) {
-            GraphicsDisplay display = new GraphicsDisplay(driver, rotation);
-            GraphicsDisplayInfo displayInfo = driver.getDisplayInfo();
-            int width = displayInfo.getWidth();
-            int height = displayInfo.getHeight();
-            display.fillRect(0, 0, width, height, 0);
+    public void testBitmapFont90() throws InterruptedException {
+        renderBitmapFont(GraphicsDisplay.Rotation.ROTATE_90);
+    }
 
-            BitmapFont font = BitmapFont.get5x8Font();
-            BitmapFont proportionalFont = BitmapFont.get5x10Font(BitmapFont.Option.PROPORTIONAL);
+    @Test
+    public void testBitmapFont180() throws InterruptedException {
+        renderBitmapFont(GraphicsDisplay.Rotation.ROTATE_180);
+    }
 
-            int textWidth = display.renderText(1, 8, "Hello Pi4J Monospaced", font, 0xff8888);
-            assertEquals("Hello Pi4J Monospaced".length() * 6, textWidth);
-            display.renderText(1, 50, "Hello Pi4j-gpqy", proportionalFont, 0x88ff88, 2, 3);
-            display.renderText(1, 100, "Hello Pi4J 3/4x", proportionalFont, 0x8888ff, 3, 4);
-            display.renderText(1, 180, "Hello Pi4J", proportionalFont, 0xffff88, 4, 7);
+    @Test
+    public void testBitmapFont270() throws InterruptedException {
+        renderBitmapFont(GraphicsDisplay.Rotation.ROTATE_270);
+    }
 
-            display.flush(); // Make sure we don't get writes later.
+    private void renderBitmapFont(GraphicsDisplay.Rotation rotation) throws InterruptedException {
+        GraphicsDisplay display = new GraphicsDisplay(createDriver(pi4j), rotation);
+        int width = display.getWidth();
+        int height = display.getHeight();
+        display.fillRect(0, 0, width, height, 0);
 
-            Thread.sleep(100);
-        }
+        BitmapFont font = BitmapFont.get5x8Font();
+        BitmapFont proportionalFont = BitmapFont.get5x10Font(BitmapFont.Option.PROPORTIONAL);
+
+        int textWidth = display.renderText(1, 8, "Hello Pi4J Monospaced", font, 0xff8888);
+        assertEquals("Hello Pi4J Monospaced".length() * 6, textWidth);
+        display.renderText(1, 50, "Hello Pi4j-gpqy", proportionalFont, 0x88ff88, 2, 3);
+        display.renderText(1, 100, "Hello Pi4J 3/4x", proportionalFont, 0x8888ff, 3, 4);
+        display.renderText(1, 180, "Hello Pi4J", proportionalFont, 0xffff88, 4, 7);
+
+        display.close();
     }
 
     @Test
     public void testSetPixel() throws InterruptedException {
-        GraphicsDisplayDriver driver = createDriver(pi4j);
-        GraphicsDisplay display = new GraphicsDisplay(driver);
-        GraphicsDisplayInfo displayInfo = driver.getDisplayInfo();
-        int width = displayInfo.getWidth();
-        int height = displayInfo.getHeight();
+        GraphicsDisplay display = new GraphicsDisplay(createDriver(pi4j));
+        display.setTransferDelayMillis(0);
+        int width = display.getWidth();
+        int height = display.getHeight();
         display.fillRect(0, 0, width, height, java.awt.Color.WHITE.getRGB() );
 
         for( int x = 0; x < width; x++ ) {
@@ -88,6 +98,6 @@ public abstract class AbstractGraphicsDisplayDriverTest {
             Thread.sleep(5);
         }
 
-        display.flush(); // Make sure we don't get writes later.
+        display.close();
     }
 }

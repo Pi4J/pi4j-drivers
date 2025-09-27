@@ -2,11 +2,12 @@ package com.pi4j.drivers.display.graphics;
 
 import com.pi4j.drivers.display.BitmapFont;
 
+import java.io.Closeable;
 import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class GraphicsDisplay {
+public class GraphicsDisplay implements Closeable {
     // TODO(https://github.com/Pi4J/pi4j/issues/475): Remove or update this limitation.
     private static final int MAX_TRANSFER_SIZE = 4000;
 
@@ -48,6 +49,12 @@ public class GraphicsDisplay {
         transferBuffer = new byte[Math.min(
                 MAX_TRANSFER_SIZE,
                 (displayWidth * displayHeight * driver.getDisplayInfo().getPixelFormat().getBitCount() + 7) / 8)];
+    }
+
+    @Override
+    public void close() {
+        flush();
+        driver.close();
     }
 
     /** Draws an image at the given coordinates */
@@ -100,6 +107,22 @@ public class GraphicsDisplay {
                 modifiedYMax = Integer.MIN_VALUE;
             }
         }
+    }
+
+    /**
+     * Returns the display height in pixels. This might differ from the driver display information, as the screen
+     * might be rotated.
+     */
+    public int getHeight() {
+        return displayHeight;
+    }
+
+    /**
+     * Returns the display width in pixels. This might differ from the driver display information, as the screen
+     * might be rotated.
+     */
+    public int getWidth() {
+        return displayWidth;
     }
 
     /**
@@ -167,7 +190,6 @@ public class GraphicsDisplay {
         }
         return w * scaleX;
     }
-
 
     /** Sets the pixel at the given coordinates to the given color */
     public void setPixel(int x, int y, int color) {
@@ -264,5 +286,4 @@ public class GraphicsDisplay {
             }
         }
     }
-
 }

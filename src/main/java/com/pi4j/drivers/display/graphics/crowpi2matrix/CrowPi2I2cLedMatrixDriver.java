@@ -127,6 +127,11 @@ public class CrowPi2I2cLedMatrixDriver implements GraphicsDisplayDriver {
         }
     }
 
+    @Override
+    public void close() {
+        i2c.close();
+    }
+
 
     /** Offsets of all parts of the 15 byte struct sent to the display */
     enum Offset {
