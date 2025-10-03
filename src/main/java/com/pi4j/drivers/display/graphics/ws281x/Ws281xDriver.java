@@ -93,7 +93,7 @@ public class Ws281xDriver implements GraphicsDisplayDriver {
         }
 
         spiBuffer = new byte[width * height * COLOR_CHANNELS * BIT_STRETCH];
-        displayInfo = new GraphicsDisplayInfo(width, height, PixelFormat.RGB_888);
+        displayInfo = new GraphicsDisplayInfo(width, height, PixelFormat.GRB_888);
     }
 
     @Override
@@ -109,8 +109,7 @@ public class Ws281xDriver implements GraphicsDisplayDriver {
             for (int j = 0; j < width; j++) {
                 int dst = getPixelAddress(x + j, y + i);
                 for (int k = 0; k < COLOR_CHANNELS; k++) {
-                    // Swap color order to GRB
-                    int value = (bytes[src + k == 0 ? 1 : k == 1 ? 0 : 2] & 0xff) * brightness / 255;
+                    int value = (bytes[src++] & 0xff) * brightness / 255;
                     for (int bitIdex = 0; bitIdex < 8; bitIdex += 2) {
                         byte newValue = (byte) ((((value << bitIdex) & 0x80) == 0 ? 0b1000_0000 : 0b1100_0000)
                                 | (((value << bitIdex) & 0x40) == 0 ? 0b1000 : 0b1100));
@@ -121,7 +120,6 @@ public class Ws281xDriver implements GraphicsDisplayDriver {
                         dst++;
                     }
                 }
-                src += 3;
             }
         }
         // We always need to start at 0, but we only need to send up to the last changed pixel.
