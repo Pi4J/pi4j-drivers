@@ -2,10 +2,17 @@ package com.pi4j.drivers.display.graphics;
 
 public enum PixelFormat {
 
+    // Creates a format with 4 bits for each color channel.
+    // The values for red are shifted to the left by 8 bits, green by 4 bits and blue by 0 bits.
     RGB_444(4, 4, 4, 8, 4, 0),
+    // Creates a format with 5 bits for the green channel, 6 bits for the blue channel and 5 bit for the red channel
+    // The values for red are shifted to the left by 11 bits, green by
     RGB_565(5, 6, 5, 11, 5, 0),
+    // The same as RGB_565, but the resulting bytes are swapped to a little endian format. This only makes sense for
+    // channels that are not byte-aligned but form a multiple of 8 bit, so it's special-cased in the code.
     RGB_565_LE(5, 6, 5, 11, 5, 0),
     RGB_888(8, 8, 8, 16, 8, 0),
+    // The same as RGB_888, but with the shift for red and green swapped.
     GRB_888(8, 8, 8, 8, 16, 0);
 
     private final int redBitCount;
