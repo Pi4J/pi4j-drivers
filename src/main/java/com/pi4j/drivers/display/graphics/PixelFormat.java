@@ -2,23 +2,39 @@ package com.pi4j.drivers.display.graphics;
 
 public enum PixelFormat {
 
-    RGB_444(4, 4, 4), // 12-bit color format with 4 bits for each color channel (red, green, blue)
-    RGB_565(5, 6, 5), // 16-bit color format that uses 5 bits for red, 6 bits for green, and 5 bits for blue
-    RGB_565_LE(5, 6, 5), // The same as RGB_565, but the bytes swapped to little endian format.
-    RGB_888(8, 8, 8); // One byte for each channel.
+    // Creates a format with 4 bits for each color channel.
+    // The values for red are shifted to the left by 8 bits, green by 4 bits and blue by 0 bits.
+    RGB_444(4, 4, 4, 8, 4, 0),
+    // Creates a format with 5 bits for the green channel, 6 bits for the blue channel and 5 bit for the red channel
+    // The values for red are shifted to the left by 11 bits, green by
+    RGB_565(5, 6, 5, 11, 5, 0),
+    // The same as RGB_565, but the resulting bytes are swapped to a little endian format. This only makes sense for
+    // channels that are not byte-aligned but form a multiple of 8 bit, so it's special-cased in the code.
+    RGB_565_LE(5, 6, 5, 11, 5, 0),
+    RGB_888(8, 8, 8, 16, 8, 0),
+    // The same as RGB_888, but with the shift for red and green swapped.
+    GRB_888(8, 8, 8, 8, 16, 0);
 
     private final int redBitCount;
     private final int greenBitCount;
     private final int blueBitCount;
 
+    private final int redShift;
+    private final int greenShift;
+    private final int blueShift;
+
     private final int redMask;
     private final int greenMask;
     private final int blueMask;
 
-    PixelFormat(int redBitCount, int greenBitCount, int blueBitCount) {
+    PixelFormat(int redBitCount, int greenBitCount, int blueBitCount, int redShift, int greenShift, int blueShift) {
         this.redBitCount = redBitCount;
         this.greenBitCount = greenBitCount;
         this.blueBitCount = blueBitCount;
+
+        this.redShift = redShift;
+        this.greenShift = greenShift;
+        this.blueShift = blueShift;
 
         this.redMask = (1 << redBitCount) - 1;
         this.greenMask = (1 << greenBitCount) - 1;
@@ -45,29 +61,46 @@ public enum PixelFormat {
     private void writeBits(int value, int count, byte[] buffer, int bitOffset) {
         int byteOffset = bitOffset / 8;
 
-        if (this == RGB_565_LE) {
-            buffer[byteOffset] = (byte) value;
-            buffer[byteOffset + 1] = (byte) (value >>> 8);
-        } else {
-            bitOffset %= 8;
-            int mask = ((1 << count) - 1) << (32 - count - bitOffset);
+        // We need to special-case RGB_565_LE here anyway (the expected bytes are gggBbbbb, RrrrrGgg),
+        // so we use this opportunity to also short-circuit other byte-aligned formats.
+        switch (this) {
+            case RGB_888, GRB_888 -> {
+                buffer[byteOffset] = (byte) (value >>> 16);
+                buffer[byteOffset + 1] = (byte) (value >>> 8);
+                buffer[byteOffset + 2] = (byte) value;
+            }
+            case RGB_565 -> {
+                buffer[byteOffset] = (byte) (value >>> 8);
+                buffer[byteOffset + 1] = (byte) value;
+            }
+            case RGB_565_LE -> {
+                buffer[byteOffset] = (byte) value;
+                buffer[byteOffset + 1] = (byte) (value >>> 8);
+            }
+            default -> {
+                bitOffset %= 8;
+                int mask = ((1 << count) - 1) << (32 - count - bitOffset);
 
-            value <<= (32 - count - bitOffset);
-            while (mask != 0) {
-                buffer[byteOffset] = (byte) ((buffer[byteOffset] & ~(mask >> 24)) | (value >> 24));
-                byteOffset++;
-                value <<= 8;
-                mask <<= 8;
+                value <<= (32 - count - bitOffset);
+                while (mask != 0) {
+                    buffer[byteOffset] = (byte) ((buffer[byteOffset] & ~(mask >> 24)) | (value >> 24));
+                    byteOffset++;
+                    value <<= 8;
+                    mask <<= 8;
+                }
             }
         }
     }
 
     /** Converts a value from a 24 bit RGB integer value to "this" pixel format. */
     int fromRgb(int rgb) {
+        if (this == RGB_888) {
+            return rgb;
+        }
         int red = (rgb >> (24 - redBitCount)) & redMask;
         int green = (rgb >> (16 - greenBitCount)) & greenMask;
         int blue = (rgb >> (8 - blueBitCount)) & blueMask;
-        return (red << (greenBitCount + blueBitCount)) | (green << (blueBitCount)) | blue;
+        return (red << redShift) | (green << greenShift) | (blue << blueShift);
     }
 
     /**

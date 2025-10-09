@@ -165,6 +165,6 @@ public class St7789Driver implements GraphicsDisplayDriver {
     @Override
     public void close() {
         spi.close();
-        dc.shutdown(dc.provider().context());
+        dc.close();
     }
 }
