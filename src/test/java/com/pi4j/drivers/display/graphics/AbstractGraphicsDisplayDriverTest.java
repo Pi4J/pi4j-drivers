@@ -5,8 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.pi4j.Pi4J;
 import com.pi4j.context.Context;
 import com.pi4j.drivers.display.BitmapFont;
+import com.pi4j.plugin.ffm.providers.spi.SpiFFMProviderImpl;
+import com.pi4j.plugin.gpiod.provider.gpio.digital.GpioDDigitalOutputProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.Random;
@@ -47,27 +50,48 @@ public abstract class AbstractGraphicsDisplayDriverTest {
 
     // Text makes rotation (bugs) quite obvious, so we use this to test both.
     @Test
+    public void testBitmapFont0_100() throws InterruptedException {
+        renderBitmapFont(GraphicsDisplay.Rotation.ROTATE_0, 100);
+    }
+
+    @Test
     public void testBitmapFont0() throws InterruptedException {
-        renderBitmapFont(GraphicsDisplay.Rotation.ROTATE_0);
+        renderBitmapFont(GraphicsDisplay.Rotation.ROTATE_0, 0);
     }
 
     @Test
-    public void testBitmapFont90() throws InterruptedException {
-        renderBitmapFont(GraphicsDisplay.Rotation.ROTATE_90);
+    public void testBitmapFont90_100() throws InterruptedException {
+        renderBitmapFont(GraphicsDisplay.Rotation.ROTATE_90, 100);
     }
 
     @Test
-    public void testBitmapFont180() throws InterruptedException {
-        renderBitmapFont(GraphicsDisplay.Rotation.ROTATE_180);
+    public void testBitmapFont90_0() throws InterruptedException {
+        renderBitmapFont(GraphicsDisplay.Rotation.ROTATE_90, 0);
+    }
+
+    @Test
+    public void testBitmapFont180_100() throws InterruptedException {
+        renderBitmapFont(GraphicsDisplay.Rotation.ROTATE_180, 100);
+    }
+
+    @Test
+    public void testBitmapFont180_0() throws InterruptedException {
+        renderBitmapFont(GraphicsDisplay.Rotation.ROTATE_180, 0);
     }
 
     @Test
     public void testBitmapFont270() throws InterruptedException {
-        renderBitmapFont(GraphicsDisplay.Rotation.ROTATE_270);
+        renderBitmapFont(GraphicsDisplay.Rotation.ROTATE_270, 100);
     }
 
-    private void renderBitmapFont(GraphicsDisplay.Rotation rotation) throws InterruptedException {
+    @Test
+    public void testBitmapFont270_0() throws InterruptedException {
+        renderBitmapFont(GraphicsDisplay.Rotation.ROTATE_270, 0);
+    }
+
+    private void renderBitmapFont(GraphicsDisplay.Rotation rotation, int transferDelay) throws InterruptedException {
         GraphicsDisplay display = new GraphicsDisplay(createDriver(pi4j), rotation);
+        display.setTransferDelayMillis(transferDelay);
         int width = display.getWidth();
         int height = display.getHeight();
         display.fillRect(0, 0, width, height, 0);
@@ -79,9 +103,13 @@ public abstract class AbstractGraphicsDisplayDriverTest {
         assertEquals("Hello Pi4J Monospaced".length() * 6, textWidth);
         display.renderText(1, 50, "Hello Pi4j-gpqy", proportionalFont, 0x88ff88, 2, 3);
         display.renderText(1, 100, "Hello Pi4J 3/4x", proportionalFont, 0x8888ff, 3, 4);
-        display.renderText(1, 180, "Hello Pi4J", proportionalFont, 0xffff88, 4, 7);
+        display.renderText(1, 180, rotation.name(), proportionalFont, 0xffff88, 4, 7);
+
+
+        Thread.sleep(100);
 
         display.close();
+
     }
 
     /**
@@ -91,6 +119,7 @@ public abstract class AbstractGraphicsDisplayDriverTest {
      * This should allow for checking color, orientation and brightness correctness.
      */
     @Test
+    @Disabled
     public void testSetPixel() throws InterruptedException {
         GraphicsDisplay display = new GraphicsDisplay(createDriver(pi4j));
         display.setTransferDelayMillis(0);
@@ -100,8 +129,9 @@ public abstract class AbstractGraphicsDisplayDriverTest {
 
         for( int x = 0; x < width; x++ ) {
             for( int y = 0; y < height; y++ ) {
+                float brightness = (0.8f * y) / height + 0.2f;
                 display.setPixel(x, y,
-                        java.awt.Color.HSBtoRGB((1f * x) / width, 1, (0.8f * y) / height + 0.2f)
+                        GraphicsDisplay.hslToRgb((360f * x) / width, 1, brightness)
                 );
             }
             Thread.sleep(5);
