@@ -5,8 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.pi4j.Pi4J;
 import com.pi4j.context.Context;
 import com.pi4j.drivers.display.BitmapFont;
-import com.pi4j.plugin.ffm.providers.spi.SpiFFMProviderImpl;
-import com.pi4j.plugin.gpiod.provider.gpio.digital.GpioDDigitalOutputProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -104,12 +102,10 @@ public abstract class AbstractGraphicsDisplayDriverTest {
         display.renderText(1, 50, "Hello Pi4j-gpqy", proportionalFont, 0x88ff88, 2, 3);
         display.renderText(1, 100, "Hello Pi4J 3/4x", proportionalFont, 0x8888ff, 3, 4);
         display.renderText(1, 180, rotation.name(), proportionalFont, 0xffff88, 4, 7);
-
-
+        
         Thread.sleep(100);
 
         display.close();
-
     }
 
     /**
