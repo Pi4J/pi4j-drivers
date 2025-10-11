@@ -3,6 +3,8 @@ package com.pi4j.drivers.input;
 import com.pi4j.context.Context;
 import com.pi4j.io.ListenableOnOffRead;
 import com.pi4j.io.gpio.digital.DigitalInput;
+import com.pi4j.io.gpio.digital.DigitalState;
+import com.pi4j.io.gpio.digital.PullResistance;
 
 import java.io.Closeable;
 import java.util.HashMap;
@@ -55,8 +57,21 @@ public class GameController implements Closeable {
             return this;
         }
 
-        public Builder addDigitalInput(Key key, int pin) {
+        /** Add a switch between VCC and the given pin as a controller key. */
+        public Builder addVccSwitch(Key key, int pin) {
             return addDigitalInput(key, pi4j.create(DigitalInput.newConfigBuilder(pi4j).address(pin).build()));
+        }
+
+        /**
+         * Add a switch between GND and the given pin as a controller key. The pin will be pulled up and a
+         * "low" state will be interpreted as "on".
+         */
+        public Builder addGndSwitch(Key key, int pin) {
+            return addDigitalInput(key, pi4j.create(DigitalInput.newConfigBuilder(pi4j)
+                    .address(pin)
+                    .pull(PullResistance.PULL_UP)
+                    .onState(DigitalState.LOW)
+                    .build()));
         }
 
         public GameController build() {
