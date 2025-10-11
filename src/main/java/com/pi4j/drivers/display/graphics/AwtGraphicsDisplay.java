@@ -16,11 +16,10 @@ public class AwtGraphicsDisplay extends GraphicsDisplay {
     public void display(BufferedImage rawImg) {
 
         log.debug("display: {} {} x {}", rawImg.getType(), rawImg.getWidth(), rawImg.getHeight());
-        GraphicsDisplayInfo displayInfo = driver.getDisplayInfo();
 
         // clip the image to what will fit on the display
-        BufferedImage img = rawImg.getSubimage(0, 0, Math.min(rawImg.getWidth(), displayInfo.getWidth()),
-                Math.min(rawImg.getHeight(), displayInfo.getHeight()));
+        BufferedImage img = rawImg.getSubimage(0, 0, Math.min(rawImg.getWidth(), getWidth()),
+                Math.min(rawImg.getHeight(), getHeight()));
 
         int[] rgb888pixels = img.getRGB(0, 0, img.getWidth(), img.getHeight(), null, 0, img.getWidth());
         drawImage(0, 0, img.getWidth(), img.getHeight(), rgb888pixels);

@@ -2,23 +2,18 @@ package com.pi4j.drivers.display.graphics;
 
 import com.pi4j.drivers.display.BitmapFont;
 
-import java.io.Closeable;
-import java.util.Arrays;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
-public class GraphicsDisplay implements Closeable {
+public class GraphicsDisplay {
     // TODO(https://github.com/Pi4J/pi4j/issues/475): Remove or update this limitation.
     private static final int MAX_TRANSFER_SIZE = 4000;
 
-    enum Rotation {
+    public enum Rotation {
         ROTATE_0, ROTATE_90, ROTATE_180, ROTATE_270
     }
 
-    protected final GraphicsDisplayDriver driver;
     private final Object lock = new Object();
     private final int[] displayBuffer;
-    private final byte[] transferBuffer;
     private final Timer timer = new Timer();
 
     private int modifiedXMax = Integer.MIN_VALUE;
@@ -29,15 +24,43 @@ public class GraphicsDisplay implements Closeable {
     private int transferDelayMillis = 15;
     private final int displayWidth;
     private final int displayHeight;
-    private final Rotation rotation;
+    private final List<DriverEntry> drivers = new ArrayList<>();
+
+    /** returns a rgb integer for the given red, green and blue channels ranging from 0 to 255 each. */
+    static int rgb(int r, int g, int b) {
+        return (r << 16) | (g << 8) | b;
+    }
+
+    /** returns a rgb integer for the given red, green and blue channels ranging from 0f to 1f each. */
+    static int rgb(float r, float g, float b) {
+        return rgb((int) (255 * r), (int) (255 * g), (int) (255 * b));
+    }
+
+    /** returns a rgb integer for the given hue (0..360), saturation (0..1) and lightness (0..1) values. */
+    static int hslToRgb(float hue, float saturation, float lightness) {
+        float hue6 = (hue % 360) / 60;
+        float c = (1f - Math.abs(2 * lightness - 1)) * saturation;
+        float x = c * (1 - Math.abs(hue6 % 2 - 1));
+        float m = lightness - c / 2;
+        c += m;
+        x += m;
+        return switch ((int) hue6) {
+            case 0 -> rgb(c, x, m);
+            case 1 -> rgb(x, c, m);
+            case 2 -> rgb(m, c, x);
+            case 3 -> rgb(m, x, c);
+            case 4 -> rgb(x, m, c);
+            case 5 -> rgb(c, m, x);
+            default -> 0;
+        };
+    }
+
 
     public GraphicsDisplay(GraphicsDisplayDriver driver) {
         this(driver, Rotation.ROTATE_0);
     }
 
     public GraphicsDisplay(GraphicsDisplayDriver driver, Rotation rotation) {
-        this.driver = driver;
-        this.rotation = rotation;
         if (rotation == Rotation.ROTATE_0 || rotation == Rotation.ROTATE_180) {
             displayWidth = driver.getDisplayInfo().getWidth();
             displayHeight = driver.getDisplayInfo().getHeight();
@@ -46,15 +69,39 @@ public class GraphicsDisplay implements Closeable {
             displayHeight = driver.getDisplayInfo().getWidth();
         }
         displayBuffer = new int[displayWidth * displayHeight];
-        transferBuffer = new byte[Math.min(
-                MAX_TRANSFER_SIZE,
-                (displayWidth * displayHeight * driver.getDisplayInfo().getPixelFormat().getBitCount() + 7) / 8)];
+        drivers.add(new DriverEntry(0, 0, driver, rotation));
     }
 
-    @Override
+    /**
+     * Creates a virtual display with no drivers attached. Useful for mapping a single "logical" display to multiple
+     * physical displays, e.g. when managing multiple light strip based LED displays.
+     */
+    public GraphicsDisplay(int displayWidth, int displayHeight) {
+        this.displayWidth = displayWidth;
+        this.displayHeight = displayHeight;
+        displayBuffer = new int[displayWidth * displayHeight];
+    }
+
+    /**
+     * Map the given display driver into the given position of this GraphicsDisplay. Useful for rendering
+     * the same content to multiple physical displays or to have a "virtual" display span multiple physical
+     * displays.
+     */
+    public void attachDriver(int x0, int y0, GraphicsDisplayDriver driver, Rotation rotation) {
+        synchronized (lock) {
+            drivers.add(new DriverEntry(x0, y0, driver, rotation));
+        }
+    }
+
     public void close() {
         flush();
-        driver.close();
+        timer.cancel();
+        synchronized (lock) {
+            for (DriverEntry entry : drivers) {
+                entry.driver.close();
+            }
+            drivers.clear();
+        }
     }
 
     /** Draws an image at the given coordinates */
@@ -109,20 +156,14 @@ public class GraphicsDisplay implements Closeable {
         }
     }
 
-    /**
-     * Returns the display height in pixels. This might differ from the driver display information, as the screen
-     * might be rotated.
-     */
-    public int getHeight() {
-        return displayHeight;
-    }
-
-    /**
-     * Returns the display width in pixels. This might differ from the driver display information, as the screen
-     * might be rotated.
-     */
+    /** Returns the width of this dispaly in pixel. */
     public int getWidth() {
         return displayWidth;
+    }
+
+    /** Returns the height of this dispaly in pixel. */
+    public int getHeight() {
+        return displayHeight;
     }
 
     /**
@@ -243,50 +284,101 @@ public class GraphicsDisplay implements Closeable {
 
     /** Transfers the given display buffer area to the display driver, mapping the rotation */
     private void transferBuffer(int xMin, int yMin, int xMax, int yMax) {
-        int xGranularity = driver.getDisplayInfo().getXGranularity();
-        if (rotation == Rotation.ROTATE_0 || rotation == Rotation.ROTATE_180) {
-            xMin = (xMin / xGranularity) * xGranularity;
-            xMax = ((xMax + xGranularity - 1) / xGranularity) * xGranularity;
-        } else {
-            yMin = (yMin / xGranularity) * xGranularity;
-            yMax = ((yMax + xGranularity - 1) / xGranularity) * xGranularity;
-        }
-
-        switch (rotation) {
-            case ROTATE_0 ->
-                transferBuffer(pixelAddress(xMin, yMin), 1, displayWidth, xMin, yMin, xMax, yMax);
-            case ROTATE_90 ->
-                transferBuffer(pixelAddress(xMin, yMax - 1), -displayWidth, 1, displayHeight - yMax, displayWidth - xMax, displayHeight - yMin, displayWidth - xMin);
-            case ROTATE_180 ->
-                transferBuffer(pixelAddress(xMax - 1, yMax - 1), -1, -displayWidth, displayWidth - xMax, displayHeight - yMax, displayWidth - xMin, displayHeight - yMin);
-            case ROTATE_270 ->
-                transferBuffer(pixelAddress(xMax - 1, yMin), displayWidth, -1, yMin, xMin, yMax, xMax);
+        synchronized (lock) { // drivers access
+            for (DriverEntry driverEntry : drivers) {
+                driverEntry.transferBuffer(xMin, yMin, xMax, yMax);
+            }
         }
     }
 
-    /** Transfers the given display buffer area to the display driver */
-    private void transferBuffer(int sourceAddress, int sourceStrideX, int sourceStrideY, int xMin, int yMin, int xMax, int yMax) {
-        synchronized (lock) {
+    /** Keeps track of the screen area and rotation managed by a driver */
+    class DriverEntry {
+        private final int x0;
+        private final int y0;
+        private final GraphicsDisplayDriver driver;
+        private final Rotation rotation;
+        private final byte[] transferBuffer ;
+
+        private DriverEntry(int x0, int y0, GraphicsDisplayDriver driver, Rotation rotation) {
+            this.x0 = x0;
+            this.y0 = y0;
+            this.driver = driver;
+            this.rotation = rotation;
+            this.transferBuffer = new byte[Math.min(
+                    MAX_TRANSFER_SIZE,
+                    (driver.getDisplayInfo().getWidth() * driver.getDisplayInfo().getHeight() * driver.getDisplayInfo().getPixelFormat().getBitCount() + 7) / 8)];
+        }
+
+        private void transferBuffer(int xMin, int yMin, int xMax, int yMax) {
+            switch (rotation) {
+                case ROTATE_0 ->
+                        transferBuffer(pixelAddress(xMin, yMin), 1, displayWidth,
+                                xMin - x0, yMin - y0, xMax - x0, yMax - y0);
+                case ROTATE_90 ->
+                        transferBuffer(pixelAddress(xMin, yMax - 1), -displayWidth, 1,
+                                displayHeight - yMax - y0, xMin - x0, displayHeight - yMin - y0, xMax - x0);
+                case ROTATE_180 ->
+                        transferBuffer(pixelAddress(xMax - 1, yMax - 1), -1, -displayWidth,
+                                displayWidth - xMax - x0, displayHeight - yMax - y0, displayWidth - xMin - x0, displayHeight - yMin - y0);
+                case ROTATE_270 ->
+                        transferBuffer(pixelAddress(xMax - 1, yMin), displayWidth, -1,
+                                yMin - y0, displayWidth - xMax - x0, yMax - y0, displayWidth - xMin - x0);
+            }
+        }
+
+        /** Transfers the given display buffer area to the display driver */
+        private void transferBuffer(int sourceAddress, int sourceStrideX, int sourceStrideY, int xMin, int yMin, int xMax, int yMax) {
+            GraphicsDisplayInfo displayInfo = driver.getDisplayInfo();
+
+            // Bail out if the changed area is outside the area governed by this device.
+            if (xMax <= 0 || yMax <= 0 || xMin >= displayInfo.getWidth() || yMin >= displayInfo.getHeight()) {
+                return;
+            }
+
+            // Restrict coordinates to the display size.
+            if (xMin < 0) {
+                sourceAddress -= xMax * sourceStrideX;
+                xMin = 0;
+            }
+            if (yMin < 0) {
+                sourceAddress -= yMin * sourceStrideY;
+                yMin = 0;
+            }
+            xMax = Math.min(displayInfo.getWidth(), xMax);
+            yMax = Math.min(displayInfo.getHeight(), yMax);
+
+            // Make sure to match device x-alignment constraints.
+            int xGranularity = driver.getDisplayInfo().getXGranularity();
+            int remainder = xMin % xGranularity;
+            if (remainder != 0) {
+                sourceAddress -= remainder * sourceStrideX;
+                xMin -= remainder;
+            }
+            xMax = ((xMax + xGranularity - 1) / xGranularity) * xGranularity;
+
             int width = xMax - xMin;
             int height = yMax - yMin;
 
             PixelFormat pixelFormat = driver.getDisplayInfo().getPixelFormat();
             int bitsPerRow = width * pixelFormat.getBitCount();
             int bitOffset = 0;
-            for (int i = 0; i < height; i++) {
-                bitOffset += pixelFormat.writeRgb(
-                        displayBuffer,
-                        sourceAddress,
-                        sourceStrideX,
-                        transferBuffer,
-                        bitOffset,
-                        width);
-                sourceAddress += sourceStrideY;
-                // Transfer if the last row is reached or the next row would overflow the buffer.
-                if (i == height - 1 || bitOffset + bitsPerRow > transferBuffer.length * 8) {
-                    int rows = bitOffset / bitsPerRow;
-                    driver.setPixels(xMin, yMin + i + 1 - rows, width, rows, transferBuffer);
-                    bitOffset = 0;
+
+            synchronized (lock) { // display / transfer buffer access
+                for (int i = 0; i < height; i++) {
+                    bitOffset += pixelFormat.writeRgb(
+                            displayBuffer,
+                            sourceAddress,
+                            sourceStrideX,
+                            transferBuffer,
+                            bitOffset,
+                            width);
+                    sourceAddress += sourceStrideY;
+                    // Transfer if the last row is reached or the next row would overflow the buffer.
+                    if (i == height - 1 || bitOffset + bitsPerRow > transferBuffer.length * 8) {
+                        int rows = bitOffset / bitsPerRow;
+                        driver.setPixels(xMin, yMin + i + 1 - rows, width, rows, transferBuffer);
+                        bitOffset = 0;
+                    }
                 }
             }
         }
