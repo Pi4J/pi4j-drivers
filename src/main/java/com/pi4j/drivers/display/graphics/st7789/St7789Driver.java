@@ -19,6 +19,8 @@ import java.util.EnumSet;
 
 public class St7789Driver implements GraphicsDisplayDriver {
 
+    /** The SPI baud rate supported by this chip. */
+    public static final int SPI_BAUDRATE = 62_500_000;
     public static final EnumSet<PixelFormat> SUPPORTED_PIXEL_FORMATS = EnumSet.of(PixelFormat.RGB_444, PixelFormat.RGB_565);
 
     private static Logger log = LoggerFactory.getLogger(St7789Driver.class);
