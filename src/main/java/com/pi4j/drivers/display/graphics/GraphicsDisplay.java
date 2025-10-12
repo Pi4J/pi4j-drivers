@@ -26,36 +26,6 @@ public class GraphicsDisplay {
     private final int displayHeight;
     private final List<DriverEntry> drivers = new ArrayList<>();
 
-    /** returns a rgb integer for the given red, green and blue channels ranging from 0 to 255 each. */
-    static int rgb(int r, int g, int b) {
-        return (r << 16) | (g << 8) | b;
-    }
-
-    /** returns a rgb integer for the given red, green and blue channels ranging from 0f to 1f each. */
-    static int rgb(float r, float g, float b) {
-        return rgb((int) (255 * r), (int) (255 * g), (int) (255 * b));
-    }
-
-    /** returns a rgb integer for the given hue (0..360), saturation (0..1) and lightness (0..1) values. */
-    static int hslToRgb(float hue, float saturation, float lightness) {
-        float hue6 = (hue % 360) / 60;
-        float c = (1f - Math.abs(2 * lightness - 1)) * saturation;
-        float x = c * (1 - Math.abs(hue6 % 2 - 1));
-        float m = lightness - c / 2;
-        c += m;
-        x += m;
-        return switch ((int) hue6) {
-            case 0 -> rgb(c, x, m);
-            case 1 -> rgb(x, c, m);
-            case 2 -> rgb(m, c, x);
-            case 3 -> rgb(m, x, c);
-            case 4 -> rgb(x, m, c);
-            case 5 -> rgb(c, m, x);
-            default -> 0;
-        };
-    }
-
-
     public GraphicsDisplay(GraphicsDisplayDriver driver) {
         this(driver, Rotation.ROTATE_0);
     }

@@ -102,7 +102,7 @@ public abstract class AbstractGraphicsDisplayDriverTest {
         display.renderText(1, 50, "Hello Pi4j-gpqy", proportionalFont, 0x88ff88, 2, 3);
         display.renderText(1, 100, "Hello Pi4J 3/4x", proportionalFont, 0x8888ff, 3, 4);
         display.renderText(1, 180, rotation.name(), proportionalFont, 0xffff88, 4, 7);
-        
+
         Thread.sleep(100);
 
         display.close();
@@ -127,7 +127,7 @@ public abstract class AbstractGraphicsDisplayDriverTest {
             for( int y = 0; y < height; y++ ) {
                 float brightness = (0.8f * y) / height + 0.2f;
                 display.setPixel(x, y,
-                        GraphicsDisplay.hslToRgb((360f * x) / width, 1, brightness)
+                        Argb32.fromHsl((360f * x) / width, 1, brightness)
                 );
             }
             Thread.sleep(5);
