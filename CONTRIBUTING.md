@@ -125,4 +125,4 @@ We welcome driver contributions that match the structure outlined here and the p
 - It might make sense to start a discussion about any open questions before a pull request, as working in a local 
 - repository is typically less ovrhead.
 
-- Please limit pull requests to a single driver
+- When adding new drivers, please create one pull requests for each driver
