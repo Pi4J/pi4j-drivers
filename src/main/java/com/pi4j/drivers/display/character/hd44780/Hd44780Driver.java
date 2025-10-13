@@ -230,6 +230,9 @@ public class Hd44780Driver {
         updateDisplayControl();
     }
 
+    /**
+     * Write a text at the current cursor position
+     */
     public void write(String text) {
         final int length = text.length();
         for (int offset = 0; offset < length; ) {
@@ -251,6 +254,20 @@ public class Hd44780Driver {
         }
         sendData(mapCodePoint(codePoint));
         cursorX++;
+    }
+
+    /**
+     * Write a text on the given line by setting the cursor position
+     */
+    public void writeLine(String text, int line) {
+        if (line > height) {
+            throw new IllegalArgumentException("Line " + line + " out of range 1.." + height);
+        }
+        if (text.length() > width) {
+            throw new IllegalArgumentException("Text is too long");
+        }
+        setCursorPosition(0, line);
+        write(text);
     }
 
 
