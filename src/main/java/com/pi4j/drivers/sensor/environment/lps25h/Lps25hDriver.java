@@ -30,7 +30,7 @@ public class Lps25hDriver {
 
         // Enable the chip
         int ctrl1 = registerAccess.readRegister(Register.CTRL_REG1);
-        registerAccess.writeRegister(Register.CTRL_REG1, ctrl1 | 0x8f);
+        registerAccess.writeRegister(Register.CTRL_REG1, ctrl1 | 0x80);
     }
 
     public float readTemperature() {
