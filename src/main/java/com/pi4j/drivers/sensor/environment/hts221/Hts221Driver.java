@@ -13,14 +13,12 @@ import java.nio.ByteOrder;
 public class Hts221Driver {
     public static final int I2C_ADDRESS = 0x5f;
 
-    private final int WHO_AM_I_VALUE = 0xbc;
+    private static final int WHO_AM_I_VALUE = 0xbc;
+    private static final int STATUS_TEMPERATURE_AVAILABLE_MASK = 1;
+    private static final int STATUS_HUMIDITY_AVAILABLE_MASK = 2;
 
     private final ByteBuffer buffer = ByteBuffer.allocate(Register.ADDRESS_SPACE_END).order(ByteOrder.LITTLE_ENDIAN);
-
     private final I2CRegisterDataReaderWriter registerAccess;
-
-    private final int STATUS_TEMPERATURE_AVAILABLE_MASK = 1;
-    private final int STATUS_HUMIDITY_AVAILABLE_MASK = 2;
 
     private final float calibH0Rh;
     private final float calibH1Rh;
@@ -43,7 +41,7 @@ public class Hts221Driver {
 
         // Enable the chip
         int ctrl1 = registerAccess.readRegister(Register.CTRL_REG1);
-        registerAccess.writeRegister(Register.CTRL_REG1, ctrl1 | 0x8f);
+        registerAccess.writeRegister(Register.CTRL_REG1, ctrl1 | 0x80);
 
         // Read calibration data.
         // We map the registers into the same addresses in the buffer to simplify addressing.
