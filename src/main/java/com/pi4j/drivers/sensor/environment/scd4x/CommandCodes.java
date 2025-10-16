@@ -1,4 +1,4 @@
-package com.pi4j.drivers.sensor.scd4x;
+package com.pi4j.drivers.sensor.environment.scd4x;
 
 /**
  * Internal command code constants
