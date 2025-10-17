@@ -1,9 +1,9 @@
-package com.pi4j.drivers.sensor.scd4x;
+package com.pi4j.drivers.sensor.environment.scd4x;
 
 import com.pi4j.Pi4J;
 import com.pi4j.context.Context;
-import com.pi4j.drivers.sensor.scd4x.Scd4xDriver.Measurement;
-import com.pi4j.drivers.sensor.scd4x.Scd4xDriver.Mode;
+import com.pi4j.drivers.sensor.environment.scd4x.Scd4xDriver.Measurement;
+import com.pi4j.drivers.sensor.environment.scd4x.Scd4xDriver.Mode;
 import com.pi4j.exception.Pi4JException;
 import com.pi4j.io.i2c.I2C;
 import com.pi4j.io.i2c.I2CConfigBuilder;
