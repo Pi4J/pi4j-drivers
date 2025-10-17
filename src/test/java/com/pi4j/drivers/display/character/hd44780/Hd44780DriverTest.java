@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 public class Hd44780DriverTest {
 
     private static final int BUS = 1;
@@ -41,15 +43,24 @@ public class Hd44780DriverTest {
         characterLcd.write("Hello Wörld (ｼ)\n" + System.currentTimeMillis());
     }
 
+    @Test
+    public void writeToInvalidLineShouldThrowError() {
+        Hd44780Driver characterLcd = createDriver(16, 4);
+        assertThrows(IllegalArgumentException.class, () -> characterLcd.writeAt(0, 5, "Test"));
+    }
 
-    private Hd44780Driver createDriver()  {
+    private Hd44780Driver createDriver() {
+        return createDriver(16, 2);
+    }
+
+    private Hd44780Driver createDriver(int width, int height)  {
         try {
             I2C i2c = pi4j.create(I2C.newConfigBuilder(pi4j)
                     .bus(BUS)
                     .device(DEVICE_ADDRESS)
                     .build());
 
-            return Hd44780Driver.withPcf8574Connection(i2c, 16, 2);
+            return Hd44780Driver.withPcf8574Connection(i2c, width, height);
         } catch (RuntimeException e) {
             e.printStackTrace();
             // TODO(https://github.com/Pi4J/pi4j/issues/489): Catch Pi4j exceptions instead.
