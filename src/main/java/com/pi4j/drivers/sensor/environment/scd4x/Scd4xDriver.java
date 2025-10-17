@@ -1,4 +1,4 @@
-package com.pi4j.drivers.sensor.scd4x;
+package com.pi4j.drivers.sensor.environment.scd4x;
 
 import com.pi4j.io.i2c.I2C;
 
