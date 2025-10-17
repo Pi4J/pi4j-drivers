@@ -257,16 +257,13 @@ public class Hd44780Driver {
     }
 
     /**
-     * Write a text on the given line by setting the cursor position
+     * Write a text on the given position by setting the cursor position
      */
-    public void writeLine(String text, int line) {
-        if (line > height) {
-            throw new IllegalArgumentException("Line " + line + " out of range 1.." + height);
+    public void writeAt(int x, int y, String text) {
+        if (y > height) {
+            throw new IllegalArgumentException("Line " + y + " out of range 1.." + height);
         }
-        if (text.length() > width) {
-            throw new IllegalArgumentException("Text is too long");
-        }
-        setCursorPosition(0, line);
+        setCursorPosition(x, y);
         write(text);
     }
 
