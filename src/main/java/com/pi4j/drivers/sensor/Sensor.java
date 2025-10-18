@@ -94,6 +94,9 @@ public interface Sensor extends Closeable {
         /** Angular velocity around the x-axis in deg/s */
         ANGULAR_VELOCITY_Z,
 
+        /** CO2 in ppm */
+        CO2,
+
         /** Relative Humidity (0…100%) */
         HUMIDITY,
 

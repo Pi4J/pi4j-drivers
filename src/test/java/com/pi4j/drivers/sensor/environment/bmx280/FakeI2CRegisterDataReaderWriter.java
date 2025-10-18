@@ -1,9 +1,7 @@
-package com.pi4j.drivers.sensor.bmx280;
+package com.pi4j.drivers.sensor.environment.bmx280;
 
 import com.pi4j.io.i2c.I2CRegisterDataReaderWriter;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Fake I2C register access implementation that just stores the register values as sent.

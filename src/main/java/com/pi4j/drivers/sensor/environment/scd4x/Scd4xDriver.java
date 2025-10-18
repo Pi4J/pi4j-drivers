@@ -1,8 +1,8 @@
 package com.pi4j.drivers.sensor.environment.scd4x;
 
+import com.pi4j.drivers.sensor.Sensor;
 import com.pi4j.io.i2c.I2C;
 
-import java.io.Closeable;
 import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -12,12 +12,15 @@ import java.time.temporal.ChronoUnit;
  * <p>
  * Product datasheet link: https://sensirion.com/media/documents/48C4B7FB/64C134E7/Sensirion_SCD4x_Datasheet.pdf
  */
-public class Scd4xDriver implements Closeable {
-
+public class Scd4xDriver implements Sensor {
     /**
      * The I2C address of the device (needed for constructing an I2C instance)
      */
     public static final int I2C_ADDRESS = 0x62;
+    public static final Descriptor DESCRIPTOR = new Descriptor(
+            new ValueDescriptor(0, ValueKind.TEMPERATURE),
+            new ValueDescriptor(1, ValueKind.PRESSURE),
+            new ValueDescriptor(2, ValueKind.CO2));
 
     private final I2C i2c;
     private final ByteBuffer ioBuf = ByteBuffer.allocate(9);
@@ -39,6 +42,12 @@ public class Scd4xDriver implements Closeable {
         safeInit();
     }
 
+
+    @Override
+    public Descriptor getDescriptor() {
+        return DESCRIPTOR;
+    }
+
     // Basic commands; Chapter 3.5
 
     /**
@@ -49,6 +58,14 @@ public class Scd4xDriver implements Closeable {
         mode = Mode.PERIODIC_MEASUREMENT;
     }
 
+
+    public void readMeasurement(float[] values) {
+        Measurement measurement = readMeasurement();
+        values[0] = measurement.temperature;
+        values[1] = measurement.humidity;
+        values[2] = measurement.co2;
+    }
+
     /**
      * Read a measurement. This command will implicitly wait until a measurement is available and throw an
      * exception if a measurement will not be available within the interval time implied by the measurement mode.
@@ -57,6 +74,10 @@ public class Scd4xDriver implements Closeable {
      * time implied by the measurement mode.
      */
     public Measurement readMeasurement() {
+        boolean wasIdle = mode == Mode.IDLE;
+        if (wasIdle) {
+            startPeriodicMeasurement();
+        }
         materializeDelay();
 
         int expectedInterval = (mode == Mode.LOW_POWER_PERIODIC_MEASUREMENT ? 30_000 : 5_000);
@@ -87,7 +108,10 @@ public class Scd4xDriver implements Closeable {
         int raw_temperature = getWord(3);
         int raw_humidity = getWord(6);
 
-        if (mode == Mode.SINGLE_SHOT_MEASUREMENT) {
+        // Adjust state.
+        if (wasIdle) {
+            stopPeriodicMeasurement();
+        } else if (mode == Mode.SINGLE_SHOT_MEASUREMENT) {
             mode = Mode.IDLE;
         }
 
@@ -472,6 +496,9 @@ public class Scd4xDriver implements Closeable {
 
     @Override
     public void close() {
+        if (mode == Mode.PERIODIC_MEASUREMENT) {
+            stopPeriodicMeasurement();
+        }
         i2c.close();
     }
 

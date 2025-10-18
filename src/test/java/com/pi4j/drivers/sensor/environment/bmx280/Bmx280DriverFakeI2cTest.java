@@ -1,4 +1,4 @@
-package com.pi4j.drivers.sensor.bmx280;
+package com.pi4j.drivers.sensor.environment.bmx280;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
