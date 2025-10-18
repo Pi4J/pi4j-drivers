@@ -1,5 +1,6 @@
 package com.pi4j.drivers.display.character.hd44780;
 
+import com.pi4j.drivers.display.character.CharacterDisplay;
 import com.pi4j.drivers.io.expander.mcp23008.Mcp23008Driver;
 import com.pi4j.io.OnOffWrite;
 import com.pi4j.io.i2c.I2C;
@@ -17,7 +18,7 @@ import java.util.Map;
  *
  * Spec: https://cdn.sparkfun.com/assets/9/5/f/7/b/HD44780.pdf
  */
-public class Hd44780Driver {
+public class Hd44780Driver implements CharacterDisplay {
 
     // Specified values are multiplied by 2 to allow for the minimum frequency.
     private static final int STANDARD_DELAY_MICROS = 2 * 37;
@@ -201,6 +202,16 @@ public class Hd44780Driver {
         cursorY = 0;
     }
 
+    @Override
+    public int getWidth() {
+        return width;
+    }
+
+    @Override
+    public int getHeight() {
+        return height;
+    }
+
     /**
      * Returns the Cursor to Home Position (First line, first character)
      */
@@ -259,6 +270,7 @@ public class Hd44780Driver {
     /**
      * Write a text on the given position by setting the cursor position
      */
+    @Override
     public void writeAt(int x, int y, String text) {
         if (y > height) {
             throw new IllegalArgumentException("Line " + y + " out of range 1.." + height);
