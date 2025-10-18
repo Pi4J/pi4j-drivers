@@ -2,29 +2,56 @@ package com.pi4j.drivers.sensor;
 
 import java.io.Closeable;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.Iterator;
 
+/** Implemented by sensor drivers providing one or multiple values. */
 public interface Sensor extends Closeable {
     Descriptor getDescriptor();
 
+    /** Reads a single measurement. For information about the values, please refer to getDescriptor() */
     void readMeasurement(float[] values);
 
     @Override
     void close();
 
-    class Descriptor {
-        private final List<ValueDescriptor> valueDescriptors;
+    /**
+     * A Descriptor for a sensor. Provides meta-information about the sensor, in particular what kind of values
+     * it is able to provide.
+     */
+    class Descriptor implements Iterable<ValueDescriptor> {
+        private final ValueDescriptor[] valueDescriptors;
 
         public Descriptor(ValueDescriptor... descriptors) {
-            this.valueDescriptors = Collections.unmodifiableList(Arrays.asList(descriptors));
+            this.valueDescriptors = descriptors;
         }
 
-        public List<ValueDescriptor> getValueDescriptors() {
-            return valueDescriptors;
+        /** Returns the number of values provided by the sensor. */
+        public int getValueCount() {
+            return valueDescriptors.length;
+        }
+
+        /** Returns the value descriptor with the given index */
+        public ValueDescriptor getValueDescriptor(int index) {
+            return valueDescriptors[index];
+        }
+
+        /** Returns the first index of a value of the given kind, or -1 if not found. */
+        public int indexOf(ValueKind kind) {
+            for (ValueDescriptor valueDescriptor : this) {
+                if (valueDescriptor.getKind() == kind) {
+                    return valueDescriptor.index;
+                }
+            }
+            return -1;
+        }
+
+        @Override
+        public Iterator<ValueDescriptor> iterator() {
+            return Arrays.asList(valueDescriptors).iterator();
         }
     }
 
+    /** Descriptor for a single sensor value. */
     class ValueDescriptor {
         private final int index;
         private final ValueKind kind;
@@ -34,6 +61,7 @@ public interface Sensor extends Closeable {
             this.kind = kind;
         }
 
+        /** The index of the described value in readMeasurement */
         public int getIndex() {
             return index;
         }
@@ -43,7 +71,10 @@ public interface Sensor extends Closeable {
         }
     }
 
-    /** Units are SI units or common SI-based units  */
+    /**
+     * Describes the kind of a sensor value.
+     * Units are SI units or common SI-based units.
+     */
     enum ValueKind {
         /** Acceleration in the x-direction m/s^2 */
         ACCELERATION_X,
@@ -90,7 +121,5 @@ public interface Sensor extends Closeable {
 
         /** Temperature in degree Celsius */
         TEMPERATURE,
-
-
     }
 }
