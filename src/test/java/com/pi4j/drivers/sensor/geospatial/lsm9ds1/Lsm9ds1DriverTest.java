@@ -37,11 +37,11 @@ public class Lsm9ds1DriverTest {
 
     public Lsm9ds1Driver createDriver() {
         try {
-            I2C i2c = pi4j.create(I2C.newConfigBuilder(pi4j).bus(BUS).device(Lsm9ds1Driver.I2C_ADDRESS));
+            I2C i2c = pi4j.create(I2C.newConfigBuilder(pi4j).bus(BUS).device(Lsm9ds1Driver.I2C_ADDRESS_0));
             return new Lsm9ds1Driver(i2c);
         } catch (Exception e) {
             e.printStackTrace();
-            Assumptions.abort("LSM9DS1 not found on i2c bus " + BUS + " address " + Lsm9ds1Driver.I2C_ADDRESS);
+            Assumptions.abort("LSM9DS1 not found on i2c bus " + BUS + " address " + Lsm9ds1Driver.I2C_ADDRESS_0);
             throw new RuntimeException(e);
         }
     }

@@ -1,19 +1,26 @@
 package com.pi4j.drivers.sensor.environment.lps25h;
 
+import com.pi4j.drivers.sensor.Sensor;
 import com.pi4j.io.i2c.I2CRegisterDataReaderWriter;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 /**
  * https://www.st.com/resource/en/datasheet/lps25h.pdf
  */
-public class Lps25hDriver {
+public class Lps25hDriver implements Sensor {
     public static final int I2C_ADDRESS = 0x5c;
+    public static final Descriptor DESCRIPTOR = new Descriptor(
+            new ValueDescriptor(0, ValueKind.PRESSURE),
+            new ValueDescriptor(1, ValueKind.TEMPERATURE));
 
     private static final int WHO_AM_I_VALUE = 0xbd;
     private static final int STATUS_TEMPERATURE_AVAILABLE_MASK = 1;
     private static final int STATUS_PRESSURE_AVAILABLE_MASK = 2;
+
 
     private final I2CRegisterDataReaderWriter registerAccess;
 
@@ -33,17 +40,42 @@ public class Lps25hDriver {
         registerAccess.writeRegister(Register.CTRL_REG1, ctrl1 | 0x80);
     }
 
-    public float readTemperature() {
-        requestData(STATUS_TEMPERATURE_AVAILABLE_MASK);
-        registerAccess.readRegister(Register.TEMP_OUT_L | Register.AUTO_INCREMENT_FLAG, buffer.array(), 0, 2);
-        return buffer.getShort(0) / 480f + 42.5f;
+    @Override
+    public void close() {
+        // Disable the chip
+        int ctrl1 = registerAccess.readRegister(Register.CTRL_REG1);
+        registerAccess.writeRegister(Register.CTRL_REG1, ctrl1 & 0x7f);
+
+        if (registerAccess instanceof Closeable) {
+            try {
+                ((Closeable) registerAccess).close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
+    @Override
+    public Descriptor getDescriptor() {
+        return DESCRIPTOR;
+    }
+
+    @Override
+    public void readMeasurement(float[] values) {
+        values[0] = readPressure();
+        values[1] = readTemperature();
+    }
 
     public float readPressure() {
         requestData(STATUS_PRESSURE_AVAILABLE_MASK);
         registerAccess.readRegister(Register.PRESS_POUT_XL | Register.AUTO_INCREMENT_FLAG, buffer.array(), 0, 3);
         return buffer.getInt(0) / 4096f;
+    }
+
+    public float readTemperature() {
+        requestData(STATUS_TEMPERATURE_AVAILABLE_MASK);
+        registerAccess.readRegister(Register.TEMP_OUT_L | Register.AUTO_INCREMENT_FLAG, buffer.array(), 0, 2);
+        return buffer.getShort(0) / 480f + 42.5f;
     }
 
 
@@ -63,4 +95,5 @@ public class Lps25hDriver {
             }
         }
     }
+
 }

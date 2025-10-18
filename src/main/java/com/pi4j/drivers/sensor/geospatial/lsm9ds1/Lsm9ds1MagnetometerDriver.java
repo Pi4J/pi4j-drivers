@@ -1,5 +1,6 @@
 package com.pi4j.drivers.sensor.geospatial.lsm9ds1;
 
+import com.pi4j.drivers.sensor.Sensor;
 import com.pi4j.io.i2c.I2CRegisterDataReaderWriter;
 
 import java.io.Closeable;
@@ -16,10 +17,15 @@ import java.nio.ByteOrder;
  * <p>
  * Datasheet: https://www.st.com/resource/en/datasheet/lsm9ds1.pdf
  */
-public class Lsm9ds1MagnetometerDriver implements Closeable {
-    private static final int WHO_AM_I_VALUE = 0b111101;
+public class Lsm9ds1MagnetometerDriver implements Sensor {
     public static final int I2C_ADDRESS_0 = 0x1c;
     public static final int I2C_ADDRESS_1 = 0x1e;
+    public static final Descriptor DESCRIPTOR = new Descriptor(
+            new ValueDescriptor(0, ValueKind.MAGNETIC_FIELD_X),
+            new ValueDescriptor(0, ValueKind.MAGNETIC_FIELD_Y),
+            new ValueDescriptor(0, ValueKind.MAGNETIC_FIELD_Z));
+
+    private static final int WHO_AM_I_VALUE = 0b111101;
 
     private final I2CRegisterDataReaderWriter registerAccess;
 
@@ -39,7 +45,6 @@ public class Lsm9ds1MagnetometerDriver implements Closeable {
         setRegisterBits(Register.CTRL_REG2_M, 2, 2, 1);
     }
 
-
     @Override
     public void close() {
         if (registerAccess instanceof Closeable) {
@@ -51,7 +56,13 @@ public class Lsm9ds1MagnetometerDriver implements Closeable {
         }
     }
 
-    public float[] readMagneticField() {
+    @Override
+    public Descriptor getDescriptor() {
+        return DESCRIPTOR;
+    }
+
+    @Override
+    public void readMeasurement(float[] values) {
         // Request single measurement
         setRegisterBits(Register.CTRL_REG3_M, 1, 0, 1);
 
@@ -73,9 +84,15 @@ public class Lsm9ds1MagnetometerDriver implements Closeable {
 
         registerAccess.readRegister(Register.OUT_X_L_M, buffer.array(), 0, 6);
 
-        return new float[] {
-                buffer.getShort(0) * scale, buffer.getShort(2) * scale, buffer.getShort(4) * scale
-        };
+        values[0] = buffer.getShort(0) * scale;
+        values[1] = buffer.getShort(2) * scale;
+        values[2] = buffer.getShort(4) * scale;
+    }
+
+    public float[] readMagneticField() {
+        float[] result = new float[3];
+        readMeasurement(result);
+        return result;
     }
 
     public void setRange(Range range) {
@@ -94,7 +111,6 @@ public class Lsm9ds1MagnetometerDriver implements Closeable {
 
         registerAccess.writeRegister(register, updatedValue);
     }
-
 
     enum Range {
         // The order is important, as the ordinal value will be used to set the corresponding register;

@@ -1,8 +1,10 @@
 package com.pi4j.drivers.sensor.environment.tcs3400;
 
+import com.pi4j.drivers.sensor.Sensor;
 import com.pi4j.io.i2c.I2CRegisterDataReaderWriter;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -11,9 +13,14 @@ import java.nio.ByteOrder;
  *
  * Datasheet: https://look.ams-osram.com/m/595d46c644740603/original/TCS3400-Color-Light-to-Digital-Converter.pdf
  */
-public class Tcs3400Driver implements Closeable {
+public class Tcs3400Driver implements Sensor {
     public static final int I2C_ADDRESS = 0x39;
     public static final int I2C_ADDRESS_TCS34007 = 0x29;
+    public static final Descriptor DESCRIPTOR = new Descriptor(
+            new ValueDescriptor(0, ValueKind.LIGHT),
+            new ValueDescriptor(1, ValueKind.LIGHT_RED),
+            new ValueDescriptor(2, ValueKind.LIGHT_GREEN),
+            new ValueDescriptor(3, ValueKind.LIGHT_BLUE));
 
     private static final int ID_TCS34001_34005 = 0b100100_00;
     private static final int ID_TCS34003_34007 = 0b100100_11;
@@ -32,11 +39,36 @@ public class Tcs3400Driver implements Closeable {
         registerAccess.writeRegister(Register.ENABLE, 0b00000011);  // AES, PON bits
     }
 
+    @Override
+    public void close() {
+        registerAccess.writeRegister(Register.ENABLE, 0);
+
+        if (registerAccess instanceof Closeable) {
+            try {
+                ((Closeable) registerAccess).close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    @Override
+    public Descriptor getDescriptor() {
+        return DESCRIPTOR;
+    }
+
     /**
-     * Reads the "clear"(?), red, green and blue values from the sensor and returns them as an array of four
+     * Reads the "clear", red, green and blue values from the sensor and returns them as an array of four
      * integers.
      */
     public float[] readCrgb() {
+        float[] result = new float[4];
+        readMeasurement(result);
+        return result;
+    }
+
+    @Override
+    public void readMeasurement(float[] values) {
         while((registerAccess.readRegister(Register.STATUS) & 1) == 0) {
             try {
                 Thread.sleep(10);
@@ -47,18 +79,9 @@ public class Tcs3400Driver implements Closeable {
         }
         registerAccess.readRegister(Register.CDATAL, buffer.array(), 0, 8);
 
-        return new float[] {
-                buffer.getShort(0) & 0xffff,
-                buffer.getShort(2) & 0xffff,
-                buffer.getShort(4) & 0xffff,
-                buffer.getShort(6) & 0xffff,
-        };
+        values[0] =  buffer.getShort(0) & 0xffff;
+        values[1] =  buffer.getShort(2) & 0xffff;
+        values[2] =  buffer.getShort(4) & 0xffff;
+        values[3] =  buffer.getShort(6) & 0xffff;
     }
-
-
-    @Override
-    public void close() {
-        registerAccess.writeRegister(Register.ENABLE, 0);
-    }
-
 }
