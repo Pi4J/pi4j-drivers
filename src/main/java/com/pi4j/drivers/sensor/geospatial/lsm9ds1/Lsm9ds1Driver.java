@@ -1,21 +1,32 @@
 package com.pi4j.drivers.sensor.geospatial.lsm9ds1;
 
+import com.pi4j.drivers.sensor.Sensor;
 import com.pi4j.io.i2c.I2CRegisterDataReaderWriter;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 /**
  * Basic driver for the LSM9DS1 inertial module (IMU) accelerometer and gyroscope.
  * <p>
- * Note that the magnetometer of this module has its own connection, handled by a separate driver. 
+ * Note that the magnetometer of this module has its own connection, handled by a separate driver.
  * <p>
  * Interrupts, FIFO and some settings are currently not supported.
  * <p>
  * Datasheet: https://www.st.com/resource/en/datasheet/lsm9ds1.pdf
  */
-public class Lsm9ds1Driver {
-    public static final int I2C_ADDRESS = 0x6a;
+public class Lsm9ds1Driver implements Sensor {
+    public static final int I2C_ADDRESS_0 = 0x6a;
+    public static final int I2C_ADDRESS_1 = 0x6b;
+    public static final Descriptor DESCRIPTOR = new Descriptor(
+            new ValueDescriptor(0, ValueKind.ACCELERATION_X),
+            new ValueDescriptor(1, ValueKind.ACCELERATION_Y),
+            new ValueDescriptor(2, ValueKind.ACCELERATION_Z),
+            new ValueDescriptor(3, ValueKind.ANGULAR_VELOCITY_X),
+            new ValueDescriptor(4, ValueKind.ANGULAR_VELOCITY_Y),
+            new ValueDescriptor(5, ValueKind.ANGULAR_VELOCITY_Z));
 
     private final static int WHO_AM_I_VALUE = 0b01101000;
 
@@ -25,8 +36,8 @@ public class Lsm9ds1Driver {
 
     private GyroscopeRange gyroscopeRange = GyroscopeRange.DPS_245;
     private AccelerometerRange accelerometerRange = AccelerometerRange.G_2;
-    private boolean accelerometerEnabled = false;
-    private boolean gyroscopeEnabled = false;
+    private boolean accelerometerEnabled = true;
+    private boolean gyroscopeEnabled = true;
     private int outputDataRateCode = 1;
     private float outputDataRate = 14.9f;
 
@@ -48,6 +59,42 @@ public class Lsm9ds1Driver {
             Thread.currentThread().interrupt();
             throw new RuntimeException(e);
         }
+        updateOperationMode();
+    }
+
+    @Override
+    public void close() {
+        gyroscopeEnabled = false;
+        accelerometerEnabled = false;
+        updateOperationMode();
+
+        if (registerAccess instanceof Closeable) {
+            try {
+                ((Closeable) registerAccess).close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    @Override
+    public Descriptor getDescriptor() {
+        return DESCRIPTOR;
+    }
+
+    @Override
+    public void readMeasurement(float[] values) {
+        registerAccess.readRegister(Register.OUT_X_L_XL,  buffer.array(), 0, 6);
+
+        values[0] = buffer.getShort(0) * accelerometerRange.ms2/ Short.MAX_VALUE;
+        values[1] = buffer.getShort(2) * accelerometerRange.ms2 / Short.MAX_VALUE;
+        values[2] = buffer.getShort(4) * accelerometerRange.ms2 / Short.MAX_VALUE;
+
+        registerAccess.readRegister(Register.OUT_X_L_G, buffer.array(), 0, 6);
+
+        values[3] = (gyroscopeRange.getDps() * buffer.getShort(0)) / Short.MAX_VALUE;
+        values[4] = (gyroscopeRange.getDps() * buffer.getShort(2)) / Short.MAX_VALUE;
+        values[5] = (gyroscopeRange.getDps() * buffer.getShort(4)) / Short.MAX_VALUE;
     }
 
     /** Returns a float array containing the gyroscope x, y and z-values in degree per second. */
@@ -141,6 +188,7 @@ public class Lsm9ds1Driver {
         // normal mode and the gyroscope is powered down".
         // Here, we order the calls to be safe wrt. to this.
         if (gyroscopeEnabled) {
+            setRegisterBits(Register.CTRL_REG6_XL, 7, 5, accelerometerEnabled ? outputDataRateCode : 0);
             setRegisterBits(Register.CTRL_REG1_G, 7, 5, outputDataRateCode);
         } else if (accelerometerEnabled) {
             setRegisterBits(Register.CTRL_REG1_G, 7, 5, 0);
@@ -160,6 +208,7 @@ public class Lsm9ds1Driver {
 
         registerAccess.writeRegister(register, updatedValue);
     }
+
 
     // Public Enums
 
