@@ -2,6 +2,7 @@ package com.pi4j.drivers.sensor.environment.lps25h;
 
 import com.pi4j.drivers.sensor.Sensor;
 import com.pi4j.drivers.sensor.SensorDescriptor;
+import com.pi4j.io.i2c.I2C;
 import com.pi4j.io.i2c.I2CRegisterDataReaderWriter;
 
 import java.io.Closeable;
@@ -14,12 +15,15 @@ import java.nio.ByteOrder;
  */
 public class Lps25hDriver implements Sensor {
     public static final int I2C_ADDRESS = 0x5c;
+    private static final int WHO_AM_I_VALUE = 0xbd;
+
     public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor.Builder()
             .addValue(SensorDescriptor.Kind.PRESSURE)
             .addValue(SensorDescriptor.Kind.TEMPERATURE)
+            .addI2cAddress(I2C_ADDRESS)
+            .setI2cSensorDetector(i2c -> i2c.readRegister(Register.WHO_AM_I) == WHO_AM_I_VALUE ? new Lps25hDriver(i2c) : null)
             .build();
 
-    private static final int WHO_AM_I_VALUE = 0xbd;
     private static final int STATUS_TEMPERATURE_AVAILABLE_MASK = 1;
     private static final int STATUS_PRESSURE_AVAILABLE_MASK = 2;
 

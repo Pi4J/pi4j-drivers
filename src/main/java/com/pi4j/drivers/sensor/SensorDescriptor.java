@@ -1,8 +1,11 @@
 package com.pi4j.drivers.sensor;
 
+import com.pi4j.io.i2c.I2C;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * A Descriptor for a sensor. Provides meta-information about the sensor, in particular what kind of values
@@ -10,9 +13,17 @@ import java.util.List;
  */
 public class SensorDescriptor {
     private final List<Value> values;
+    private final List<Integer> i2cAddresses;
+    private final Function<I2C, Sensor> i2cSensorDetector;
 
-    public SensorDescriptor(List<Value> values) {
+    public SensorDescriptor(
+            List<Value> values,
+            List<Integer> i2cAddresses,
+            Function<I2C, Sensor> i2cSensorDetector
+    ) {
         this.values = Collections.unmodifiableList(values);
+        this.i2cAddresses = Collections.unmodifiableList(i2cAddresses);
+        this.i2cSensorDetector = i2cSensorDetector;
     }
 
     /**
@@ -34,16 +45,36 @@ public class SensorDescriptor {
         return -1;
     }
 
+    public List<Integer> getI2cAddresses() {
+        return i2cAddresses;
+    }
+
+    public Sensor detect(I2C i2c) {
+        return i2cSensorDetector.apply(i2c);
+    }
+
     public static class Builder {
         private final List<Value> values = new ArrayList<>();
+        private final List<Integer> i2cAddresses = new ArrayList<>();
+        private Function<I2C, Sensor> i2cSensorDetector;
 
         public Builder addValue(Kind kind) {
             values.add(new Value(values.size(), kind));
             return this;
         }
 
+        public Builder addI2cAddress(int address) {
+            i2cAddresses.add(address);
+            return this;
+        }
+
+        public Builder setI2cSensorDetector(Function<I2C, Sensor> i2cSensorDetector) {
+            this.i2cSensorDetector = i2cSensorDetector;
+            return this;
+        }
+
         public SensorDescriptor build() {
-            return new SensorDescriptor(values);
+            return new SensorDescriptor(values, i2cAddresses, i2cSensorDetector);
         }
     }
 
