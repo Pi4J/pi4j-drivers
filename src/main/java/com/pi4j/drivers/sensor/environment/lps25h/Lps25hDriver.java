@@ -2,7 +2,6 @@ package com.pi4j.drivers.sensor.environment.lps25h;
 
 import com.pi4j.drivers.sensor.Sensor;
 import com.pi4j.drivers.sensor.SensorDescriptor;
-import com.pi4j.io.i2c.I2C;
 import com.pi4j.io.i2c.I2CRegisterDataReaderWriter;
 
 import java.io.Closeable;
