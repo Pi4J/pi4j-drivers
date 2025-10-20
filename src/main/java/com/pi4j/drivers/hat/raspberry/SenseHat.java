@@ -1,4 +1,4 @@
-package com.pi4j.drivers.hat.rasperry;
+package com.pi4j.drivers.hat.raspberry;
 
 import com.pi4j.context.Context;
 import com.pi4j.drivers.display.graphics.GraphicsDisplay;
