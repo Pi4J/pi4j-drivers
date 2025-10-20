@@ -1,6 +1,7 @@
 package com.pi4j.drivers.sensor.environment.tcs3400;
 
 import com.pi4j.drivers.sensor.Sensor;
+import com.pi4j.drivers.sensor.SensorDescriptor;
 import com.pi4j.io.i2c.I2CRegisterDataReaderWriter;
 
 import java.io.Closeable;
@@ -16,11 +17,12 @@ import java.nio.ByteOrder;
 public class Tcs3400Driver implements Sensor {
     public static final int I2C_ADDRESS = 0x39;
     public static final int I2C_ADDRESS_TCS34007 = 0x29;
-    public static final Descriptor DESCRIPTOR = new Descriptor(
-            new ValueDescriptor(0, ValueKind.LIGHT),
-            new ValueDescriptor(1, ValueKind.LIGHT_RED),
-            new ValueDescriptor(2, ValueKind.LIGHT_GREEN),
-            new ValueDescriptor(3, ValueKind.LIGHT_BLUE));
+    public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor.Builder()
+            .addValue(SensorDescriptor.Kind.LIGHT)
+            .addValue(SensorDescriptor.Kind.LIGHT_RED)
+            .addValue(SensorDescriptor.Kind.LIGHT_GREEN)
+            .addValue(SensorDescriptor.Kind.LIGHT_BLUE)
+            .build();
 
     private static final int ID_TCS34001_34005 = 0b100100_00;
     private static final int ID_TCS34003_34007 = 0b100100_11;
@@ -53,7 +55,7 @@ public class Tcs3400Driver implements Sensor {
     }
 
     @Override
-    public Descriptor getDescriptor() {
+    public SensorDescriptor getDescriptor() {
         return DESCRIPTOR;
     }
 

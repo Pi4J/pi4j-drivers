@@ -1,6 +1,7 @@
 package com.pi4j.drivers.sensor.geospatial.lsm9ds1;
 
 import com.pi4j.drivers.sensor.Sensor;
+import com.pi4j.drivers.sensor.SensorDescriptor;
 import com.pi4j.io.i2c.I2CRegisterDataReaderWriter;
 
 import java.io.Closeable;
@@ -20,10 +21,11 @@ import java.nio.ByteOrder;
 public class Lsm9ds1MagnetometerDriver implements Sensor {
     public static final int I2C_ADDRESS_0 = 0x1c;
     public static final int I2C_ADDRESS_1 = 0x1e;
-    public static final Descriptor DESCRIPTOR = new Descriptor(
-            new ValueDescriptor(0, ValueKind.MAGNETIC_FIELD_X),
-            new ValueDescriptor(0, ValueKind.MAGNETIC_FIELD_Y),
-            new ValueDescriptor(0, ValueKind.MAGNETIC_FIELD_Z));
+    public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor.Builder()
+            .addValue(SensorDescriptor.Kind.MAGNETIC_FIELD_X)
+            .addValue(SensorDescriptor.Kind.MAGNETIC_FIELD_Y)
+            .addValue(SensorDescriptor.Kind.MAGNETIC_FIELD_Z)
+            .build();
 
     private static final int WHO_AM_I_VALUE = 0b111101;
 
@@ -57,7 +59,7 @@ public class Lsm9ds1MagnetometerDriver implements Sensor {
     }
 
     @Override
-    public Descriptor getDescriptor() {
+    public SensorDescriptor getDescriptor() {
         return DESCRIPTOR;
     }
 

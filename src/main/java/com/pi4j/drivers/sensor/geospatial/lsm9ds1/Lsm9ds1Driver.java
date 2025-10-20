@@ -1,6 +1,7 @@
 package com.pi4j.drivers.sensor.geospatial.lsm9ds1;
 
 import com.pi4j.drivers.sensor.Sensor;
+import com.pi4j.drivers.sensor.SensorDescriptor;
 import com.pi4j.io.i2c.I2CRegisterDataReaderWriter;
 
 import java.io.Closeable;
@@ -20,13 +21,14 @@ import java.nio.ByteOrder;
 public class Lsm9ds1Driver implements Sensor {
     public static final int I2C_ADDRESS_0 = 0x6a;
     public static final int I2C_ADDRESS_1 = 0x6b;
-    public static final Descriptor DESCRIPTOR = new Descriptor(
-            new ValueDescriptor(0, ValueKind.ACCELERATION_X),
-            new ValueDescriptor(1, ValueKind.ACCELERATION_Y),
-            new ValueDescriptor(2, ValueKind.ACCELERATION_Z),
-            new ValueDescriptor(3, ValueKind.ANGULAR_VELOCITY_X),
-            new ValueDescriptor(4, ValueKind.ANGULAR_VELOCITY_Y),
-            new ValueDescriptor(5, ValueKind.ANGULAR_VELOCITY_Z));
+    public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor.Builder()
+            .addValue(SensorDescriptor.Kind.ACCELERATION_X)
+            .addValue(SensorDescriptor.Kind.ACCELERATION_Y)
+            .addValue(SensorDescriptor.Kind.ACCELERATION_Z)
+            .addValue(SensorDescriptor.Kind.ANGULAR_VELOCITY_X)
+            .addValue(SensorDescriptor.Kind.ANGULAR_VELOCITY_Y)
+            .addValue(SensorDescriptor.Kind.ANGULAR_VELOCITY_Z)
+            .build();
 
     private final static int WHO_AM_I_VALUE = 0b01101000;
 
@@ -78,7 +80,7 @@ public class Lsm9ds1Driver implements Sensor {
     }
 
     @Override
-    public Descriptor getDescriptor() {
+    public SensorDescriptor getDescriptor() {
         return DESCRIPTOR;
     }
 
