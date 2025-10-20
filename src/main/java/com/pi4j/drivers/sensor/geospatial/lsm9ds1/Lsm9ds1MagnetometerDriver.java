@@ -21,10 +21,11 @@ import java.nio.ByteOrder;
 public class Lsm9ds1MagnetometerDriver implements Sensor {
     public static final int I2C_ADDRESS_0 = 0x1c;
     public static final int I2C_ADDRESS_1 = 0x1e;
-    public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor(
-            new SensorDescriptor.Value(0, SensorDescriptor.Kind.MAGNETIC_FIELD_X),
-            new SensorDescriptor.Value(0, SensorDescriptor.Kind.MAGNETIC_FIELD_Y),
-            new SensorDescriptor.Value(0, SensorDescriptor.Kind.MAGNETIC_FIELD_Z));
+    public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor.Builder()
+            .addValue(SensorDescriptor.Kind.MAGNETIC_FIELD_X)
+            .addValue(SensorDescriptor.Kind.MAGNETIC_FIELD_Y)
+            .addValue(SensorDescriptor.Kind.MAGNETIC_FIELD_Z)
+            .build();
 
     private static final int WHO_AM_I_VALUE = 0b111101;
 

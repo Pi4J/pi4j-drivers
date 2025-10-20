@@ -1,6 +1,6 @@
 package com.pi4j.drivers.sensor;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -11,8 +11,8 @@ import java.util.List;
 public class SensorDescriptor {
     private final List<Value> values;
 
-    public SensorDescriptor(Value... values) {
-        this.values = Collections.unmodifiableList(Arrays.asList(values));
+    public SensorDescriptor(List<Value> values) {
+        this.values = Collections.unmodifiableList(values);
     }
 
     /**
@@ -33,6 +33,40 @@ public class SensorDescriptor {
         }
         return -1;
     }
+
+    public static class Builder {
+        private final List<Value> values = new ArrayList<>();
+
+        public Builder addValue(Kind kind) {
+            values.add(new Value(values.size(), kind));
+            return this;
+        }
+
+        public SensorDescriptor build() {
+            return new SensorDescriptor(values);
+        }
+    }
+
+    /** Descriptor for a single sensor value. */
+    public static class Value {
+        private final int index;
+        private final Kind kind;
+
+        public Value(int index, Kind kind) {
+            this.index = index;
+            this.kind = kind;
+        }
+
+        /** The index of the described value in readMeasurement */
+        public int getIndex() {
+            return index;
+        }
+
+        public Kind getKind() {
+            return kind;
+        }
+    }
+
 
     /**
      * Describes the kind of a sensor value.
@@ -89,23 +123,4 @@ public class SensorDescriptor {
         TEMPERATURE,
     }
 
-    /** Descriptor for a single sensor value. */
-    public static class Value {
-        private final int index;
-        private final Kind kind;
-
-        public Value(int index, Kind kind) {
-            this.index = index;
-            this.kind = kind;
-        }
-
-        /** The index of the described value in readMeasurement */
-        public int getIndex() {
-            return index;
-        }
-
-        public Kind getKind() {
-            return kind;
-        }
-    }
 }

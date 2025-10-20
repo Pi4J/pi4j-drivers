@@ -17,11 +17,12 @@ import java.nio.ByteOrder;
 public class Tcs3400Driver implements Sensor {
     public static final int I2C_ADDRESS = 0x39;
     public static final int I2C_ADDRESS_TCS34007 = 0x29;
-    public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor(
-            new SensorDescriptor.Value(0, SensorDescriptor.Kind.LIGHT),
-            new SensorDescriptor.Value(1, SensorDescriptor.Kind.LIGHT_RED),
-            new SensorDescriptor.Value(2, SensorDescriptor.Kind.LIGHT_GREEN),
-            new SensorDescriptor.Value(3, SensorDescriptor.Kind.LIGHT_BLUE));
+    public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor.Builder()
+            .addValue(SensorDescriptor.Kind.LIGHT)
+            .addValue(SensorDescriptor.Kind.LIGHT_RED)
+            .addValue(SensorDescriptor.Kind.LIGHT_GREEN)
+            .addValue(SensorDescriptor.Kind.LIGHT_BLUE)
+            .build();
 
     private static final int ID_TCS34001_34005 = 0b100100_00;
     private static final int ID_TCS34003_34007 = 0b100100_11;

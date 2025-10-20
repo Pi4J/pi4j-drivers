@@ -21,13 +21,14 @@ import java.nio.ByteOrder;
 public class Lsm9ds1Driver implements Sensor {
     public static final int I2C_ADDRESS_0 = 0x6a;
     public static final int I2C_ADDRESS_1 = 0x6b;
-    public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor(
-            new SensorDescriptor.Value(0, SensorDescriptor.Kind.ACCELERATION_X),
-            new SensorDescriptor.Value(1, SensorDescriptor.Kind.ACCELERATION_Y),
-            new SensorDescriptor.Value(2, SensorDescriptor.Kind.ACCELERATION_Z),
-            new SensorDescriptor.Value(3, SensorDescriptor.Kind.ANGULAR_VELOCITY_X),
-            new SensorDescriptor.Value(4, SensorDescriptor.Kind.ANGULAR_VELOCITY_Y),
-            new SensorDescriptor.Value(5, SensorDescriptor.Kind.ANGULAR_VELOCITY_Z));
+    public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor.Builder()
+            .addValue(SensorDescriptor.Kind.ACCELERATION_X)
+            .addValue(SensorDescriptor.Kind.ACCELERATION_Y)
+            .addValue(SensorDescriptor.Kind.ACCELERATION_Z)
+            .addValue(SensorDescriptor.Kind.ANGULAR_VELOCITY_X)
+            .addValue(SensorDescriptor.Kind.ANGULAR_VELOCITY_Y)
+            .addValue(SensorDescriptor.Kind.ANGULAR_VELOCITY_Z)
+            .build();
 
     private final static int WHO_AM_I_VALUE = 0b01101000;
 

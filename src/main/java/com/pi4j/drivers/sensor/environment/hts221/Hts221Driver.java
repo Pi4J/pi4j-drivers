@@ -16,9 +16,10 @@ import java.nio.ByteOrder;
  */
 public class Hts221Driver implements Sensor {
     public static final int I2C_ADDRESS = 0x5f;
-    public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor(
-            new SensorDescriptor.Value(0, SensorDescriptor.Kind.HUMIDITY),
-            new SensorDescriptor.Value(1, SensorDescriptor.Kind.TEMPERATURE));
+    public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor.Builder()
+            .addValue(SensorDescriptor.Kind.HUMIDITY)
+            .addValue(SensorDescriptor.Kind.TEMPERATURE)
+            .build();
 
     private static final int WHO_AM_I_VALUE = 0xbc;
     private static final int STATUS_TEMPERATURE_AVAILABLE_MASK = 1;

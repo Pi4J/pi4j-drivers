@@ -42,15 +42,16 @@ public class Bmx280Driver implements Sensor {
     public final static int ADDRESS_BME_280_PRIMARY = 0x076;
     public final static int ADDRESS_BME_280_SECONDARY = 0x077;
 
-    public final static SensorDescriptor DESCRIPTOR_BMP_280 = new SensorDescriptor(
-            new SensorDescriptor.Value(0, SensorDescriptor.Kind.TEMPERATURE),
-            new SensorDescriptor.Value(0, SensorDescriptor.Kind.PRESSURE));
+    public final static SensorDescriptor DESCRIPTOR_BMP_280 = new SensorDescriptor.Builder()
+            .addValue(SensorDescriptor.Kind.TEMPERATURE)
+            .addValue(SensorDescriptor.Kind.PRESSURE)
+            .build();
 
-    public final static SensorDescriptor DESCRIPTOR_BME_280 = new SensorDescriptor(
-            new SensorDescriptor.Value(0, SensorDescriptor.Kind.TEMPERATURE),
-            new SensorDescriptor.Value(0, SensorDescriptor.Kind.PRESSURE),
-            new SensorDescriptor.Value(0, SensorDescriptor.Kind.HUMIDITY));
-
+    public final static SensorDescriptor DESCRIPTOR_BME_280 = new SensorDescriptor.Builder()
+            .addValue(SensorDescriptor.Kind.TEMPERATURE)
+            .addValue(SensorDescriptor.Kind.PRESSURE)
+            .addValue(SensorDescriptor.Kind.HUMIDITY)
+            .build();
 
     private final static double[] BME_280_STANDBY_TIMES = {0.5, 62.5, 125, 250, 500, 1000, 2000, 4000};
     private final static double[] BMP_280_STANDBY_TIMES = {0.5, 62.5, 125, 250, 500, 1000, 10, 20};
