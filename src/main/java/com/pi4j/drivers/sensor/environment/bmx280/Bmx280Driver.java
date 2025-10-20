@@ -16,7 +16,9 @@
 
 package com.pi4j.drivers.sensor.environment.bmx280;
 
+import com.pi4j.context.Context;
 import com.pi4j.drivers.sensor.Sensor;
+import com.pi4j.drivers.sensor.SensorDescriptor;
 import com.pi4j.io.gpio.digital.DigitalOutput;
 import com.pi4j.io.i2c.I2C;
 import com.pi4j.io.i2c.I2CRegisterDataReaderWriter;
@@ -40,14 +42,14 @@ public class Bmx280Driver implements Sensor {
     public final static int ADDRESS_BME_280_PRIMARY = 0x076;
     public final static int ADDRESS_BME_280_SECONDARY = 0x077;
 
-    public final static Descriptor DESCRIPTOR_BMP_280 = new Descriptor(
-            new ValueDescriptor(0, ValueKind.TEMPERATURE),
-            new ValueDescriptor(0, ValueKind.PRESSURE));
+    public final static SensorDescriptor DESCRIPTOR_BMP_280 = new SensorDescriptor(
+            new SensorDescriptor.Value(0, SensorDescriptor.Kind.TEMPERATURE),
+            new SensorDescriptor.Value(0, SensorDescriptor.Kind.PRESSURE));
 
-    public final static Descriptor DESCRIPTOR_BME_280 = new Descriptor(
-            new ValueDescriptor(0, ValueKind.TEMPERATURE),
-            new ValueDescriptor(0, ValueKind.PRESSURE),
-            new ValueDescriptor(0, ValueKind.HUMIDITY));
+    public final static SensorDescriptor DESCRIPTOR_BME_280 = new SensorDescriptor(
+            new SensorDescriptor.Value(0, SensorDescriptor.Kind.TEMPERATURE),
+            new SensorDescriptor.Value(0, SensorDescriptor.Kind.PRESSURE),
+            new SensorDescriptor.Value(0, SensorDescriptor.Kind.HUMIDITY));
 
 
     private final static double[] BME_280_STANDBY_TIMES = {0.5, 62.5, 125, 250, 500, 1000, 2000, 4000};
@@ -75,6 +77,21 @@ public class Bmx280Driver implements Sensor {
     private SensorMode temperatureMode = SensorMode.ENABLED;
     private SensorMode pressureMode = SensorMode.ENABLED;
     private SensorMode humidityMode;
+
+    public static Bmx280Driver detect(Context context, int bus) {
+        int[] addresses = new int[] {ADDRESS_BME_280_PRIMARY, ADDRESS_BME_280_SECONDARY};
+        for (int address: addresses) {
+            try {
+                I2C i2c = context.create(I2C.newConfigBuilder(context).bus(bus).device(address));
+                Bmx280Driver driver = new Bmx280Driver(i2c);
+                return driver;
+            } catch (Exception e) {
+                // Ignore all exceptions
+            }
+        }
+        return null;
+    }
+
 
     /**
      * Creates a BMx280 SPI driver using the given Spi instance. As the device requires csb to remain low
@@ -167,7 +184,7 @@ public class Bmx280Driver implements Sensor {
     }
 
     @Override
-    public Descriptor getDescriptor() {
+    public SensorDescriptor getDescriptor() {
         return model == Model.BME280 ? DESCRIPTOR_BME_280 : DESCRIPTOR_BMP_280;
     }
 

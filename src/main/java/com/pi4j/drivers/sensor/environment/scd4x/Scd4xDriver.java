@@ -1,6 +1,7 @@
 package com.pi4j.drivers.sensor.environment.scd4x;
 
 import com.pi4j.drivers.sensor.Sensor;
+import com.pi4j.drivers.sensor.SensorDescriptor;
 import com.pi4j.io.i2c.I2C;
 
 import java.nio.ByteBuffer;
@@ -17,10 +18,10 @@ public class Scd4xDriver implements Sensor {
      * The I2C address of the device (needed for constructing an I2C instance)
      */
     public static final int I2C_ADDRESS = 0x62;
-    public static final Descriptor DESCRIPTOR = new Descriptor(
-            new ValueDescriptor(0, ValueKind.TEMPERATURE),
-            new ValueDescriptor(1, ValueKind.PRESSURE),
-            new ValueDescriptor(2, ValueKind.CO2));
+    public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor(
+            new SensorDescriptor.Value(0, SensorDescriptor.Kind.TEMPERATURE),
+            new SensorDescriptor.Value(1, SensorDescriptor.Kind.PRESSURE),
+            new SensorDescriptor.Value(2, SensorDescriptor.Kind.CO2));
 
     private final I2C i2c;
     private final ByteBuffer ioBuf = ByteBuffer.allocate(9);
@@ -44,7 +45,7 @@ public class Scd4xDriver implements Sensor {
 
 
     @Override
-    public Descriptor getDescriptor() {
+    public SensorDescriptor getDescriptor() {
         return DESCRIPTOR;
     }
 

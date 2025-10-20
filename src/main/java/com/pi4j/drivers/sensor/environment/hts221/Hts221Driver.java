@@ -1,6 +1,7 @@
 package com.pi4j.drivers.sensor.environment.hts221;
 
 import com.pi4j.drivers.sensor.Sensor;
+import com.pi4j.drivers.sensor.SensorDescriptor;
 import com.pi4j.io.i2c.I2CRegisterDataReaderWriter;
 
 import java.io.Closeable;
@@ -15,9 +16,9 @@ import java.nio.ByteOrder;
  */
 public class Hts221Driver implements Sensor {
     public static final int I2C_ADDRESS = 0x5f;
-    public static final Descriptor DESCRIPTOR = new Descriptor(
-            new ValueDescriptor(0, ValueKind.HUMIDITY),
-            new ValueDescriptor(1, ValueKind.TEMPERATURE));
+    public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor(
+            new SensorDescriptor.Value(0, SensorDescriptor.Kind.HUMIDITY),
+            new SensorDescriptor.Value(1, SensorDescriptor.Kind.TEMPERATURE));
 
     private static final int WHO_AM_I_VALUE = 0xbc;
     private static final int STATUS_TEMPERATURE_AVAILABLE_MASK = 1;
@@ -85,7 +86,7 @@ public class Hts221Driver implements Sensor {
     }
 
     @Override
-    public Descriptor getDescriptor() {
+    public SensorDescriptor getDescriptor() {
         return DESCRIPTOR;
     }
     
