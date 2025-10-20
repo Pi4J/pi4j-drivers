@@ -17,15 +17,19 @@ import java.nio.ByteOrder;
 public class Tcs3400Driver implements Sensor {
     public static final int I2C_ADDRESS = 0x39;
     public static final int I2C_ADDRESS_TCS34007 = 0x29;
+    private static final int ID_TCS34001_34005 = 0b100100_00;
+    private static final int ID_TCS34003_34007 = 0b100100_11;
+
     public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor.Builder()
             .addValue(SensorDescriptor.Kind.LIGHT)
             .addValue(SensorDescriptor.Kind.LIGHT_RED)
             .addValue(SensorDescriptor.Kind.LIGHT_GREEN)
             .addValue(SensorDescriptor.Kind.LIGHT_BLUE)
+            .addI2cAddress(I2C_ADDRESS)
+            .addI2cAddress(I2C_ADDRESS_TCS34007)
+            .setI2cSensorDetector(i2c -> i2c.readRegister(Register.ID) == ID_TCS34001_34005 || i2c.readRegister(Register.ID) == ID_TCS34003_34007 ? new Tcs3400Driver(i2c) : null)
             .build();
 
-    private static final int ID_TCS34001_34005 = 0b100100_00;
-    private static final int ID_TCS34003_34007 = 0b100100_11;
 
     private final ByteBuffer buffer = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN);
     private final I2CRegisterDataReaderWriter registerAccess;

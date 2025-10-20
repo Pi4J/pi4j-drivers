@@ -21,6 +21,8 @@ import java.nio.ByteOrder;
 public class Lsm9ds1Driver implements Sensor {
     public static final int I2C_ADDRESS_0 = 0x6a;
     public static final int I2C_ADDRESS_1 = 0x6b;
+    private final static int WHO_AM_I_VALUE = 0b01101000;
+
     public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor.Builder()
             .addValue(SensorDescriptor.Kind.ACCELERATION_X)
             .addValue(SensorDescriptor.Kind.ACCELERATION_Y)
@@ -28,12 +30,13 @@ public class Lsm9ds1Driver implements Sensor {
             .addValue(SensorDescriptor.Kind.ANGULAR_VELOCITY_X)
             .addValue(SensorDescriptor.Kind.ANGULAR_VELOCITY_Y)
             .addValue(SensorDescriptor.Kind.ANGULAR_VELOCITY_Z)
+            .addI2cAddress(I2C_ADDRESS_0)
+            .addI2cAddress(I2C_ADDRESS_1)
+            .setI2cSensorDetector(i2c -> i2c.readRegister(Register.WHO_AM_I) == WHO_AM_I_VALUE ? new Lsm9ds1Driver(i2c) : null)
             .build();
 
-    private final static int WHO_AM_I_VALUE = 0b01101000;
 
     private final I2CRegisterDataReaderWriter registerAccess;
-
     private final ByteBuffer buffer = ByteBuffer.allocate(6).order(ByteOrder.LITTLE_ENDIAN);
 
     private GyroscopeRange gyroscopeRange = GyroscopeRange.DPS_245;
