@@ -56,20 +56,10 @@
             <version>${pi4j.version}</version>
         </dependency>
 
-        <!-- Pi4J Plugins (Platforms and I/O Providers) -->
+        <!-- Pi4J FFM Plugins (Platform and I/O Provider) -->
         <dependency>
             <groupId>com.pi4j</groupId>
-            <artifactId>pi4j-plugin-raspberrypi</artifactId>
-            <version>${pi4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.pi4j</groupId>
-            <artifactId>pi4j-plugin-gpiod</artifactId>
-            <version>${pi4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.pi4j</groupId>
-            <artifactId>pi4j-plugin-linuxfs</artifactId>
+            <artifactId>pi4j-plugin-ffm</artifactId>
             <version>${pi4j.version}</version>
         </dependency>
 
