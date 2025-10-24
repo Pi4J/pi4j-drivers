@@ -153,5 +153,4 @@ public class SensorDescriptor {
         /** Temperature in degree Celsius */
         TEMPERATURE,
     }
-
 }

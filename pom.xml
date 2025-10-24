@@ -56,11 +56,36 @@
             <version>${pi4j.version}</version>
         </dependency>
 
-        <!-- Pi4J FFM Plugins (Platform and I/O Provider) -->
+        <!-- Pi4J Plugins (Platform and I/O Provider), only included for testing -->
+        <dependency>
+            <groupId>com.pi4j</groupId>
+            <artifactId>pi4j-plugin-raspberrypi</artifactId>
+            <version>${pi4j.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>com.pi4j</groupId>
             <artifactId>pi4j-plugin-ffm</artifactId>
             <version>${pi4j.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.pi4j</groupId>
+            <artifactId>pi4j-plugin-gpiod</artifactId>
+            <version>${pi4j.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.pi4j</groupId>
+            <artifactId>pi4j-plugin-linuxfs</artifactId>
+            <version>${pi4j.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.pi4j</groupId>
+            <artifactId>pi4j-plugin-pigpio</artifactId>
+            <version>${pi4j.version}</version>
+            <scope>test</scope>
         </dependency>
 
         <!-- Testing -->
