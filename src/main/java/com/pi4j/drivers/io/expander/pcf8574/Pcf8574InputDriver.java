@@ -1,5 +1,6 @@
 package com.pi4j.drivers.io.expander.pcf8574;
 
+import com.pi4j.drivers.io.expander.InputExpander;
 import com.pi4j.io.ListenableOnOffRead;
 import com.pi4j.io.i2c.I2C;
 
@@ -16,7 +17,7 @@ import java.util.function.IntConsumer;
  * As the input and output functionality of this chip uses separate addresses, it seemed most straightforward
  * to implement these as separate classes.
  */
-public class Pcf8574InputDriver implements Closeable {
+public class Pcf8574InputDriver implements Closeable, InputExpander {
     private final I2C i2c;
     private final ListenableOnOffRead.Impl[] inputs = new ListenableOnOffRead.Impl[8];
     private final ListenableOnOffRead<?> interruptPin;
@@ -44,25 +45,25 @@ public class Pcf8574InputDriver implements Closeable {
     }
 
     /** Adds a listener that will be notified on a state change on any of the pins */
+    @Override
     public void addInputStateListener(IntConsumer listener) {
         inputStateListeners.add(listener);
     }
 
-    /**
-     * Returns a representation of the given input pin.
-     */
-    public ListenableOnOffRead<ListenableOnOffRead.Impl> getInputPin(int bitIndex) {
-        return inputs[bitIndex];
+    
+    @Override
+    public ListenableOnOffRead<ListenableOnOffRead.Impl> getInput(int index) {
+        return inputs[index];
     }
 
-    /** Returns the current state of the pins encoded in an integer, as sent by the expander chip. */
+
+    @Override
     public int getInputState() {
         return inputState;
     }
 
-    /**
-     * Reads the current state from the chip, updates the internal state and notifies all listeners.
-     */
+
+    @Override
     public int poll() {
         int newState = i2c.read();
         if (newState != inputState) {

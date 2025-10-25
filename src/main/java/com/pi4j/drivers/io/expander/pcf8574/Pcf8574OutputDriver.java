@@ -1,5 +1,6 @@
 package com.pi4j.drivers.io.expander.pcf8574;
 
+import com.pi4j.drivers.io.expander.OutputExpander;
 import com.pi4j.io.OnOffWrite;
 import com.pi4j.io.exception.IOException;
 import com.pi4j.io.i2c.I2C;
@@ -8,7 +9,7 @@ import com.pi4j.io.i2c.I2C;
  * As the input and output functionality of this chip uses separate addresses, it seemed most straightforward
  * to implement these as separate classes.
  */
-public class Pcf8574OutputDriver {
+public class Pcf8574OutputDriver implements OutputExpander {
     /** PCF8574 and HLF8574 support a range of 8 addresses starting from 0x20 */
     public static final int PCF8574_ADDRESS_BASE = 0x20;
 
@@ -22,65 +23,62 @@ public class Pcf8574OutputDriver {
     private final OnOffWrite<?>[] onOffWriteArray = new OnOffWrite[8];
 
     // At power on, the I/Os are high.
-    private int outputBits = 0xff;
-    private int triggerMask = 0xff;
+    private int outputBits = -1;
+    private int triggerMask = -1;
 
     public Pcf8574OutputDriver(I2C i2c) {
         this.i2c = i2c;
         for (int i = 0; i < 8; i++) {
-            final int bitIndex = i;
-            onOffWriteArray[bitIndex] = new OnOffWrite<>() {
-                @Override
-                public Object on() throws IOException {
-                    setPin(bitIndex, true);
-                    return this;
-                }
-
-                @Override
-                public Object off() throws IOException {
-                    setPin(bitIndex, false);
-                    return this;
-                }
-            };
+            onOffWriteArray[i] = new OnOffWriteImpl(i);
         }
     }
 
-    /**
-     * Sets a mask for which bit changes trigger sending the changed state over i2c. By default,
-     * the mask is 0xff and all bit changes trigger an update.
-     */
-    public void setTriggerMask(int mask) {
+    @Override
+    public void setOutputTriggerMask(int mask) {
         this.triggerMask = mask;
     }
 
-    /**
-     * Writing to this output will set the corresponding output pin of the chip. This allows handing a pin
-     * instance to other drivers, e.g. for a HD44780 display, where this chip is commonly used.
-     */
-    public OnOffWrite<?> getOnOffWrite(int bitIndex) {
-        return onOffWriteArray[bitIndex];
+    @Override
+    public OnOffWrite<?> getOutput(int index) {
+        return onOffWriteArray[index];
     }
 
-    /**
-     * Sets the pin with the given index to the given state. Returns true if an update was sent,
-     * i.e. the bit changed and is covered by the trigger mask.
-     */
-    public boolean setPin(int index, boolean state) {
+    @Override
+    public void setOutputState(int index, boolean state) {
         int mask = 1 << index;
-        return state ? setOutput(outputBits | mask) :  setOutput(outputBits & ~mask);
+        if (state) {
+            setOutputState(outputBits | mask);
+        } else {
+            setOutputState(outputBits & ~mask);
+        }
     }
 
-    /**
-     * Sets all pins at once, mapping each bit to the corresponding pin number.
-     * Returns true if an update was sent.
-     */
-    public boolean setOutput(int bits) {
+    @Override
+    public void setOutputState(int bits) {
         int changedBits = outputBits ^ bits;
         outputBits = bits;
-        if ((changedBits & triggerMask) == 0) {
-            return false;
+        if ((changedBits & triggerMask) != 0) {
+            this.i2c.write(outputBits);
         }
-        this.i2c.write(outputBits);
-        return true;
+    }
+
+    private class OnOffWriteImpl implements OnOffWrite<OnOffWriteImpl> {
+        final int index;
+
+        OnOffWriteImpl(int index) {
+            this.index = index;
+        }
+
+        @Override
+        public OnOffWriteImpl on() throws IOException {
+            Pcf8574OutputDriver.this.setOutputState(index, true);
+            return this;
+        }
+
+        @Override
+        public OnOffWriteImpl off() throws IOException {
+            Pcf8574OutputDriver.this.setOutputState(index, false);
+            return this;
+        }
     }
 }
