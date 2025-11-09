@@ -6,8 +6,13 @@ import com.pi4j.drivers.display.graphics.GraphicsDisplayDriver;
 import com.pi4j.drivers.display.graphics.PixelFormat;
 import com.pi4j.drivers.display.graphics.st7789.St7789Driver;
 import com.pi4j.drivers.input.GameController;
+import com.pi4j.drivers.sound.PwmSoundDriver;
+import com.pi4j.drivers.sound.SoundDriver;
 import com.pi4j.io.gpio.digital.DigitalOutput;
 import com.pi4j.io.gpio.digital.DigitalOutputConfigBuilder;
+import com.pi4j.io.pwm.Pwm;
+import com.pi4j.io.pwm.PwmConfigBuilder;
+import com.pi4j.io.pwm.PwmType;
 import com.pi4j.io.spi.Spi;
 import com.pi4j.io.spi.SpiConfigBuilder;
 
@@ -29,6 +34,7 @@ public class GamePi13 implements Closeable {
     private GraphicsDisplayDriver displayDriver;
     private GraphicsDisplay display;
     private DigitalOutput rstPin;
+    private PwmSoundDriver soundDriver;
 
     public GamePi13(Context pi4j) {
         this.pi4j = pi4j;
@@ -72,6 +78,14 @@ public class GamePi13 implements Closeable {
         return display;
     }
 
+    public SoundDriver getSoundDriver() {
+        if (soundDriver == null) {
+            Pwm pwm = pi4j.create(PwmConfigBuilder.newInstance(pi4j).pwmType(PwmType.HARDWARE).channel(2));
+            soundDriver = new PwmSoundDriver(pwm);
+        }
+        return soundDriver;
+    }
+
     @Override
     public void close() throws IOException {
         if (controller != null) {
@@ -84,6 +98,9 @@ public class GamePi13 implements Closeable {
         }
         if (rstPin != null) {
             rstPin.close();
+        }
+        if (soundDriver != null) {
+            soundDriver.close();
         }
     }
 }
