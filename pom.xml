@@ -63,12 +63,14 @@
             <version>${pi4j.version}</version>
             <scope>test</scope>
         </dependency>
+        <!-- Disabled temporarily, as it seems to break presubmit tests
         <dependency>
             <groupId>com.pi4j</groupId>
             <artifactId>pi4j-plugin-ffm</artifactId>
             <version>${pi4j.version}</version>
             <scope>test</scope>
         </dependency>
+        -->
         <dependency>
             <groupId>com.pi4j</groupId>
             <artifactId>pi4j-plugin-gpiod</artifactId>
