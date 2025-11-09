@@ -38,7 +38,9 @@ public class GameController implements Closeable {
         START,
         KEY_1,
         KEY_2,
-        KEY_3
+        KEY_3,
+        RT,
+        LT
     }
 
     /**
