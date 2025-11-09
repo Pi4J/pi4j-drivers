@@ -61,7 +61,7 @@ public class GameController implements Closeable {
 
         /** Add a switch between VCC and the given pin as a controller key. */
         public Builder addVccSwitch(Key key, int pin) {
-            return addDigitalInput(key, pi4j.create(DigitalInput.newConfigBuilder(pi4j).address(pin).build()));
+            return addDigitalInput(key, pi4j.create(DigitalInput.newConfigBuilder(pi4j).bcm(pin).build()));
         }
 
         /**

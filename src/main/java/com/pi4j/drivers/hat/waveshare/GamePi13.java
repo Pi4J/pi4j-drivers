@@ -58,8 +58,8 @@ public class GamePi13 implements Closeable {
         if (displayDriver == null) {
             rstPin = pi4j.digitalOutput().create(27);
             rstPin.high();
-            Spi spi = pi4j.create(SpiConfigBuilder.newInstance(pi4j).bus(0).address(0).baud(St7789Driver.SPI_BAUDRATE));
-            DigitalOutput dc = pi4j.create(DigitalOutputConfigBuilder.newInstance(pi4j).address(25));
+            Spi spi = pi4j.create(SpiConfigBuilder.newInstance(pi4j).bus(0).bcm(0).baud(St7789Driver.SPI_BAUDRATE));
+            DigitalOutput dc = pi4j.create(DigitalOutputConfigBuilder.newInstance(pi4j).bcm(25));
             displayDriver = new St7789Driver(spi, dc, 240, PixelFormat.RGB_565);
         }
         return displayDriver;
