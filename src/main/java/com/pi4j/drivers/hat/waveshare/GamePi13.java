@@ -67,7 +67,7 @@ public class GamePi13 implements Closeable {
 
     public GraphicsDisplay getDisplay() {
         if (display == null) {
-            display = new GraphicsDisplay(getDisplayDriver());
+            display = new GraphicsDisplay(getDisplayDriver(), GraphicsDisplay.Rotation.ROTATE_180);
         }
         return display;
     }
