@@ -38,7 +38,9 @@ public class GameController implements Closeable {
         START,
         KEY_1,
         KEY_2,
-        KEY_3
+        KEY_3,
+        RT,
+        LT
     }
 
     /**
@@ -63,12 +65,12 @@ public class GameController implements Closeable {
         }
 
         /**
-         * Add a switch between GND and the given pin as a controller key. The pin will be pulled up and a
+         * Add a switch between GND and the given bcm pin address as a controller key. The pin will be pulled up and a
          * "low" state will be interpreted as "on".
          */
-        public Builder addGndSwitch(Key key, int pin) {
+        public Builder addGndSwitch(Key key, int bcm) {
             return addDigitalInput(key, pi4j.create(DigitalInput.newConfigBuilder(pi4j)
-                    .address(pin)
+                    .bcm(bcm)
                     .pull(PullResistance.PULL_UP)
                     .onState(DigitalState.LOW)
                     .build()));

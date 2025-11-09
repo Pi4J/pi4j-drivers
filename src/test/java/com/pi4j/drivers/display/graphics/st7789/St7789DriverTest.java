@@ -17,26 +17,27 @@ import org.junit.jupiter.api.Disabled;
 // TODO(b/488): Re-enable when we can safely detect the chip and skip the test if absent.
 @Disabled
 public class St7789DriverTest extends AbstractGraphicsDisplayDriverTest {
-    private static final int BACKLIGHT_ADDRESS = 24;
+    private static final int BACKLIGHT_BCM = 24;
     private static final int DC_ADDRESS = 25;
     private static final int SPI_BAUDRATE = 62_500_000;
-    private static final int RST_ADDRESS = 27;
+    private static final int RST_BCM = 27;
     private static final int SPI_BUS = 0;
-    private static final int SPI_ADDRESS = 0;
+    private static final int SPI_BCM = 0;
 
     @Override
     public GraphicsDisplayDriver createDriver(Context pi4j) {
         try {
             DigitalOutput bl = pi4j
-                    .create(DigitalOutputConfigBuilder.newInstance(pi4j).address(BACKLIGHT_ADDRESS).build());
+                    .create(DigitalOutputConfigBuilder.newInstance(pi4j).bcm(BACKLIGHT_BCM).build());
             bl.high();
-            DigitalOutput rst = pi4j.create(DigitalOutputConfigBuilder.newInstance(pi4j).address(RST_ADDRESS).build());
+            DigitalOutput rst = pi4j.create(DigitalOutputConfigBuilder.newInstance(pi4j).bcm(RST_BCM).build());
             rst.high();
-            DigitalOutput dc = pi4j.create(DigitalOutputConfigBuilder.newInstance(pi4j).address(DC_ADDRESS).build());
+            DigitalOutput dc = pi4j.create(DigitalOutputConfigBuilder.newInstance(pi4j).bcm(DC_ADDRESS).build());
             Spi spi = pi4j.create(
-                    SpiConfigBuilder.newInstance(pi4j).bus(SPI_BUS).address(SPI_ADDRESS).baud(SPI_BAUDRATE).build());
+                    SpiConfigBuilder.newInstance(pi4j).bus(SPI_BUS).bcm(SPI_BCM).baud(SPI_BAUDRATE).build());
             return new St7789Driver(spi, dc, 240, PixelFormat.RGB_444);
         } catch (RuntimeException e) {
+            e.printStackTrace();
             // TODO(https://github.com/Pi4J/pi4j/issues/489): Catch Pi4j exceptions instead.
             Assumptions.abort("St7789 not found");
             throw new RuntimeException(e);

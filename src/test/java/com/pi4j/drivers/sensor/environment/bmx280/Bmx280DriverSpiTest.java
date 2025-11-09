@@ -30,9 +30,9 @@ public class Bmx280DriverSpiTest extends AbstractBmx280DriverTest {
     Bmx280Driver createDriver() {
         try {
             DigitalOutput csb = pi4j.create(DigitalOutput.newConfigBuilder(pi4j)
-                    .address(CSB).initial(DigitalState.HIGH).shutdown(DigitalState.HIGH).build());
+                    .bcm(CSB).initial(DigitalState.HIGH).shutdown(DigitalState.HIGH).build());
             Spi spi = pi4j.create(SpiConfigBuilder.newInstance(pi4j)
-                    .address(0).bus(BUS).mode(SpiMode.MODE_0).baud(Spi.DEFAULT_BAUD).provider("linuxfs-spi").build());
+                    .bcm(0).bus(BUS).mode(SpiMode.MODE_0).baud(Spi.DEFAULT_BAUD).provider("linuxfs-spi").build());
             return new Bmx280Driver(spi, csb);
         } catch (Pi4JException | IllegalStateException e) {
             // The illegal state occurs in a test environment if no gpio pin can be created.
