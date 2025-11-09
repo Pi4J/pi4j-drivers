@@ -1,7 +1,6 @@
 package com.pi4j.drivers.sound;
 
 import java.io.Closeable;
-import java.io.IOException;
 
 public interface SoundDriver extends Closeable {
     /**
