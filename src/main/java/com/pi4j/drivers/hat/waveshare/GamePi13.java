@@ -87,7 +87,7 @@ public class GamePi13 implements Closeable {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         if (controller != null) {
             controller.close();
         }
