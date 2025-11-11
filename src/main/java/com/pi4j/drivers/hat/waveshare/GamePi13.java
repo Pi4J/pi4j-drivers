@@ -17,7 +17,6 @@ import com.pi4j.io.spi.Spi;
 import com.pi4j.io.spi.SpiConfigBuilder;
 
 import java.io.Closeable;
-import java.io.IOException;
 
 /**
  * Configured drivers for the display and game controls on a
@@ -87,7 +86,7 @@ public class GamePi13 implements Closeable {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         if (controller != null) {
             controller.close();
         }
