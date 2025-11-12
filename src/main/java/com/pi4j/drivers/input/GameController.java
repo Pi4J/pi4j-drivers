@@ -43,6 +43,32 @@ public class GameController implements Closeable {
         LT
     }
 
+    public enum Direction {
+        NONE(0, 0),
+        NORTH(0, -1), NORTHEAST(1, -1),
+        EAST(1, 0), SOUTHEAST(1, 1),
+        SOUTH(0, 1), SOUTHWEST(-1, 1),
+        WEST(-1, 0), NORTHWEST(-1, -1);
+
+        private final int x;
+        private final int y;
+
+        Direction(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        /** Returns the x-component of this direction; -1 for left/west, 1 for right/east and 0 for no horizontal component. */
+        public int getX() {
+            return x;
+        }
+
+        /** Returns the y-component of this direction; -1 for up/north, 1 for down/south and 0 for no vertical component. */
+        public int getY() {
+            return y;
+        }
+    }
+
     /**
      * A builder that provides a straightforward way to create a controller out of digital inputs.
      */
@@ -96,6 +122,32 @@ public class GameController implements Closeable {
     /** Returns a listenable on/off state encapsulation for the given key, or null if not available */
     public ListenableOnOffRead<?> getKey(Key key) {
         return keyMap.get(key);
+    }
+
+    /** The analog joystick x-position in the range from -1 (left) via 0 (neutral) to 1 (right);  */
+    public float getAnalogJoystickX() {
+        return Float.NaN;
+    }
+
+    /** The analog joystick y-position in the range from -1 (down) via 0 (neutral) to 1 (up);  */
+    public float getAnalogJoystickY() {
+        return Float.NaN;
+    }
+
+    /** Returns the current direction of the analog joystick; falling back to directional keys if not available */
+    public Direction getDirection() {
+        boolean movingUp = getAnalogJoystickY() > 0.5f || (getKey(Key.UP) != null && getKey(Key.UP).isOn());
+        boolean movingDown = getAnalogJoystickY() < -0.5f || (getKey(Key.DOWN) != null && getKey(Key.DOWN).isOn());
+        boolean movingRight = getAnalogJoystickX() > 0.5f || (getKey(Key.RIGHT) != null && getKey(Key.RIGHT).isOn());
+        boolean movingLeft = getAnalogJoystickX() < -0.5f || (getKey(Key.LEFT) != null && getKey(Key.LEFT).isOn());
+
+        if (movingRight) {
+            return movingUp ? Direction.NORTHEAST : movingDown ? Direction.SOUTHEAST : Direction.EAST;
+        }
+        if (movingLeft) {
+            return movingUp ? Direction.NORTHWEST : movingDown ? Direction.SOUTHWEST : Direction.WEST;
+        }
+        return movingUp ? Direction.NORTH : movingDown ? Direction.SOUTH : Direction.NONE;
     }
 
     /**

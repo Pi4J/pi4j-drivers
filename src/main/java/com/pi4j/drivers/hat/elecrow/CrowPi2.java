@@ -5,14 +5,19 @@ import com.pi4j.drivers.display.character.hd44780.Hd44780Driver;
 import com.pi4j.drivers.display.graphics.GraphicsDisplay;
 import com.pi4j.drivers.display.graphics.GraphicsDisplayDriver;
 import com.pi4j.drivers.display.graphics.crowpi2matrix.CrowPi2I2cLedMatrixDriver;
+import com.pi4j.drivers.input.GameController;
+import com.pi4j.drivers.io.ad.mcp300x.Mcp300xDriver;
 import com.pi4j.drivers.sound.PwmSoundDriver;
 import com.pi4j.drivers.sound.SoundDriver;
 import com.pi4j.io.i2c.I2C;
 import com.pi4j.io.i2c.I2CConfigBuilder;
 import com.pi4j.io.pwm.Pwm;
 import com.pi4j.io.pwm.PwmType;
+import com.pi4j.io.spi.Spi;
+import com.pi4j.io.spi.SpiConfigBuilder;
 
 import java.io.Closeable;
+import java.util.Collections;
 
 public class CrowPi2 implements Closeable {
     private final Context pi4j;
@@ -21,6 +26,8 @@ public class CrowPi2 implements Closeable {
     private GraphicsDisplay graphicsDisplay;
     private Hd44780Driver hd44780Driver;
     private PwmSoundDriver soundDriver;
+    private GameController gameController;
+    private Mcp300xDriver mcp3008;
 
     public CrowPi2(Context pi4j) {
         this.pi4j = pi4j;
@@ -61,6 +68,30 @@ public class CrowPi2 implements Closeable {
             soundDriver = new PwmSoundDriver(pwm);
         }
         return soundDriver;
+    }
+
+    private Mcp300xDriver getMcp3008() {
+        if (mcp3008 == null) {
+            Spi spi = pi4j.create(SpiConfigBuilder.newInstance(pi4j).bus(0).channel(1));
+            mcp3008 = new Mcp300xDriver(spi);
+        }
+        return mcp3008;
+    }
+
+    public GameController getGameController() {
+        if (gameController == null) {
+            gameController = new GameController(Collections.emptyMap()) {
+                @Override
+                public float getAnalogJoystickX() {
+                   return Math.max(-1f, Math.min((getMcp3008().readChannel(0) - 512f) / 256f, 1f));
+                }
+                @Override
+                public float getAnalogJoystickY() {
+                    return Math.max(-1f, Math.min((getMcp3008().readChannel(1) - 512f) / 256f, 1f));
+                }
+            };
+        }
+        return gameController;
     }
 
     @Override
