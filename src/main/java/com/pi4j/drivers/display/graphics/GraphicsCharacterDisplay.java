@@ -1,0 +1,52 @@
+package com.pi4j.drivers.display.graphics;
+
+import com.pi4j.drivers.display.BitmapFont;
+import com.pi4j.drivers.display.character.CharacterDisplay;
+
+import java.util.EnumSet;
+
+/**
+ * Implements the CharacterDisplay interface on top of a graphics display. Useful for running code that's designed
+ * for text display with a graphics display.
+ */
+public class GraphicsCharacterDisplay implements CharacterDisplay {
+
+    private final GraphicsDisplay display;
+    private final BitmapFont font;
+    private final int foregroundColor;
+    private final int backgroundColor;
+
+    public GraphicsCharacterDisplay(GraphicsDisplay display, BitmapFont font, int foregroundColor, int backgroundColor) {
+        this.display = display;
+        this.font = font;
+        this.foregroundColor = foregroundColor;
+        this.backgroundColor = backgroundColor;
+    }
+
+    @Override
+    public int getWidth() {
+        return display.getWidth() / font.getCellWidth();
+    }
+
+    @Override
+    public int getHeight() {
+        return display.getHeight() / font.getCellHeight();
+    }
+
+    @Override
+    public void clear() {
+        display.fillRect(0, 0, display.getWidth(), display.getHeight(), backgroundColor);
+    }
+
+    @Override
+    public void writeAt(float x, int y, String text, EnumSet<Attribute> attributes) {
+        boolean invert = attributes.contains(Attribute.INVERSE);
+        int fg = !invert ? foregroundColor : backgroundColor;
+        int bg = invert ? foregroundColor : backgroundColor;
+        int px = (int) (x * font.getCellWidth());
+        int py = y * font.getCellHeight();
+        int width = font.getCellWidth() * text.length();
+        display.fillRect( px, py, width, font.getCellHeight(), bg);
+        display.renderText(px, py + font.getCellHeight(), text, font, fg);
+    }
+}
