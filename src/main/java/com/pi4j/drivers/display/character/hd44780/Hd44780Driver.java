@@ -7,6 +7,7 @@ import com.pi4j.io.i2c.I2C;
 import com.pi4j.drivers.io.expander.pcf8574.Pcf8574OutputDriver;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -190,7 +191,7 @@ public class Hd44780Driver implements CharacterDisplay {
         setDisplayEnabled(true);
         setBacklightEnabled(true);
 
-        clearDisplay();
+        clear();
         returnHome();
     }
 
@@ -203,7 +204,8 @@ public class Hd44780Driver implements CharacterDisplay {
         this.characterRomMap = characterRomMap;
     }
 
-    public void clearDisplay() {
+    @Override
+    public void clear() {
         sendCommand(CommandCodes.CMD_CLEAR_DISPLAY);
         connection.setDelayMicros(LONG_DELAY_MICROS);
         cursorX = 0;
@@ -279,11 +281,11 @@ public class Hd44780Driver implements CharacterDisplay {
      * Write a text on the given position by setting the cursor position
      */
     @Override
-    public void writeAt(int x, int y, String text) {
+    public void writeAt(float x, int y, String text, EnumSet<Attribute> attributes) {
         if (y > height) {
             throw new IllegalArgumentException("Line " + y + " out of range 1.." + height);
         }
-        setCursorPosition(x, y);
+        setCursorPosition((int) x, y);
         write(text);
     }
 

@@ -37,7 +37,7 @@ public class Hd44780DriverTest {
         Hd44780Driver characterLcd = createDriver();
 
         characterLcd.setBacklightEnabled(true);
-        characterLcd.clearDisplay();
+        characterLcd.clear();
         characterLcd.setBlinkingEnabled(true);
         characterLcd.setCursorEnabled(true);
         characterLcd.write("Hello Wörld (ｼ)\n" + System.currentTimeMillis());
