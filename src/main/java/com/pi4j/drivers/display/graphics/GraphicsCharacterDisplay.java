@@ -27,12 +27,12 @@ public class GraphicsCharacterDisplay implements CharacterDisplay {
 
     @Override
     public int getWidth() {
-        return display.getWidth() / font.getCellWidth();
+        return display.getWidth() / (scale * font.getCellWidth());
     }
 
     @Override
     public int getHeight() {
-        return display.getHeight() / font.getCellHeight();
+        return display.getHeight() / (scale * font.getCellHeight());
     }
 
     @Override
@@ -45,10 +45,10 @@ public class GraphicsCharacterDisplay implements CharacterDisplay {
         boolean invert = attributes.contains(Attribute.INVERSE);
         int fg = !invert ? foregroundColor : backgroundColor;
         int bg = invert ? foregroundColor : backgroundColor;
-        int px = (int) (x * font.getCellWidth());
-        int py = y * font.getCellHeight();
-        int width = font.getCellWidth() * text.length();
-        display.fillRect( px, py, width, font.getCellHeight(), bg);
-        display.renderText(px, py + font.getCellHeight(), text, font, fg, scale, scale);
+        int px = (int) (x * scale * font.getCellWidth());
+        int py = y * scale * font.getCellHeight();
+        int width = scale * font.getCellWidth() * text.length();
+        display.fillRect(px, py, width, scale * font.getCellHeight(), bg);
+        display.renderText(px, py + scale * font.getCellHeight(), text, font, fg, scale, scale);
     }
 }
