@@ -15,12 +15,14 @@ public class GraphicsCharacterDisplay implements CharacterDisplay {
     private final BitmapFont font;
     private final int foregroundColor;
     private final int backgroundColor;
+    private final int scale;
 
-    public GraphicsCharacterDisplay(GraphicsDisplay display, BitmapFont font, int foregroundColor, int backgroundColor) {
+    public GraphicsCharacterDisplay(GraphicsDisplay display, BitmapFont font, int foregroundColor, int backgroundColor, int scale) {
         this.display = display;
         this.font = font;
         this.foregroundColor = foregroundColor;
         this.backgroundColor = backgroundColor;
+        this.scale = scale;
     }
 
     @Override
@@ -47,6 +49,6 @@ public class GraphicsCharacterDisplay implements CharacterDisplay {
         int py = y * font.getCellHeight();
         int width = font.getCellWidth() * text.length();
         display.fillRect( px, py, width, font.getCellHeight(), bg);
-        display.renderText(px, py + font.getCellHeight(), text, font, fg);
+        display.renderText(px, py + font.getCellHeight(), text, font, fg, scale, scale);
     }
 }
