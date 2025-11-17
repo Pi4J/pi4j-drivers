@@ -278,15 +278,35 @@ public class Hd44780Driver implements CharacterDisplay {
     }
 
     /**
-     * Write a text on the given position by setting the cursor position
+     * Write a text on the given position by setting the cursor position. Text outside the screen
+     * will be cut off / ignored.
      */
     @Override
     public void writeAt(float x, int y, String text, EnumSet<Attribute> attributes) {
-        if (y > height) {
-            throw new IllegalArgumentException("Line " + y + " out of range 1.." + height);
+        if (y < 0 || y >= height) {
+            return;
         }
-        setCursorPosition((int) x, y);
-        write(text);
+
+        int col = (int) x;
+        if (col < 0) {
+            int start = -col;
+            if (start >= text.length()) {
+                return;
+            }
+            text = text.substring(start);
+            col = 0;
+        } else if (col >= width) {
+            return;
+        }
+
+        if (col + text.length() > width) {
+            text = text.substring(0, width - col);
+        }
+
+        if (!text.isEmpty()) {
+            setCursorPosition(col, y);
+            write(text);
+        }
     }
 
 
