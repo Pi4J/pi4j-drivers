@@ -18,7 +18,7 @@ public class GraphicsCharacterDisplay implements CharacterDisplay {
     private final int scale;
 
     public GraphicsCharacterDisplay(GraphicsDisplay display) {
-        this.scale = display.getHeight() / 80;
+        this.scale = Math.max(display.getHeight() / 64, 1);
         this.display = display;
         this.font = display.getHeight() > 128 ? BitmapFont.get5x10Font() : BitmapFont.get5x8Font();
         this.foregroundColor = 0xffffffff;
