@@ -64,7 +64,7 @@ public class CrowPi2 implements Closeable {
      */
     public SoundDriver getSoundDriver() {
         if (soundDriver == null) {
-            Pwm pwm = pi4j.create(Pwm.newConfigBuilder(pi4j).pwmType(PwmType.HARDWARE).channel(2));
+            Pwm pwm = pi4j.create(Pwm.newConfigBuilder(pi4j).pwmType(PwmType.HARDWARE).chip(0).channel(2));
             soundDriver = new PwmSoundDriver(pwm);
         }
         return soundDriver;
