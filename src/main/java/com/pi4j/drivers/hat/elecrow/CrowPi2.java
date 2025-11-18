@@ -83,11 +83,11 @@ public class CrowPi2 implements Closeable {
             gameController = new GameController(Collections.emptyMap()) {
                 @Override
                 public float getAnalogJoystickY() {
-                   return Math.max(-1f, Math.min((getMcp3008().readChannel(0) - 512f) / 256f, 1f));
+                    return Math.max(-1f, Math.min((getMcp3008().readChannel(0) - 512f) / 256f, 1f));
                 }
                 @Override
                 public float getAnalogJoystickX() {
-                    return Math.max(-1f, Math.min((getMcp3008().readChannel(1) - 512f) / 256f, 1f));
+                    return -Math.max(-1f, Math.min((getMcp3008().readChannel(1) - 512f) / 256f, 1f));
                 }
             };
         }
