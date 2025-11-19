@@ -34,6 +34,11 @@ public class GraphicsCharacterDisplay implements CharacterDisplay {
     }
 
     @Override
+    public EnumSet<Attribute> getSupportedAttributes() {
+        return EnumSet.of(Attribute.INVERSE);
+    }
+
+    @Override
     public int getWidth() {
         return display.getWidth() / (scale * font.getCellWidth());
     }
