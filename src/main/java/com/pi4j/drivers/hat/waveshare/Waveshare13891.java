@@ -4,7 +4,6 @@ import com.pi4j.context.Context;
 import com.pi4j.drivers.display.graphics.GraphicsDisplay;
 import com.pi4j.drivers.display.graphics.GraphicsDisplayDriver;
 import com.pi4j.drivers.display.graphics.PixelFormat;
-import com.pi4j.drivers.display.graphics.st7789.St7789Driver;
 import com.pi4j.drivers.display.graphics.st77xx.St77xxDriver;
 import com.pi4j.drivers.input.GameController;
 import com.pi4j.io.gpio.digital.DigitalOutput;
