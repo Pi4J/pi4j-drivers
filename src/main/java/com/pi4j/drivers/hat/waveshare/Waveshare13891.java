@@ -75,8 +75,5 @@ public class Waveshare13891 implements Closeable {
         } else if (displayDriver != null) {
             displayDriver.close();
         }
-        if (rstPin != null) {
-            rstPin.close();
-        }
     }
 }
