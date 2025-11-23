@@ -15,7 +15,6 @@ import com.pi4j.drivers.sensor.geospatial.lsm9ds1.Lsm9ds1MagnetometerDriver;
 import com.pi4j.io.ListenableOnOffRead;
 import com.pi4j.io.i2c.I2C;
 
-import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
 
