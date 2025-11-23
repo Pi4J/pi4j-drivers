@@ -53,7 +53,7 @@ public class Waveshare13891 implements Closeable {
             DigitalOutput rstPin = pi4j.create(DigitalOutputConfigBuilder.newInstance(pi4j).bcm(27));
             Spi spi = pi4j.create(SpiConfigBuilder.newInstance(pi4j).bus(0).channel(0).baud(St77xxDriver.ST_7735_SPI_BAUDRATE));
             DigitalOutput dc = pi4j.create(DigitalOutputConfigBuilder.newInstance(pi4j).bcm(25));
-            displayDriver = new St77xxDriver(spi, dc, rstPin, PixelFormat.RGB_565, false, 128, 128, 3, 3);
+            displayDriver = new St77xxDriver(spi, dc, rstPin, PixelFormat.RGB_565, false, 128, 128, 2, 3);
         }
         return displayDriver;
     }
