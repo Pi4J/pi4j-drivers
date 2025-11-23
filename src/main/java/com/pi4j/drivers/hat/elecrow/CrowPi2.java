@@ -6,6 +6,7 @@ import com.pi4j.drivers.display.graphics.GraphicsDisplay;
 import com.pi4j.drivers.display.graphics.GraphicsDisplayDriver;
 import com.pi4j.drivers.display.graphics.crowpi2matrix.CrowPi2I2cLedMatrixDriver;
 import com.pi4j.drivers.input.GameController;
+import com.pi4j.drivers.input.KeyPad;
 import com.pi4j.drivers.io.ad.mcp300x.Mcp300xDriver;
 import com.pi4j.drivers.sound.PwmSoundDriver;
 import com.pi4j.drivers.sound.SoundDriver;
@@ -20,6 +21,8 @@ import java.io.Closeable;
 import java.util.Collections;
 
 public class CrowPi2 implements Closeable {
+    private static final String KEY_PAD_CHARACTERS = "0#=-123+456/789*";
+
     private final Context pi4j;
 
     private CrowPi2I2cLedMatrixDriver i2cLedMatrixDriver;
@@ -28,6 +31,7 @@ public class CrowPi2 implements Closeable {
     private PwmSoundDriver soundDriver;
     private GameController gameController;
     private Mcp300xDriver mcp3008;
+    private KeyPad keyPad;
 
     public CrowPi2(Context pi4j) {
         this.pi4j = pi4j;
@@ -56,6 +60,23 @@ public class CrowPi2 implements Closeable {
         return graphicsDisplay;
     }
 
+    public KeyPad getKeyPad() {
+        if (keyPad == null) {
+            keyPad = () -> {
+                // Measured values:
+                // No key: 1023
+                // 7: 747   8: 809   9: 869   *: 913
+                // 4: 493   5: 558   6: 616   /: 683
+                // 1: 251   2: 308   3: 368   +: 439
+                // 0:   0   #:  59   =: 126   -: 184
+                int value = getMcp3008().readChannel(4);
+                int index = Math.round(value / 60.87f); // 913/15
+                return index >= KEY_PAD_CHARACTERS.length() ? KeyPad.NONE : KEY_PAD_CHARACTERS.charAt(index);
+            };
+        }
+        return keyPad;
+    }
+
     /**
      * Note that this seems to require an explicit entry in config.txt to enable pwm channel2 on pin 18:
      * <code>
@@ -64,7 +85,7 @@ public class CrowPi2 implements Closeable {
      */
     public SoundDriver getSoundDriver() {
         if (soundDriver == null) {
-            Pwm pwm = pi4j.create(Pwm.newConfigBuilder(pi4j).pwmType(PwmType.HARDWARE).chip(0).channel(2));
+            Pwm pwm = pi4j.create(Pwm.newConfigBuilder(pi4j).pwmType(PwmType.HARDWARE).channel(2));
             soundDriver = new PwmSoundDriver(pwm);
         }
         return soundDriver;
