@@ -2,6 +2,10 @@ package com.pi4j.drivers.display.graphics;
 
 public enum PixelFormat {
 
+    MONOCHROME(1),
+    GRAYSCALE_2(2),
+    GRAYSCALE_4(4),
+    GRAYSCALE_8(8),
     // Creates a format with 4 bits for each color channel.
     // The values for red are shifted to the left by 8 bits, green by 4 bits and blue by 0 bits.
     RGB_444(4, 4, 4, 8, 4, 0),
@@ -15,6 +19,8 @@ public enum PixelFormat {
     // The same as RGB_888, but with the shift for red and green swapped.
     GRB_888(8, 8, 8, 8, 16, 0);
 
+    private final int grayBitCount;
+
     private final int redBitCount;
     private final int greenBitCount;
     private final int blueBitCount;
@@ -27,7 +33,19 @@ public enum PixelFormat {
     private final int greenMask;
     private final int blueMask;
 
+    private final int bitCount;
+
+    PixelFormat(int grayBitCount) {
+        this(grayBitCount, 0, 0, 0, 0,0);
+    }
+
     PixelFormat(int redBitCount, int greenBitCount, int blueBitCount, int redShift, int greenShift, int blueShift) {
+        this(0, redBitCount, greenBitCount, blueBitCount, redShift, greenShift, blueShift);
+    }
+
+    PixelFormat(int grayBitCount, int redBitCount, int greenBitCount, int blueBitCount, int redShift, int greenShift, int blueShift) {
+        this.grayBitCount = grayBitCount;
+
         this.redBitCount = redBitCount;
         this.greenBitCount = greenBitCount;
         this.blueBitCount = blueBitCount;
@@ -39,11 +57,13 @@ public enum PixelFormat {
         this.redMask = (1 << redBitCount) - 1;
         this.greenMask = (1 << greenBitCount) - 1;
         this.blueMask = (1 << blueBitCount) - 1;
+
+        this.bitCount = grayBitCount + redBitCount + greenBitCount + blueBitCount;
     }
 
     // The total number of bits used by this format.
     public int getBitCount() {
-        return redBitCount + greenBitCount + blueBitCount;
+        return bitCount;
     }
 
     /**
@@ -96,6 +116,12 @@ public enum PixelFormat {
     int fromRgb(int rgb) {
         if (this == RGB_888) {
             return rgb;
+        }
+        if (grayBitCount != 0) {
+            int grayscale10000x = ((rgb >>> 16) & 255) * 2989
+                        + ((rgb >>> 8) & 255) * 5870
+                        + ((rgb & 255) * 1140);
+            return (grayscale10000x / 10000) >>> (8 - grayBitCount);
         }
         int red = (rgb >> (24 - redBitCount)) & redMask;
         int green = (rgb >> (16 - greenBitCount)) & greenMask;
