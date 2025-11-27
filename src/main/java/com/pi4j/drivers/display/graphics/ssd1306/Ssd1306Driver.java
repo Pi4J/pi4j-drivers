@@ -185,15 +185,17 @@ public class Ssd1306Driver implements GraphicsDisplayDriver {
         int bitIndex = 0;
         for (int py = 0; py < height; py++) {
             for (int px = 0; px < width; px++) {
-                boolean pixel = (data[bitIndex / 8] & (1 << (bitIndex % 8))) != 0;
+                boolean pixel = (data[bitIndex / 8] & (1 << (7 - bitIndex % 8))) != 0;
                 bitIndex++;
                 if (pixel) {
-                    setPixelOff(x + px, y + py);
-                } else {
                     setPixelOn(x + px, y + py);
+                } else {
+                    setPixelOff(x + px, y + py);
                 }
             }
         }
+
+        sendBuffer();
     }
 
     @Override
