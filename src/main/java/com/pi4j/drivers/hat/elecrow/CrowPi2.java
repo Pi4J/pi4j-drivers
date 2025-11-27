@@ -15,7 +15,6 @@ import com.pi4j.drivers.sound.SoundDriver;
 import com.pi4j.io.gpio.digital.DigitalInput;
 import com.pi4j.io.gpio.digital.DigitalOutput;
 import com.pi4j.io.gpio.digital.DigitalState;
-import com.pi4j.io.gpio.digital.PullResistance;
 import com.pi4j.io.i2c.I2C;
 import com.pi4j.io.i2c.I2CConfigBuilder;
 import com.pi4j.io.pwm.Pwm;
@@ -28,6 +27,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * This class aims at exposing all sensors and functionality of the CrowPi2 in a convenient way.
+ *
+ * <p>There are two different variants of the CrowPi2, the original model only compatible with the
+ * Raspberry PI 4 -- and a newer version, also compatible with the RPI 5. This code is mostly tested
+ * with the newer version, but we aim at detecting the model and bridging incompatibilities as far
+ * as possible.
+ */
 public class CrowPi2 implements Closeable {
     private static final String KEY_PAD_CHARACTERS = "0#=-123+456/789*";
 
