@@ -2,6 +2,7 @@ package com.pi4j.drivers.display.graphics.ssd1306;
 
 import com.pi4j.drivers.display.graphics.GraphicsDisplayDriver;
 import com.pi4j.drivers.display.graphics.GraphicsDisplayInfo;
+import com.pi4j.drivers.display.graphics.PixelFormat;
 import com.pi4j.io.i2c.I2C;
 
 import org.slf4j.Logger;
@@ -28,11 +29,13 @@ public class Ssd1306Driver implements GraphicsDisplayDriver {
     private static final int WITH_DATA_ONLY = 0x40;
 
     private final I2C i2c;
+    private final GraphicsDisplayInfo displayInfo;
     private byte[] page_buffer;
 
     public Ssd1306Driver(I2C i2c) {
 
         this.i2c = i2c;
+        this.displayInfo = new GraphicsDisplayInfo(128, 64, PixelFormat.MONOCHROME, 1);
         page_buffer = new byte[128 * 8]; // 1024
         init();
     }
@@ -136,6 +139,14 @@ public class Ssd1306Driver implements GraphicsDisplayDriver {
     }
 
     public void setPixelOn(int x, int y) {
+
+        log.debug("setPixelOn {} {}", x, y);
+
+        if (y > 63) {
+            log.error("Y too high: {}");
+            return;
+        }
+
         int page = y >> 3;
         int bit = y & 0x07;
 
@@ -145,6 +156,14 @@ public class Ssd1306Driver implements GraphicsDisplayDriver {
     }
 
     public void setPixelOff(int x, int y) {
+
+        log.debug("setPixelOff {} {}", x, y);
+
+        if (y > 63) {
+            log.error("Y too high: {}");
+            return;
+        }
+
         int page = y >> 3;
         int bit = y & 0x07;
 
@@ -155,7 +174,7 @@ public class Ssd1306Driver implements GraphicsDisplayDriver {
 
     @Override
     public GraphicsDisplayInfo getDisplayInfo() {
-        return null;
+        return displayInfo;
     }
 
     @Override
@@ -163,6 +182,18 @@ public class Ssd1306Driver implements GraphicsDisplayDriver {
 
         log.debug("setPixels {} {} {} {} {}", x, y, width, height, data.length);
 
+        int bitIndex = 0;
+        for (int py = 0; py < height; py++) {
+            for (int px = 0; px < width; px++) {
+                boolean pixel = (data[bitIndex / 8] & (1 << (bitIndex % 8))) != 0;
+                bitIndex++;
+                if (pixel) {
+                    setPixelOff(x + px, y + py);
+                } else {
+                    setPixelOn(x + px, y + py);
+                }
+            }
+        }
     }
 
     @Override
