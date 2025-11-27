@@ -125,6 +125,9 @@ public class SensorDescriptor {
         /** CO2 in ppm */
         CO2,
 
+        /** A distance in meter */
+        DISTANCE,
+
         /** Relative Humidity (0…100%) */
         HUMIDITY,
 

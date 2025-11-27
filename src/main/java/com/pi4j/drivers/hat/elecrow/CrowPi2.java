@@ -8,8 +8,14 @@ import com.pi4j.drivers.display.graphics.crowpi2matrix.CrowPi2I2cLedMatrixDriver
 import com.pi4j.drivers.input.GameController;
 import com.pi4j.drivers.input.KeyPad;
 import com.pi4j.drivers.io.ad.mcp300x.Mcp300xDriver;
+import com.pi4j.drivers.sensor.Sensor;
+import com.pi4j.drivers.sensor.geospatial.hcsr04.Hcsr04Driver;
 import com.pi4j.drivers.sound.PwmSoundDriver;
 import com.pi4j.drivers.sound.SoundDriver;
+import com.pi4j.io.gpio.digital.DigitalInput;
+import com.pi4j.io.gpio.digital.DigitalOutput;
+import com.pi4j.io.gpio.digital.DigitalState;
+import com.pi4j.io.gpio.digital.PullResistance;
 import com.pi4j.io.i2c.I2C;
 import com.pi4j.io.i2c.I2CConfigBuilder;
 import com.pi4j.io.pwm.Pwm;
@@ -18,7 +24,9 @@ import com.pi4j.io.spi.Spi;
 import com.pi4j.io.spi.SpiConfigBuilder;
 
 import java.io.Closeable;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 public class CrowPi2 implements Closeable {
     private static final String KEY_PAD_CHARACTERS = "0#=-123+456/789*";
@@ -32,6 +40,7 @@ public class CrowPi2 implements Closeable {
     private GameController gameController;
     private Mcp300xDriver mcp3008;
     private KeyPad keyPad;
+    private Hcsr04Driver hcsr04Driver;
 
     public CrowPi2(Context pi4j) {
         this.pi4j = pi4j;
@@ -115,6 +124,21 @@ public class CrowPi2 implements Closeable {
         return gameController;
     }
 
+    public Hcsr04Driver getDistanceSensor() {
+        if (hcsr04Driver == null) {
+            DigitalOutput triggerPin = pi4j.create(DigitalOutput.newConfigBuilder(pi4j).bcm(16).initial(DigitalState.LOW));
+            DigitalInput echoPin = pi4j.create(DigitalInput.newConfigBuilder(pi4j).bcm(26));// .pull(PullResistance.PULL_UP));
+            hcsr04Driver = new Hcsr04Driver(triggerPin, echoPin);
+        }
+        return hcsr04Driver;
+    }
+
+    public List<Sensor> getAllSensors() {
+        List<Sensor> result = new ArrayList<>();
+        result.add(getDistanceSensor());
+        return result;
+    }
+
     @Override
     public void close() {
         if (graphicsDisplay != null) {
@@ -124,6 +148,10 @@ public class CrowPi2 implements Closeable {
         }
 
         // TODO: Support close in text displays and close them here.
+
+        if (hcsr04Driver != null) {
+            hcsr04Driver.close();
+        }
 
         if (soundDriver != null) {
             soundDriver.close();
