@@ -81,10 +81,7 @@ public class Ssd1306Driver implements GraphicsDisplayDriver {
 
         command(COMMAND_SET_MEM_ADDRESS_MODE, COMMAND_SET_MEM_ADDRESS_MODE_HORZ);
 
-        setColumnAddress(0, 127);
-        int valueAllOff = 0x00;
-        java.util.Arrays.fill(page_buffer, 0, page_buffer.length, (byte) valueAllOff);
-        sendBuffer();
+        clear();
     }
 
     public void clear() {
