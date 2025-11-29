@@ -3,7 +3,9 @@ package com.pi4j.drivers.hat.waveshare;
 import com.pi4j.context.Context;
 import com.pi4j.drivers.input.GameController;
 
-/** Creates the controller shared between various Waveshare display hats */
+/**
+ * Creates the controller shared between various Waveshare display hats
+ */
 class JoystickHatGameControllerFactory {
 
     static GameController create(Context pi4j) {
