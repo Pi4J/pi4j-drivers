@@ -22,8 +22,10 @@ public class GraphicsDisplay {
         }
     }
 
-    private final Object lock = new Object();
-    private final int[] displayBuffer;
+    // Directly accessed by Graphics
+    final Object lock = new Object();
+    final int[] displayBuffer;
+
     private final Timer timer = new Timer();
 
     private int modifiedXMax = Integer.MIN_VALUE;
@@ -137,6 +139,11 @@ public class GraphicsDisplay {
         }
     }
 
+    /** Obtains a new graphics context for this display. */
+    public Graphics getGraphics() {
+        return new Graphics(this);
+    }
+
     /** Returns the width of this dispaly in pixel. */
     public int getWidth() {
         return displayWidth;
@@ -238,7 +245,7 @@ public class GraphicsDisplay {
     // - we use min/max coordinate bounds instead of width/height as in user methods.
 
     /** Marks the given screen area as modified */
-    private void markModified(int xMin, int yMin, int xMax, int yMax) {
+    void markModified(int xMin, int yMin, int xMax, int yMax) {
         synchronized (lock) {
             modifiedXMin = Math.min(modifiedXMin, xMin);
             modifiedYMin = Math.min(modifiedYMin, yMin);
@@ -259,7 +266,7 @@ public class GraphicsDisplay {
     }
 
     /** Returns the address of the given pixel in the display buffer */
-    private int pixelAddress(int x, int y) {
+    int pixelAddress(int x, int y) {
         return y * displayWidth + x;
     }
 
