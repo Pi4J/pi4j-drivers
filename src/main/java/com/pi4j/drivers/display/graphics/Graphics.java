@@ -22,11 +22,12 @@ public class Graphics {
         display.fillRect(x, y, width, height, color);
     }
 
-    public void drawString(String text, int x, int y) {
+    public void renderText(int x, int y, String text) {
         display.renderText(x, y, text, font, color, textScaleX, textScaleY);
     }
 
-    public void drawRgb(int[] rgbData, int offset, int scanLength, int x, int y, int width, int height) {
+    public void drawRgb(
+            int x, int y, int width, int height, int[] rgbData, int offset, int scanLength) {
         synchronized (display.lock) {
             int xMin = Math.max(0, x);
             int yMin = Math.max(0, y);
