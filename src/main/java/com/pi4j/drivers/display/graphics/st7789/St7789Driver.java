@@ -1,15 +1,10 @@
 package com.pi4j.drivers.display.graphics.st7789;
 
-import com.pi4j.drivers.display.graphics.GraphicsDisplayDriver;
 import com.pi4j.drivers.display.graphics.PixelFormat;
-import com.pi4j.drivers.display.graphics.GraphicsDisplayInfo;
 
 import com.pi4j.drivers.display.graphics.st77xx.St77xxDriver;
 import com.pi4j.io.gpio.digital.DigitalOutput;
 import com.pi4j.io.spi.Spi;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.EnumSet;
 
