@@ -9,7 +9,17 @@ public class GraphicsDisplay {
     private static final int MAX_TRANSFER_SIZE = 4000;
 
     public enum Rotation {
-        ROTATE_0, ROTATE_90, ROTATE_180, ROTATE_270
+        ROTATE_0, ROTATE_90, ROTATE_180, ROTATE_270;
+
+        public Rotation plus(Rotation other) {
+            Rotation[] values = Rotation.values();
+            return values[(ordinal() + other.ordinal()) % values.length];
+        }
+
+        public Rotation minus(Rotation other) {
+            Rotation[] values = Rotation.values();
+            return values[(values.length + ordinal() - other.ordinal()) % values.length];
+        }
     }
 
     private final Object lock = new Object();
@@ -31,6 +41,7 @@ public class GraphicsDisplay {
     }
 
     public GraphicsDisplay(GraphicsDisplayDriver driver, Rotation rotation) {
+        rotation = rotation.minus(driver.getDisplayInfo().getImplicitRotation());
         if (rotation == Rotation.ROTATE_0 || rotation == Rotation.ROTATE_180) {
             displayWidth = driver.getDisplayInfo().getWidth();
             displayHeight = driver.getDisplayInfo().getHeight();
@@ -59,7 +70,7 @@ public class GraphicsDisplay {
      */
     public void attachDriver(int x0, int y0, GraphicsDisplayDriver driver, Rotation rotation) {
         synchronized (lock) {
-            drivers.add(new DriverEntry(x0, y0, driver, rotation));
+            drivers.add(new DriverEntry(x0, y0, driver, rotation.minus(driver.getDisplayInfo().getImplicitRotation())));
         }
     }
 
