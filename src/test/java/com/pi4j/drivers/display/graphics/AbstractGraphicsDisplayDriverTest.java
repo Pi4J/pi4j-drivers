@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import java.awt.*;
 import java.util.Random;
 
 public abstract class AbstractGraphicsDisplayDriverTest {
@@ -95,13 +96,27 @@ public abstract class AbstractGraphicsDisplayDriverTest {
         display.fillRect(0, 0, width, height, 0);
 
         BitmapFont font = BitmapFont.get5x8Font();
-        BitmapFont proportionalFont = BitmapFont.get5x10Font(BitmapFont.Option.PROPORTIONAL);
+        BitmapFont proportionalFont = BitmapFont.get5x10Font();//BitmapFont.Option.PROPORTIONAL);
 
-        int textWidth = display.renderText(1, 8, "Hello Pi4J Monospaced", font, 0xff8888);
+        Graphics graphics = display.getGraphics();
+        graphics.setColor(0xffff8888);
+        graphics.setFont(font);
+
+        int textWidth = graphics.renderText(1, 8, "Hello Pi4J Monospaced");
         assertEquals("Hello Pi4J Monospaced".length() * 6, textWidth);
-        display.renderText(1, 50, "Hello Pi4j-gpqy", proportionalFont, 0x88ff88, 2, 3);
-        display.renderText(1, 100, "Hello Pi4J 3/4x", proportionalFont, 0x8888ff, 3, 4);
-        display.renderText(1, 180, rotation.name(), proportionalFont, 0xffff88, 4, 7);
+
+        graphics.setFont(proportionalFont);
+        graphics.setColor(0xff88ff88);
+        graphics.setTextScale(2, 3);
+        graphics.renderText(1, 50, "Hello Pi4j-gpqy");
+
+        graphics.setColor(0xff8888ff);
+        graphics.setTextScale(3, 4);
+        graphics.renderText(1, 100, "Hello Pi4J 3/4x");
+
+        graphics.setColor(0xffffff88);
+        graphics.setTextScale(4, 7);
+        graphics.renderText(1, 180, rotation.name());
 
         Thread.sleep(100);
 
@@ -122,9 +137,10 @@ public abstract class AbstractGraphicsDisplayDriverTest {
         int width = display.getWidth();
         int height = display.getHeight();
         display.fillRect(0, 0, width, height, java.awt.Color.WHITE.getRGB() );
+        display.fillRect(1, 1, width-2, height-2, Color.BLACK.getRGB() );
 
-        for( int x = 0; x < width; x++ ) {
-            for( int y = 0; y < height; y++ ) {
+        for( int y = 0; y < height; y++ ) {
+            for( int x = 0; x < width; x++ ) {
                 float brightness = (0.8f * y) / height + 0.2f;
                 display.setPixel(x, y,
                         Argb32.fromHsl((360f * x) / width, 1, brightness)

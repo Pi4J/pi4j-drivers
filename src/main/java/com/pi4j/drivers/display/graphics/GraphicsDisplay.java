@@ -88,42 +88,16 @@ public class GraphicsDisplay {
     }
 
     /** Draws an image at the given coordinates */
+    @Deprecated
     public void drawImage(int x, int y, int width, int height, int[] rgb888pixels) {
-        synchronized (lock) {
-            int xMin = Math.max(0, x);
-            int yMin = Math.max(0, y);
-            int xMax = Math.min(x + width, displayWidth);
-            int yMax = Math.min(y + height, displayHeight);
-            if (xMax <= xMin || yMax <= yMin) {
-                return;
-            }
-            for (int targetY = yMin; targetY < yMax; targetY++) {
-                System.arraycopy(
-                        rgb888pixels,
-                        (targetY - y) * width + xMin - x,
-                        displayBuffer,
-                        pixelAddress(xMin, targetY),
-                        xMax - xMin);
-            }
-            markModified(xMin, yMin, xMax, yMax);
-        }
+        getGraphics().drawRgb(x, y, width, height, rgb888pixels);
     }
 
+    @Deprecated
     public void fillRect(int x, int y, int width, int height, int rgb888) {
-        synchronized (lock) {
-            int xMin = Math.max(0, x);
-            int yMin = Math.max(0, y);
-            int xMax = Math.min(x + width, displayWidth);
-            int yMax = Math.min(y + height, displayHeight);
-            if (xMax <= xMin || yMax <= yMin) {
-                return;
-            }
-            for (int targetY = yMin; targetY < yMax; targetY++) {
-                int start = pixelAddress(xMin, targetY);
-                Arrays.fill(displayBuffer, start, start + xMax - xMin, rgb888);
-            }
-            markModified(xMin, yMin, xMax, yMax);
-        }
+        Graphics graphics = getGraphics();
+        graphics.setColor(rgb888);
+        graphics.fillRect(x, y, width, height);
     }
 
     /** Forces an immediate transfer of the modified screen area */
@@ -159,6 +133,7 @@ public class GraphicsDisplay {
      * <p>
      * Returns the width of the rendered text in pixel.
      */
+    @Deprecated
     public int renderText(int x, int baselineY, String text, BitmapFont font, int color) {
         return renderText(x, baselineY, text, font, color, 1, 1);
     }
@@ -168,17 +143,15 @@ public class GraphicsDisplay {
      * <p>
      * Returns the width of the rendered text in pixel.
      */
+    @Deprecated
     public int renderText(
             int x, int baselineY, String text, BitmapFont font, int color, int scaleX, int scaleY
     ) {
-        int length = text.length();
-        int width = 0;
-        for (int offset = 0; offset < length; ) {
-            int codepoint = text.codePointAt(offset);
-            offset += Character.charCount(codepoint);
-            width += renderCharacter(x + width, baselineY, codepoint, font, color, scaleX, scaleY);
-        }
-        return width;
+        Graphics graphics = getGraphics();
+        graphics.setColor(color);
+        graphics.setFont(font);
+        graphics.setTextScale(scaleX, scaleY);
+        return graphics.renderText(x, baselineY, text);
     }
 
     /**
@@ -186,38 +159,15 @@ public class GraphicsDisplay {
      * <p>
      * Returns the width of the character in pixel.
      */
+    @Deprecated
     public int renderCharacter(
             int x0, int baselineY, int codepoint, BitmapFont font, int color, int scaleX, int scaleY
     ) {
-        BitmapFont.Glyph glyph = font.getGlyph(codepoint);
-        if (glyph == null) {
-            return font.getCellWidth();
-        }
-        int w = glyph.getWidth();
-        int h = font.getCellHeight();
-        for (int y = 0; y < h; y++) {
-            for (int x = 0; x < w; x++) {
-                if (glyph.getPixel(x, y)) {
-                    int x2 = x;
-                    // Combine neighbouring pixels to reduce the number of calls.
-                    while (x2 < glyph.getWidth() && glyph.getPixel(x2 + 1, y)) {
-                        x2++;
-                    }
-                    if (scaleX == 1 && scaleY == 1 && x2 == x) {
-                        setPixel(x0 + x, baselineY + y - h, color);
-                    } else {
-                        fillRect(
-                                x0 + scaleX * x,
-                                baselineY + (y - h) * scaleY,
-                                scaleX * (x2 - x + 1),
-                                scaleY,
-                                color);
-                    }
-                    x = x2;
-                }
-            }
-        }
-        return w * scaleX;
+       Graphics graphics = getGraphics();
+       graphics.setColor(color);
+       graphics.setFont(font);
+       graphics.setTextScale(scaleX, scaleY);
+       return graphics.renderCharacter(x0, baselineY, codepoint);
     }
 
     /** Sets the pixel at the given coordinates to the given color */
@@ -240,9 +190,7 @@ public class GraphicsDisplay {
         this.transferDelayMillis = millis;
     }
 
-    // Private methods. Note that internally
-    // - we assume coordinates are in range while we account for out-of-bounds coordinates in user methods.
-    // - we use min/max coordinate bounds instead of width/height as in user methods.
+    // Package visible methods used by the graphics context.
 
     /** Marks the given screen area as modified */
     void markModified(int xMin, int yMin, int xMax, int yMax) {
@@ -265,8 +213,62 @@ public class GraphicsDisplay {
         }
     }
 
+    /** Does not call markModified and does not take any clipping into account */
+    void drawRgbRow(int x, int y, int scaledWidth, int[] rgbData, boolean processAlpha, int offset, int scaleX, int remainder) {
+        int dst = pixelAddress(x, y);
+        if (!processAlpha) {
+            if (scaleX == 1) {
+                System.arraycopy(rgbData, offset, displayBuffer, dst, scaledWidth);
+            } {
+                for (int i = 0; i < scaledWidth; i++) {
+                    displayBuffer[dst + i] = rgbData[offset + (i + remainder) / scaleX];
+                }
+            }
+        } else {
+            for (int i = 0; i < scaledWidth; i++) {
+                int srcArgb = rgbData[offset + i / scaleX];
+                int srcAlpha = (srcArgb >> 24) & 0xff;
+                switch (srcAlpha) {
+                    case 0 -> {}
+                    case 255 -> displayBuffer[dst + i] = srcArgb | 0xff000000;
+                    default -> {
+                        int dstRgb = displayBuffer[dst + i];
+
+                        int srcRed = (srcArgb >> 16) & 0xff;
+                        int srcGreen = (srcArgb >> 8) & 0xff;
+                        int srcBlue = srcArgb & 0xff;
+
+                        int dstRed = Math.min(255, (((dstRgb >> 16) & 0xff) * (255 - srcAlpha) + srcRed * srcAlpha) / 255);
+                        int dstGreen = Math.min(255, (((dstRgb >> 8) & 0xff) * (255 - srcAlpha) + srcGreen * srcAlpha) / 255);
+                        int dstBlue = Math.min(255, ((dstRgb & 0xff) * (255 - srcAlpha) + srcBlue * srcAlpha) / 255);
+
+                        displayBuffer[dst + i] = 0xff000000 | (dstRed << 16) | (dstGreen << 8) | dstBlue;
+                    }
+                }
+            }
+        }
+    }
+
+    /** Does not call markModified and does not take any clipping into account */
+    void drawHLine(int x, int y, int len, int color, long pattern) {
+        int dst = pixelAddress(x, y);
+        if (pattern == -1) {
+            Arrays.fill(displayBuffer, dst, dst + len, color);
+        } else {
+            for (int i = 0; i < len; i++) {
+                if ((pattern & (1L << (i % 64))) != 0) {
+                    displayBuffer[dst + i] = color;
+                }
+            }
+        }
+    }
+
+    // Private methods. Note that internally
+    // - we assume coordinates are in range while we account for out-of-bounds coordinates in user methods.
+    // - we use min/max coordinate bounds instead of width/height as in user methods.
+
     /** Returns the address of the given pixel in the display buffer */
-    int pixelAddress(int x, int y) {
+    private int pixelAddress(int x, int y) {
         return y * displayWidth + x;
     }
 
