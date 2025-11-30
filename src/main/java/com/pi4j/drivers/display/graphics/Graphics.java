@@ -167,6 +167,12 @@ public class Graphics {
         }
     }
 
+    public void drawRect(int x0, int y0, int x1, int y1) {
+        drawLine(x0, y0, x1, y0);
+        drawLine(x0, y0, x0, y1);
+        drawLine(x1, y1, x1, y0);
+        drawLine(x1, y1, x0, y1);
+    }
 
     public void drawRgb(
             int x, int y, int width, int height, int[] rgbData) {
