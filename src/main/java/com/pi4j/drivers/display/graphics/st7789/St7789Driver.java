@@ -19,6 +19,6 @@ public class St7789Driver extends St77xxDriver {
     public static final EnumSet<PixelFormat> SUPPORTED_PIXEL_FORMATS = EnumSet.of(PixelFormat.RGB_444, PixelFormat.RGB_565);
 
     public St7789Driver(Spi spi, DigitalOutput dc, int displayHeight, PixelFormat pixelFormat) {
-        super(spi, dc, null, pixelFormat, true, 320, displayHeight, 0, 320 - displayHeight);
+        super(spi, dc, null, pixelFormat, true, 240, displayHeight, 0, 320 - displayHeight);
     }
 }
