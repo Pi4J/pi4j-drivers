@@ -249,6 +249,10 @@ public class GraphicsDisplay {
         }
     }
 
+    void setPixelInternal(int x, int y, int color) {
+        displayBuffer[pixelAddress(x, y)] = color;
+    }
+
     /** Does not call markModified and does not take any clipping into account */
     void drawHLine(int x, int y, int len, int color, long pattern) {
         int dst = pixelAddress(x, y);

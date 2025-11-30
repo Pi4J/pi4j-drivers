@@ -76,6 +76,97 @@ public class Graphics {
         return font.getCellWidth() * textScaleX;
     }
 
+    private void setPixelInternal(int x, int y) {
+        if (x >= clipXMin && x < clipXMax && y >= clipYMin && y < clipYMax) {
+            display.setPixelInternal(x, y, color);
+        }
+    }
+
+    private void drawLineLow(int x0, int y0, int x1, int y1) {
+        int xMin = Math.max(clipXMin, x0);
+        int yMin = Math.max(clipYMin, Math.min(y0, y1));
+        int xMax = Math.min(x1 + 1, clipXMax);
+        int yMax = Math.min(Math.max(y0, y1) + 1, clipYMax);
+        if (xMax <= xMin || yMax <= yMin) {
+            return;
+        }
+        int dx = x1 - x0;
+        int dy = y1 - y0;
+
+        int yi = 1;
+        if (dy < 0) {
+            yi = -1;
+            dy = -dy;
+        }
+        int d = (2 * dy) - dx;
+        int y = y0;
+
+        synchronized (display.lock) {
+            if (dy == 0) {
+                display.drawHLine(xMin, y, xMax - xMin, color, -1);
+            } else {
+                for (int x = x0; x < xMax; x++) {
+                    setPixelInternal(x, y);
+                    if (d > 0) {
+                        y += yi;
+                        d += (2 * (dy - dx));
+                    } else {
+                        d += 2 * dy;
+                    }
+                }
+            }
+            display.markModified(xMin, yMin, xMax, yMax);
+        }
+    }
+
+    private void drawLineHigh(int x0, int y0, int x1, int y1) {
+
+        int xMin = Math.max(clipXMin, Math.min(x0, x1));
+        int yMin = Math.max(clipYMin, y0);
+        int xMax = Math.min(Math.max(x0, x1) + 1, clipXMax);
+        int yMax = Math.min(y1 + 1, clipYMax);
+        if (xMax <= xMin || yMax <= yMin) {
+            return;
+        }
+        int dx = x1 - x0;
+        int dy = y1 - y0;
+        int xi = 1;
+        if (dx < 0) {
+            xi = -1;
+            dx = -dx;
+        }
+        int d = (2 * dx) - dy;
+        int x = x0;
+        synchronized (display.lock) {
+            for (int y = y0; y < yMax; y++) {
+                setPixelInternal(x, y);
+                if (d > 0) {
+                    x += xi;
+                    d += (2 * (dx - dy));
+                } else {
+                    d += 2 * dx;
+                }
+            }
+            display.markModified(xMin, yMin, xMax, yMax);
+        }
+    }
+
+    public void drawLine(int x0, int y0, int x1, int y1) {
+        if (Math.abs(y1 - y0) < Math.abs(x1 - x0)) {
+            if (x0 > x1) {
+                drawLineLow(x1, y1, x0, y0);
+            } else {
+                drawLineLow(x0, y0, x1, y1);
+            }
+        } else {
+            if (y0 > y1) {
+                drawLineHigh(x1, y1, x0, y0);
+            } else {
+                drawLineHigh(x0, y0, x1, y1);
+            }
+        }
+    }
+
 
     public void drawRgb(
             int x, int y, int width, int height, int[] rgbData) {
@@ -85,10 +176,10 @@ public class Graphics {
     public void drawRgb(
             int x, int y, int width, int height, int[] rgbData, int offset, int scanLength, int scaleX, int scaleY) {
 
-        int xMin = Math.max(0, x);
-        int yMin = Math.max(0, y);
-        int xMax = Math.min(x + width, display.getWidth());
-        int yMax = Math.min(y + height, display.getHeight());
+        int xMin = Math.max(clipXMin, x);
+        int yMin = Math.max(clipYMin, y);
+        int xMax = Math.min(x + width, clipXMax);
+        int yMax = Math.min(y + height, clipYMax);
         if (xMax <= xMin || yMax <= yMin) {
             return;
         }
