@@ -47,6 +47,44 @@ public abstract class AbstractGraphicsDisplayDriverTest {
         display.close();
     }
 
+    @Test
+    public void testLineDrawing() throws InterruptedException {
+        GraphicsDisplay display = new GraphicsDisplay(createDriver(pi4j));
+        Graphics graphics = display.getGraphics();
+        
+        for (int o = 0; o < 2; o++) {
+            graphics.setColor(0);
+            graphics.fillRect(0, 0, display.getWidth(), display.getHeight());
+            for (int i = 0; i < display.getWidth(); i += 10) {
+                graphics.setColor(0x0ff8888ff);
+                graphics.drawLine(0, 0, i, display.getHeight() - 1);
+                graphics.setColor(0x0ff88ff88);
+                graphics.drawLine(0, display.getHeight() - 1, i, 0);
+                graphics.setColor(0x0ff88ffff);
+                graphics.drawLine(display.getWidth() - 1, 0, i, display.getHeight() - 1);
+                graphics.setColor(0x0ffff8888);
+                graphics.drawLine(display.getWidth() - 1, display.getHeight() - 1, i, 0);
+                Thread.sleep(10);
+            }
+            for (int i = 0; i < display.getHeight(); i += 10) {
+                graphics.setColor(0x0ffff88ff);
+                graphics.drawLine(0, 0, display.getWidth() - 1, i);
+                graphics.setColor(0x0ffffff88);
+                graphics.drawLine(display.getWidth() - 1, 0, 0, i);
+                graphics.setColor(0x0ffffffff);
+                graphics.drawLine(0, display.getHeight() - 1, display.getWidth() - 1, i);
+                graphics.setColor(0x0ff888888);
+                graphics.drawLine(display.getWidth() - 1, display.getHeight() - 1, 0, i);
+
+                Thread.sleep(10);
+            }
+            graphics.setColor(0);
+            graphics.fillRect(display.getWidth()/4, display.getHeight()/4, display.getWidth()/2, display.getHeight()/2);
+            graphics.setClip(display.getWidth()/3, display.getHeight()/3, display.getWidth()/3, display.getHeight()/3);
+        }
+        display.close();
+    }
+
     // Text makes rotation (bugs) quite obvious, so we use this to test both.
     @Test
     public void testBitmapFont0_100() throws InterruptedException {
