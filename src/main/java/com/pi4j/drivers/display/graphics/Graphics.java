@@ -2,8 +2,6 @@ package com.pi4j.drivers.display.graphics;
 
 import com.pi4j.drivers.display.BitmapFont;
 
-import java.util.Arrays;
-
 /** A simple graphics context tailored towards pixel-exact rendering on small displays. */
 public class Graphics {
     private final GraphicsDisplay display;
