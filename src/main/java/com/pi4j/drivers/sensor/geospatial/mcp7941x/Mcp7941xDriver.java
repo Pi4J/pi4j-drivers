@@ -65,6 +65,8 @@ public class Mcp7941xDriver {
             throw new IllegalArgumentException();
         }
 
-        return ((val / 10) << 4) | (val % 10);
+        int result = ((val / 10) << 4) | (val % 10);
+        log.trace("decToBcd in: {} out: {}", val, result);
+        return result;
     }
 }
