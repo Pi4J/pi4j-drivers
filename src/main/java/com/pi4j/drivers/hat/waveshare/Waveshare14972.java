@@ -35,16 +35,7 @@ public class Waveshare14972 implements Closeable {
 
     public GameController getController() {
         if (controller == null) {
-            GameController.Builder builder = new GameController.Builder(pi4j);
-            builder.addGndSwitch(GameController.Key.KEY_1, 21)
-                    .addGndSwitch(GameController.Key.KEY_2, 20)
-                    .addGndSwitch(GameController.Key.KEY_3, 16)
-                    .addGndSwitch(GameController.Key.UP, 6)
-                    .addGndSwitch(GameController.Key.DOWN, 19)
-                    .addGndSwitch(GameController.Key.LEFT, 5)
-                    .addGndSwitch(GameController.Key.RIGHT, 26)
-                    .addGndSwitch(GameController.Key.CENTER, 13);
-            controller = builder.build();
+            controller = JoystickHatGameControllerFactory.create(pi4j);
         }
         return controller;
     }

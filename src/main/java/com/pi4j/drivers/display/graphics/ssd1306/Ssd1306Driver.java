@@ -33,15 +33,13 @@ public class Ssd1306Driver implements GraphicsDisplayDriver {
     private byte[] page_buffer;
 
     public Ssd1306Driver(I2C i2c) {
-
         this.i2c = i2c;
-        this.displayInfo = new GraphicsDisplayInfo(128, 64, PixelFormat.MONOCHROME, 1);
+        this.displayInfo = new GraphicsDisplayInfo(128, 64, PixelFormat.MONOCHROME);
         page_buffer = new byte[128 * 8]; // 1024
         init();
     }
 
     private void init() {
-
         command(COMMAND_DISPLAY_ON | DISABLE_DISPLAY);
         // Set MUX Ratio [$A8, $3F]
         command(0xA8, 0x3f);
@@ -95,7 +93,6 @@ public class Ssd1306Driver implements GraphicsDisplayDriver {
     }
 
     private void command(int x) {
-
         log.debug("Command: {} {}", x, String.format("0x%08x ", x));
 
         byte[] buf = new byte[2];
@@ -105,7 +102,6 @@ public class Ssd1306Driver implements GraphicsDisplayDriver {
     }
 
     private void command(int x1, int x2) {
-
         log.debug("Command: {} {} {} {}", x1, x2, String.format("0x%08x ", x1), String.format("0x%08x ", x2));
 
         byte[] buf = new byte[3];
@@ -125,7 +121,6 @@ public class Ssd1306Driver implements GraphicsDisplayDriver {
     }
 
     public void sendBuffer() {
-
         command(COMMAND_SET_ADDRESS_LINE | (byte) (0x00 & 0x3F));
 
         String raw = java.util.HexFormat.of().formatHex(page_buffer);
@@ -139,7 +134,6 @@ public class Ssd1306Driver implements GraphicsDisplayDriver {
     }
 
     public void setPixelOn(int x, int y) {
-
         log.debug("setPixelOn {} {}", x, y);
 
         if (y > 63) {
@@ -156,7 +150,6 @@ public class Ssd1306Driver implements GraphicsDisplayDriver {
     }
 
     public void setPixelOff(int x, int y) {
-
         log.debug("setPixelOff {} {}", x, y);
 
         if (y > 63) {
@@ -179,7 +172,6 @@ public class Ssd1306Driver implements GraphicsDisplayDriver {
 
     @Override
     public void setPixels(int x, int y, int width, int height, byte[] data) {
-
         log.debug("setPixels {} {} {} {} {}", x, y, width, height, data.length);
 
         int bitIndex = 0;
@@ -200,5 +192,6 @@ public class Ssd1306Driver implements GraphicsDisplayDriver {
 
     @Override
     public void close() {
+        i2c.close();
     }
 }
