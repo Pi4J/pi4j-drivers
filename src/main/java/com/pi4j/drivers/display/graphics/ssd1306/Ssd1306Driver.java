@@ -1,12 +1,17 @@
 package com.pi4j.drivers.display.graphics.ssd1306;
 
+import com.pi4j.drivers.display.graphics.GraphicsDisplay;
 import com.pi4j.drivers.display.graphics.GraphicsDisplayDriver;
 import com.pi4j.drivers.display.graphics.GraphicsDisplayInfo;
 import com.pi4j.drivers.display.graphics.PixelFormat;
-import com.pi4j.io.i2c.I2C;
+import com.pi4j.io.IODataWriter;
+import com.pi4j.io.OnOffWrite;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.Closeable;
+import java.io.IOException;
 
 public class Ssd1306Driver implements GraphicsDisplayDriver {
 
@@ -28,14 +33,25 @@ public class Ssd1306Driver implements GraphicsDisplayDriver {
     private static final int WITH_ONE_COMMAND = 0x00;
     private static final int WITH_DATA_ONLY = 0x40;
 
-    private final I2C i2c;
+    private final IODataWriter writer;
     private final GraphicsDisplayInfo displayInfo;
-    private byte[] page_buffer;
+    private final byte[] page_buffer;
+    private final OnOffWrite<?> dc;
+    private final byte[] commandBuffer = new byte[8];
 
-    public Ssd1306Driver(I2C i2c) {
-        this.i2c = i2c;
-        this.displayInfo = new GraphicsDisplayInfo(128, 64, PixelFormat.MONOCHROME);
+
+    /** Constructor for I2c, using WITH_ONE_COMMAND / WITH_DATA instead of dc to switch between data and command mode. */
+    public Ssd1306Driver(IODataWriter writer) {
+        this(writer, null);
+    }
+
+    /** Constructor for SPI with a dedicated dc pin. */
+    public Ssd1306Driver(IODataWriter writer, OnOffWrite<?> dc) {
+        this.writer = writer;
+        this.dc = dc;
+        this.displayInfo = new GraphicsDisplayInfo(128, 64, PixelFormat.MONOCHROME, 8, GraphicsDisplay.Rotation.ROTATE_0);
         page_buffer = new byte[128 * 8]; // 1024
+        commandBuffer[0] = WITH_ONE_COMMAND;
         init();
     }
 
@@ -92,32 +108,34 @@ public class Ssd1306Driver implements GraphicsDisplayDriver {
         sendBuffer();
     }
 
+    private void writeCommand(int length) {
+        if (dc == null) {
+            writer.write(commandBuffer, 0, length + 1);
+        } else {
+            dc.off();
+            writer.write(commandBuffer, 1, length);
+        }
+    }
+
     private void command(int x) {
         log.debug("Command: {} {}", x, String.format("0x%08x ", x));
-
-        byte[] buf = new byte[2];
-        buf[0] = WITH_ONE_COMMAND;
-        buf[1] = (byte) x;
-        i2c.write(buf);
+        commandBuffer[1] = (byte) x;
+        writeCommand(1);
     }
 
     private void command(int x1, int x2) {
         log.debug("Command: {} {} {} {}", x1, x2, String.format("0x%08x ", x1), String.format("0x%08x ", x2));
 
-        byte[] buf = new byte[3];
-        buf[0] = WITH_ONE_COMMAND;
-        buf[1] = (byte) x1;
-        buf[2] = (byte) x2;
-        i2c.write(buf);
+        commandBuffer[1] = (byte) x1;
+        commandBuffer[2] = (byte) x2;
+        writeCommand(2);
     }
 
     private void setColumnAddress(int start, int end) {
-        byte[] buf = new byte[4];
-        buf[0] = WITH_ONE_COMMAND;
-        buf[1] = COMMAND_SET_COLUMN_ADDRESS;
-        buf[2] = (byte) (start & 0x7F);
-        buf[3] = (byte) (end & 0x7F);
-        this.i2c.write(buf);
+        commandBuffer[1] = COMMAND_SET_COLUMN_ADDRESS;
+        commandBuffer[2] = (byte) (start & 0x7F);
+        commandBuffer[3] = (byte) (end & 0x7F);
+        writeCommand(3);
     }
 
     public void sendBuffer() {
@@ -130,7 +148,12 @@ public class Ssd1306Driver implements GraphicsDisplayDriver {
         buf[0] = WITH_DATA_ONLY;
         System.arraycopy(page_buffer, 0, buf, 1, page_buffer.length);
 
-        i2c.write(buf, buf.length);
+        if (dc != null) {
+            dc.on();
+            writer.write(buf, 1, buf.length - 1);
+        } else {
+            writer.write(buf, buf.length);
+        }
     }
 
     public void setPixelOn(int x, int y) {
@@ -192,6 +215,19 @@ public class Ssd1306Driver implements GraphicsDisplayDriver {
 
     @Override
     public void close() {
-        i2c.close();
+        if (dc instanceof Closeable) {
+            try {
+                ((Closeable) dc).close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if (writer instanceof Closeable) {
+            try {
+                ((Closeable) writer).close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
