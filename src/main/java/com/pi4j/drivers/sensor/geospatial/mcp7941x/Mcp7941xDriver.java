@@ -42,6 +42,8 @@ public class Mcp7941xDriver {
 
     public void setDateTime(LocalDateTime localDateTime) {
 
+        log.trace("setting dateTime: " + localDateTime);
+
         i2c.writeRegister(SECONDS, (byte) decToBcd(localDateTime.getSecond()) | START_OSCILLATOR);
         i2c.writeRegister(MINUTES, (byte) decToBcd(localDateTime.getMinute()));
         i2c.writeRegister(HOURS, (byte) decToBcd(localDateTime.getHour()));
@@ -51,12 +53,18 @@ public class Mcp7941xDriver {
         i2c.writeRegister(YEAR, (byte) decToBcd(localDateTime.getYear() - 2000));
     }
 
-    public static int bcdToDec(int bcd) {
+    // limited to 2 digits ( 0..99 )
+    private static int bcdToDec(int bcd) {
         return ((bcd >> 4) * 10) + (bcd & 0x0F);
     }
 
+    // limited to 2 digits ( 0..99 )
     private static int decToBcd(int val) {
+
+        if (val < 0) {
+            throw new IllegalArgumentException();
+        }
+
         return ((val / 10) << 4) | (val % 10);
     }
-
 }
