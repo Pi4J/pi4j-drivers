@@ -58,6 +58,16 @@ public class GameController implements Closeable {
             this.y = y;
         }
 
+        public static Direction of(int dx, int dy) {
+            if (dy > 0) {
+                return dx > 0 ? SOUTHEAST : dx < 0 ? SOUTHWEST : SOUTH;
+            }
+            if (dy < 0) {
+                return dx > 0 ? NORTHEAST : dx < 0 ? NORTHWEST : NORTH;
+            }
+            return dx > 0 ? EAST : dx < 0 ? WEST : NONE;
+        }
+
         /** Returns the x-component of this direction; -1 for left/west, 1 for right/east and 0 for no horizontal component. */
         public int getX() {
             return x;
@@ -66,6 +76,20 @@ public class GameController implements Closeable {
         /** Returns the y-component of this direction; -1 for up/north, 1 for down/south and 0 for no vertical component. */
         public int getY() {
             return y;
+        }
+
+        public Direction opposite() {
+            return switch (this) {
+                case NORTH -> SOUTH;
+                case NORTHEAST -> SOUTHWEST;
+                case EAST -> WEST;
+                case SOUTHEAST -> NORTHWEST;
+                case SOUTH -> NORTH;
+                case SOUTHWEST -> NORTHEAST;
+                case WEST -> EAST;
+                case NORTHWEST -> SOUTHEAST;
+                default -> NONE;
+            };
         }
     }
 
