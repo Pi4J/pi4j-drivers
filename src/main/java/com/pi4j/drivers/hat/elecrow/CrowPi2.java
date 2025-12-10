@@ -10,7 +10,7 @@ import com.pi4j.drivers.input.KeyPad;
 import com.pi4j.drivers.io.ad.mcp300x.Mcp300xDriver;
 import com.pi4j.drivers.sensor.Sensor;
 import com.pi4j.drivers.sensor.geospatial.hcsr04.Hcsr04Driver;
-import com.pi4j.drivers.sound.PwmSoundDriver;
+import com.pi4j.drivers.sound.pwm.PwmSoundDriver;
 import com.pi4j.drivers.sound.SoundDriver;
 import com.pi4j.io.gpio.digital.DigitalInput;
 import com.pi4j.io.gpio.digital.DigitalOutput;
