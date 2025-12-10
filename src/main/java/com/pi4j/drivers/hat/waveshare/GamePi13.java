@@ -6,7 +6,7 @@ import com.pi4j.drivers.display.graphics.GraphicsDisplayDriver;
 import com.pi4j.drivers.display.graphics.PixelFormat;
 import com.pi4j.drivers.display.graphics.st7789.St7789Driver;
 import com.pi4j.drivers.input.GameController;
-import com.pi4j.drivers.sound.PwmSoundDriver;
+import com.pi4j.drivers.sound.pwm.PwmSoundDriver;
 import com.pi4j.drivers.sound.SoundDriver;
 import com.pi4j.io.gpio.digital.DigitalOutput;
 import com.pi4j.io.gpio.digital.DigitalOutputConfigBuilder;

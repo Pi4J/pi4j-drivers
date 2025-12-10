@@ -1,5 +1,6 @@
 package com.pi4j.drivers.sound;
 
+@Deprecated
 public class Note {
     public static final float PAUSE = 0;
     public static final float B0 = 31;

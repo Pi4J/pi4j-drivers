@@ -232,7 +232,7 @@ public class Graphics {
         synchronized (display.lock) {
             for (int sy = yMin; sy < yMax; sy++) {
                 if (sy == yMin || (sy - y) % scaleY == 0) {
-                    int srcBitPos = bitOffset + ((sy - y) / scaleY * bitStride) + ((xMin - x) / scaleX) * bitCount;
+                    int srcBitPos = bitOffset + (sy - y) / scaleY * bitStride + (xMin - x) / scaleX * bitIncrement;
                     int dstPos = 0;
                     for (int i = 0; i < len; i++) {
                         int indices = data[srcBitPos / 32];
