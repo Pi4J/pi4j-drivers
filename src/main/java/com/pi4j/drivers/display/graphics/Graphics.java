@@ -71,7 +71,7 @@ public class Graphics {
         boolean saveProcessAlpha = processAlpha;
         textPalette[1] = processAlpha ? color : (color | 0xff000000);
         processAlpha = true;
-        drawIndexed(x, y - h, font.getCellWidth() * textScaleX, h * textScaleY, glyphBuffer, 1, textPalette, bitOffset, font.getCellWidth(), textScaleX, textScaleY);
+        drawIndexed(x, y - h, font.getCellWidth() * textScaleX, h * textScaleY, glyphBuffer, 1, textPalette, bitOffset, 1, font.getCellWidth(), textScaleX, textScaleY);
         processAlpha = saveProcessAlpha;
         return font.getCellWidth() * textScaleX;
     }
@@ -167,6 +167,14 @@ public class Graphics {
         }
     }
 
+    public void drawRect(int x0, int y0, int width, int height) {
+        int x1 = x0 + width - 1;
+        int y1 = y0 + height - 1;
+        drawLine(x0, y0, x1, y0);
+        drawLine(x0, y0, x0, y1);
+        drawLine(x1, y1, x1, y0);
+        drawLine(x1, y1, x0, y1);
+    }
 
     public void drawRgb(
             int x, int y, int width, int height, int[] rgbData) {
@@ -201,7 +209,7 @@ public class Graphics {
     }
 
     public void drawIndexed(
-            int x, int y, int width, int height, int[] data, int bitCount, int[] palette, int bitOffset, int bitScanLength, int scaleX, int scaleY) {
+            int x, int y, int width, int height, int[] data, int bitCount, int[] palette, int bitOffset, int bitIncrement, int bitStride, int scaleX, int scaleY) {
         if (Integer.highestOneBit(bitCount) != Integer.lowestOneBit(bitCount)) {
             throw new IllegalArgumentException("Bitcount must be a power of 2");
         }
@@ -224,14 +232,14 @@ public class Graphics {
         synchronized (display.lock) {
             for (int sy = yMin; sy < yMax; sy++) {
                 if (sy == yMin || (sy - y) % scaleY == 0) {
-                    int srcBitPos = bitOffset + ((sy - y) / scaleY * bitScanLength + (xMin - x) / scaleX) * bitCount;
+                    int srcBitPos = bitOffset + ((sy - y) / scaleY * bitStride) + ((xMin - x) / scaleX) * bitCount;
                     int dstPos = 0;
                     for (int i = 0; i < len; i++) {
                         int indices = data[srcBitPos / 32];
                         int bitIndex = srcBitPos % 32;
                         int index = (indices >> (32 - bitCount - bitIndex)) & bitMask;
                         indexedTransferBuffer[dstPos++] = palette[index];
-                        srcBitPos += bitCount;
+                        srcBitPos += bitIncrement;
                     }
                 }
                 display.drawRgbRow(xMin, sy, xMax - xMin, indexedTransferBuffer, processAlpha, 0, scaleX, (xMin - x) % scaleX);
