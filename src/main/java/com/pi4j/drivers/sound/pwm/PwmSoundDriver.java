@@ -49,7 +49,7 @@ public class PwmSoundDriver implements SoundDriver {
         public Sequence setCallback(Runnable callback) {
             synchronized (lock) {
                 this.callback = callback;
-                if (index >= notes.length && index != Integer.MAX_VALUE) {
+                if (callback != null && index >= notes.length && index != Integer.MAX_VALUE) {
                     callback.run();
                     index = Integer.MAX_VALUE;
                 }
