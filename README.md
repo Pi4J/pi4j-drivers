@@ -7,7 +7,7 @@ GitHub Actions:
 
 **THIS IS THE VERY START OF A NEW PROJECT. NO USABLE CODE IS YET AVAILABLE.**
 
-This project contains driver implementations for various electronic components, using Pi4J V4+. Full description will be available on the Pi4J website at [Documentation > Using Drivers](https://pi4j.com/documentation/using-drivers).
+This project contains driver implementations for various electronic components, using Pi4J V4+. Full description will be available on the Pi4J website at [Documentation > Using the Drivers Library](https://pi4j.com/documentation/drivers).
 
 For the current coverage state and plans, please refer to https://docs.google.com/document/d/1Gyeaq6xCbvmE-ZH675zyYz2Jhhc-76IA5tvJtxvjmbE/edit?usp=sharing
 
