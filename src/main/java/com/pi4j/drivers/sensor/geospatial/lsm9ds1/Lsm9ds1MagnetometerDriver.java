@@ -68,7 +68,7 @@ public class Lsm9ds1MagnetometerDriver implements Sensor {
     }
 
     @Override
-    public void readMeasurement(float[] values) {
+    public void readMeasurement(double[] values) {
         // Request single measurement
         setRegisterBits(Register.CTRL_REG3_M, 1, 0, 1);
 

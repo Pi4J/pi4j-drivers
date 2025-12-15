@@ -88,7 +88,7 @@ public class Lsm9ds1Driver implements Sensor {
     }
 
     @Override
-    public void readMeasurement(float[] values) {
+    public void readMeasurement(double[] values) {
         registerAccess.readRegister(Register.OUT_X_L_XL,  buffer.array(), 0, 6);
 
         values[0] = buffer.getShort(0) * accelerometerRange.ms2/ Short.MAX_VALUE;

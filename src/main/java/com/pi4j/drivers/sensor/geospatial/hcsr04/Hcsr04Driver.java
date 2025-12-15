@@ -90,7 +90,7 @@ public class Hcsr04Driver implements Sensor {
     }
 
     @Override
-    public void readMeasurement(float[] values) {
+    public void readMeasurement(double[] values) {
         values[0] = (float) measureDistance();
     }
 

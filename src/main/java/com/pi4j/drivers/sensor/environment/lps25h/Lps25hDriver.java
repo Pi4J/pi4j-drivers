@@ -66,7 +66,7 @@ public class Lps25hDriver implements Sensor {
     }
 
     @Override
-    public void readMeasurement(float[] values) {
+    public void readMeasurement(double[] values) {
         values[0] = readPressure();
         values[1] = readTemperature();
     }
