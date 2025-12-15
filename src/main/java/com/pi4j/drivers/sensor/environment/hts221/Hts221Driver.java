@@ -106,7 +106,7 @@ public class Hts221Driver implements Sensor {
     }
 
     @Override
-    public void readMeasurement(float[] values) {
+    public void readMeasurement(double[] values) {
         values[0] = readHumidity();
         values[1] = readTemperature();
     }

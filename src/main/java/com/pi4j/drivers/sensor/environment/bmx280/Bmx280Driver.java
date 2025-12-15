@@ -428,7 +428,7 @@ public class Bmx280Driver implements Sensor {
     }
 
     @Override
-    public void readMeasurement(float[] values) {
+    public void readMeasurement(double[] values) {
         Measurement measurement = readMeasurement();
         values[0] = measurement.temperature;
         values[1] = measurement.pressure;

@@ -74,7 +74,7 @@ public class Tcs3400Driver implements Sensor {
     }
 
     @Override
-    public void readMeasurement(float[] values) {
+    public void readMeasurement(double[] values) {
         while((registerAccess.readRegister(Register.STATUS) & 1) == 0) {
             try {
                 Thread.sleep(10);
