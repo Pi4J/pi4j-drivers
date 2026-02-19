@@ -1,6 +1,7 @@
 package com.pi4j.drivers.display.graphics;
 
 import com.pi4j.drivers.display.BitmapFont;
+import com.pi4j.drivers.display.graphics.framebuffer.FramebufferDriver;
 
 import java.util.*;
 
@@ -298,9 +299,13 @@ public class GraphicsDisplay {
             this.y0 = y0;
             this.driver = driver;
             this.rotation = rotation;
-            this.transferBuffer = new byte[Math.min(
-                    MAX_TRANSFER_SIZE,
-                    (driver.getDisplayInfo().getWidth() * driver.getDisplayInfo().getHeight() * driver.getDisplayInfo().getPixelFormat().getBitCount() + 7) / 8)];
+
+            int calculatedBufferSize = (driver.getDisplayInfo().getWidth() * driver.getDisplayInfo().getHeight() * driver.getDisplayInfo().getPixelFormat().getBitCount() + 7) / 8;
+            if( driver instanceof FramebufferDriver ) {
+                this.transferBuffer = new byte[calculatedBufferSize];
+            } else {
+                this.transferBuffer = new byte[Math.min( MAX_TRANSFER_SIZE, calculatedBufferSize )];
+            }
         }
 
         private void transferBuffer(int xMin, int yMin, int xMax, int yMax) {
