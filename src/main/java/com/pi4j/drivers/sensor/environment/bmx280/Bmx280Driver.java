@@ -41,14 +41,14 @@ public class Bmx280Driver implements Sensor {
     public final static int ADDRESS_BME_280_PRIMARY = 0x076;
     public final static int ADDRESS_BME_280_SECONDARY = 0x077;
 
-    public final static SensorDescriptor DESCRIPTOR_BMP_280 = new SensorDescriptor.Builder()
+    public final static SensorDescriptor DESCRIPTOR_BMP_280 = new SensorDescriptor.Builder("BMP280")
             .addValue(SensorDescriptor.Kind.TEMPERATURE)
             .addValue(SensorDescriptor.Kind.PRESSURE)
             .addI2cAddress(ADDRESS_BMP_280)
             .setI2cSensorDetector(i2c -> i2c.readRegister(Bmp280Constants.CHIP_ID) == Bmp280Constants.ID_VALUE_BMP ? new Bmx280Driver(i2c) : null)
             .build();
 
-    public final static SensorDescriptor DESCRIPTOR_BME_280 = new SensorDescriptor.Builder()
+    public final static SensorDescriptor DESCRIPTOR_BME_280 = new SensorDescriptor.Builder("BME280")
             .addValue(SensorDescriptor.Kind.TEMPERATURE)
             .addValue(SensorDescriptor.Kind.PRESSURE)
             .addValue(SensorDescriptor.Kind.HUMIDITY)

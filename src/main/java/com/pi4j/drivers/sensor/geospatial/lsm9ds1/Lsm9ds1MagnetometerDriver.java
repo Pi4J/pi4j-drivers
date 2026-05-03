@@ -23,7 +23,7 @@ public class Lsm9ds1MagnetometerDriver implements Sensor {
     public static final int I2C_ADDRESS_1 = 0x1e;
     private static final int WHO_AM_I_VALUE = 0b111101;
 
-    public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor.Builder()
+    public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor.Builder("LSM9DS1-Magnetometer")
             .addValue(SensorDescriptor.Kind.MAGNETIC_FIELD_X)
             .addValue(SensorDescriptor.Kind.MAGNETIC_FIELD_Y)
             .addValue(SensorDescriptor.Kind.MAGNETIC_FIELD_Z)

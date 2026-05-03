@@ -18,7 +18,7 @@ public class Hts221Driver implements Sensor {
     public static final int I2C_ADDRESS = 0x5f;
     private static final int WHO_AM_I_VALUE = 0xbc;
 
-    public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor.Builder()
+    public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor.Builder("HTS221")
             .addValue(SensorDescriptor.Kind.HUMIDITY)
             .addValue(SensorDescriptor.Kind.TEMPERATURE)
             .addI2cAddress(I2C_ADDRESS)

@@ -16,7 +16,7 @@ public class Lps25hDriver implements Sensor {
     public static final int I2C_ADDRESS = 0x5c;
     private static final int WHO_AM_I_VALUE = 0xbd;
 
-    public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor.Builder()
+    public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor.Builder("LPS25H")
             .addValue(SensorDescriptor.Kind.PRESSURE)
             .addValue(SensorDescriptor.Kind.TEMPERATURE)
             .addI2cAddress(I2C_ADDRESS)

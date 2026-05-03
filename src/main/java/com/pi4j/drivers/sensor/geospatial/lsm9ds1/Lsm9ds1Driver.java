@@ -23,7 +23,7 @@ public class Lsm9ds1Driver implements Sensor {
     public static final int I2C_ADDRESS_1 = 0x6b;
     private final static int WHO_AM_I_VALUE = 0b01101000;
 
-    public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor.Builder()
+    public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor.Builder("LSM9DS1")
             .addValue(SensorDescriptor.Kind.ACCELERATION_X)
             .addValue(SensorDescriptor.Kind.ACCELERATION_Y)
             .addValue(SensorDescriptor.Kind.ACCELERATION_Z)
