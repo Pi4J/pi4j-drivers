@@ -298,9 +298,11 @@ public class GraphicsDisplay {
             this.y0 = y0;
             this.driver = driver;
             this.rotation = rotation;
+            int bitsPerRow = driver.getDisplayInfo().getWidth() * driver.getDisplayInfo().getPixelFormat().getBitCount();
+            // We limit the transfer size to 4000 bytes, but at least a full row of pixels
             this.transferBuffer = new byte[Math.min(
-                    MAX_TRANSFER_SIZE,
-                    (driver.getDisplayInfo().getWidth() * driver.getDisplayInfo().getHeight() * driver.getDisplayInfo().getPixelFormat().getBitCount() + 7) / 8)];
+                    Math.max(MAX_TRANSFER_SIZE, (bitsPerRow + 7) / 8),
+                    (bitsPerRow * driver.getDisplayInfo().getHeight() + 7) / 8)];
         }
 
         private void transferBuffer(int xMin, int yMin, int xMax, int yMax) {
