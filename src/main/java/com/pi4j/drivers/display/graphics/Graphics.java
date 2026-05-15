@@ -71,7 +71,7 @@ public class Graphics {
         boolean saveProcessAlpha = processAlpha;
         textPalette[1] = processAlpha ? color : (color | 0xff000000);
         processAlpha = true;
-        drawIndexed(x, y - h, font.getCellWidth() * textScaleX, h * textScaleY, glyphBuffer, 1, textPalette, bitOffset, 1, font.getCellWidth(), textScaleX, textScaleY);
+        drawIndexed(x, y - h, font.getCellWidth() * textScaleX, h, glyphBuffer, 1, textPalette, bitOffset, 1, font.getCellWidth(), textScaleX, textScaleY);
         processAlpha = saveProcessAlpha;
         return font.getCellWidth() * textScaleX;
     }
