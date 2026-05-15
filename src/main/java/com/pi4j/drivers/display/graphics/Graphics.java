@@ -67,7 +67,7 @@ public class Graphics {
             return font.getCellWidth();
         }
         int bitOffset = glyph.getData(glyphBuffer);
-        int h = font.getCellHeight();
+        int h = font.getCellHeight() * textScaleY;
         boolean saveProcessAlpha = processAlpha;
         textPalette[1] = processAlpha ? color : (color | 0xff000000);
         processAlpha = true;
