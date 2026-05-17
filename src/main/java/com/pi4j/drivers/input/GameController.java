@@ -152,13 +152,13 @@ public class GameController implements Closeable {
     }
 
     /** The analog joystick x-position in the range from -1 (left) via 0 (neutral) to 1 (right);  */
-    public float getAnalogJoystickX() {
-        return Float.NaN;
+    public double getAnalogJoystickX() {
+        return Double.NaN;
     }
 
     /** The analog joystick y-position in the range from -1 (down) via 0 (neutral) to 1 (up);  */
-    public float getAnalogJoystickY() {
-        return Float.NaN;
+    public double getAnalogJoystickY() {
+        return Double.NaN;
     }
 
     /** Returns the current direction of the analog joystick; falling back to directional keys if not available */

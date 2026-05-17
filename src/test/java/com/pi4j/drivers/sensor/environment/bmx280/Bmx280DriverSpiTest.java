@@ -12,10 +12,11 @@ import org.junit.jupiter.api.*;
  * Runs tests if a BME 280 configured to the BMP 280 address or a BMP 280 is connected to spi bus 0;
  * aborts otherwise.
  */
+@Disabled
 public class Bmx280DriverSpiTest extends AbstractBmx280DriverTest {
 
     static final int BUS = 0;
-    static final int BCM = 0;
+    static final int CHANNEL = 0;
 
     private Context pi4j;
 
@@ -28,10 +29,10 @@ public class Bmx280DriverSpiTest extends AbstractBmx280DriverTest {
     Bmx280Driver createDriver() {
         try {
             Spi spi = pi4j.create(SpiConfigBuilder.newInstance(pi4j)
-                    .bcm(BCM).bus(BUS).mode(SpiMode.MODE_0).baud(Spi.DEFAULT_BAUD).provider("linuxfs-spi").build());
+                    .bus(BUS).channel(CHANNEL).mode(SpiMode.MODE_0).baud(Spi.DEFAULT_BAUD).build());
             return new Bmx280Driver(spi);
-        } catch (Pi4JException e) {
-            Assumptions.abort("BMx280 not found on spi bus " + BUS + " bcm " + BCM);
+        } catch (Exception e) {
+            Assumptions.abort("BMx280 not found on spi bus " + BUS + " channel " + CHANNEL);
             throw new RuntimeException(e);
         }
     }

@@ -44,7 +44,7 @@ public class Lsm9ds1Driver implements Sensor {
     private boolean accelerometerEnabled = true;
     private boolean gyroscopeEnabled = true;
     private int outputDataRateCode = 1;
-    private float outputDataRate = 14.9f;
+    private double outputDataRate = 14.9;
 
     public Lsm9ds1Driver(I2CRegisterDataReaderWriter registerAccess) {
         this.registerAccess = registerAccess;
@@ -103,9 +103,9 @@ public class Lsm9ds1Driver implements Sensor {
     }
 
     /** Returns a float array containing the gyroscope x, y and z-values in degree per second. */
-    public float[] readGyroscope() {
+    public double[] readGyroscope() {
         registerAccess.readRegister(Register.OUT_X_L_G, buffer.array(), 0, 6);
-        return new float[] {
+        return new double[] {
                 (gyroscopeRange.getDps() * buffer.getShort(0)) / Short.MAX_VALUE,
                 (gyroscopeRange.getDps() * buffer.getShort(2)) / Short.MAX_VALUE,
                 (gyroscopeRange.getDps() * buffer.getShort(4)) / Short.MAX_VALUE
@@ -115,9 +115,9 @@ public class Lsm9ds1Driver implements Sensor {
     /**
      * Returns the acceleration x, y and z-values in meter per second^2.
      * Note that the z-value will be ~0.981, measuring 1g caused by earth's gravity. */
-    public float[] readAccelerometer() {
+    public double[] readAccelerometer() {
         registerAccess.readRegister(Register.OUT_X_L_XL,  buffer.array(), 0, 6);
-        return new float[] {
+        return new double[] {
                 buffer.getShort(0) * accelerometerRange.ms2/ Short.MAX_VALUE,
                 buffer.getShort(2) * accelerometerRange.ms2 / Short.MAX_VALUE,
                 buffer.getShort(4) * accelerometerRange.ms2 / Short.MAX_VALUE
@@ -143,7 +143,7 @@ public class Lsm9ds1Driver implements Sensor {
      * Sets the output data rate. If the given data rate is not available, the next higher rate
      * will be selected.
      */
-    public float setOutputDataRate(float hz) {
+    public double setOutputDataRate(double hz) {
         int code;
         float rate;
         if (hz < 59.5) {

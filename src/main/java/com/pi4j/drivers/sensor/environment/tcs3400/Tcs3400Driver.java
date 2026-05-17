@@ -65,10 +65,10 @@ public class Tcs3400Driver implements Sensor {
 
     /**
      * Reads the "clear", red, green and blue values from the sensor and returns them as an array of four
-     * integers.
+     * doubles.
      */
-    public float[] readCrgb() {
-        float[] result = new float[4];
+    public double[] readCrgb() {
+        double[] result = new double[4];
         readMeasurement(result);
         return result;
     }

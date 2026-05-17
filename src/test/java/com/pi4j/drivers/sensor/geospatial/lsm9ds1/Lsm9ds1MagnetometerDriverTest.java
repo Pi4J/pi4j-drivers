@@ -26,7 +26,7 @@ public class Lsm9ds1MagnetometerDriverTest {
     public void testBasicMeasurementWorks() throws InterruptedException{
         try (Lsm9ds1MagnetometerDriver driver = createDriver()) {
 
-            float[] magneticField = driver.readMagneticField();
+            double[] magneticField = driver.readMagneticField();
 
             assertTrue(Math.abs(magneticField[0]) < 4);
             assertTrue(Math.abs(magneticField[1]) < 4);
@@ -34,7 +34,7 @@ public class Lsm9ds1MagnetometerDriverTest {
 
             // Check that the values are roughly the same when we change the measurement range.
             driver.setRange(Range.GAUSS_16);
-            float[] magneticField2 = driver.readMagneticField();
+            double[] magneticField2 = driver.readMagneticField();
             for (int i = 0; i < magneticField2.length; i++) {
                 assertTrue(Math.abs(magneticField[i]-magneticField2[i]) < 0.1);
             }

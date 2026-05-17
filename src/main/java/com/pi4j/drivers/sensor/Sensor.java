@@ -19,7 +19,7 @@ public interface Sensor extends Closeable {
         }
     }
     
-    /** Reads a single measurement. For information about the values, please refer to getDescriptor() */
+    /** Reads a single measurement. For information about the values, please refer to getDescriptor(). */
     void readMeasurement(double[] values);
 
     @Override

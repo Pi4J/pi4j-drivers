@@ -17,7 +17,7 @@ public class PwmSoundDriver implements SoundDriver {
     }
 
     @Override
-    public Sequence playNotes(float... notes) {
+    public Sequence playNotes(double... notes) {
         SequenceImpl result = new SequenceImpl(notes);
         result.playNext();
         return result;
@@ -29,11 +29,11 @@ public class PwmSoundDriver implements SoundDriver {
     }
 
     private class SequenceImpl implements Sequence {
-        private final float[] notes;
+        private final double[] notes;
         private int index = 0;
         private Runnable callback;
 
-        private SequenceImpl(float... notes) {
+        private SequenceImpl(double... notes) {
             this.callback = callback;
             this.notes = notes;
         }
@@ -64,13 +64,13 @@ public class PwmSoundDriver implements SoundDriver {
                     pwm.off();
                     triggerCallback = callback != null && index != Integer.MAX_VALUE;
                 } else {
-                    int frequency = Math.round(notes[index++]);
+                    int frequency = (int) Math.round(notes[index++]);
                     if (frequency == 0) {
                         pwm.off();
                     } else {
                         pwm.on(50, frequency);
                     }
-                    int length = Math.round(notes[index++]);
+                    long length = Math.round(notes[index++]);
                     timer.schedule(new TimerTask() {
                         @Override
                         public void run() {

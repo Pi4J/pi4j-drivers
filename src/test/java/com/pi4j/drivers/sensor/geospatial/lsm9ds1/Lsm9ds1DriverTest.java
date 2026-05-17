@@ -22,13 +22,13 @@ public class Lsm9ds1DriverTest {
 
         // Gyroscope seems to be a bit flaky...
         driver.readGyroscope();
-        float[] angularRate = driver.readGyroscope();
+        double[] angularRate = driver.readGyroscope();
 
         assertTrue(Math.abs(angularRate[0]) < 2);
         assertTrue(Math.abs(angularRate[1]) < 2);
         assertTrue(Math.abs(angularRate[2]) < 2);
 
-        float[] acceleration = driver.readAccelerometer();
+        double[] acceleration = driver.readAccelerometer();
 
         assertTrue(Math.abs(acceleration[0]) < 0.1);
         assertTrue(Math.abs(acceleration[1]) < 0.1);
