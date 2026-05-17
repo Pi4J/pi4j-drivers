@@ -71,16 +71,16 @@ public class Lps25hDriver implements Sensor {
         values[1] = readTemperature();
     }
 
-    public float readPressure() {
+    public double readPressure() {
         requestData(STATUS_PRESSURE_AVAILABLE_MASK);
         registerAccess.readRegister(Register.PRESS_POUT_XL | Register.AUTO_INCREMENT_FLAG, buffer.array(), 0, 3);
-        return buffer.getInt(0) / 4096f;
+        return buffer.getInt(0) / 4096.0;
     }
 
-    public float readTemperature() {
+    public double readTemperature() {
         requestData(STATUS_TEMPERATURE_AVAILABLE_MASK);
         registerAccess.readRegister(Register.TEMP_OUT_L | Register.AUTO_INCREMENT_FLAG, buffer.array(), 0, 2);
-        return buffer.getShort(0) / 480f + 42.5f;
+        return buffer.getShort(0) / 480.0 + 42.5;
     }
 
 

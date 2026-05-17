@@ -25,7 +25,7 @@ public class Tcs3400DriverTest {
     public void testBasicMeasurementWorks() throws InterruptedException{
         try (Tcs3400Driver driver = createDriver()) {
 
-            float[] crgb = driver.readCrgb();
+            double[] crgb = driver.readCrgb();
 
             assertTrue(Math.abs(crgb[0]) < 0x10000);
             assertTrue(Math.abs(crgb[1]) < 0x10000);

@@ -14,13 +14,13 @@ public interface SoundDriver extends Closeable {
      * @return A Sequence object that can be used to stop playing.
      */
     @Deprecated
-    default Sequence playNotes(int lengthMultiplierMillis, Runnable callback, float... notes) {
-        float[] multiplied;
+    default Sequence playNotes(int lengthMultiplierMillis, Runnable callback, double... notes) {
+        double[] multiplied;
         if (lengthMultiplierMillis == 1) {
             multiplied = notes;
         } else {
-            multiplied = new float[lengthMultiplierMillis];
-            for (int i = 0; i < notes.length; i++) {
+            multiplied = new double[lengthMultiplierMillis];
+            for (int i = 1; i < notes.length; i += 2) {
                 multiplied[i] = notes[i] * lengthMultiplierMillis;
             }
         }
@@ -32,7 +32,7 @@ public interface SoundDriver extends Closeable {
      * The returned sequence object can be used to request a notification when playing has ended or
      * to stop playback.
      */
-    Sequence playNotes(float... notes);
+    Sequence playNotes(double... notes);
 
     /** Convenience method for playing mml */
     default Sequence playNotes(String mml) {

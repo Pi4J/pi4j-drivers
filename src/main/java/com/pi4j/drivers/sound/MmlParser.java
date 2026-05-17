@@ -12,8 +12,8 @@ public class MmlParser {
      * Converts the given mml string to an interleaved array of frequencies and durations in milliseconds.
      * Unrecognized codes are skipped.
      */
-    public static float[] parse(String mml) {
-        float[] result = new float[16];
+    public static double[] parse(String mml) {
+        double[] result = new double[16];
         int rPos = 0;
         int pos = 0;
         int len = mml.length();
