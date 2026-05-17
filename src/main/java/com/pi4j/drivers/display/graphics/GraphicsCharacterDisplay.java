@@ -65,9 +65,9 @@ public class GraphicsCharacterDisplay implements CharacterDisplay {
         int px = (int) (x * scale * font.getCellWidth());
         int py = y * scale * font.getCellHeight();
         int width = scale * font.getCellWidth() * text.length();
-        graphics.setColor(backgroundColor);
+        graphics.setColor(bg);
         graphics.fillRect(px, py, width, scale * font.getCellHeight());
-        graphics.setColor(foregroundColor);
+        graphics.setColor(fg);
         graphics.renderText(px, py + scale * font.getCellHeight(), text);
     }
 }
