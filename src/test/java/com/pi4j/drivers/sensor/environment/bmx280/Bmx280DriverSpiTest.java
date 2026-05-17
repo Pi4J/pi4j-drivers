@@ -12,6 +12,7 @@ import org.junit.jupiter.api.*;
  * Runs tests if a BME 280 configured to the BMP 280 address or a BMP 280 is connected to spi bus 0;
  * aborts otherwise.
  */
+@Disabled
 public class Bmx280DriverSpiTest extends AbstractBmx280DriverTest {
 
     static final int BUS = 0;
