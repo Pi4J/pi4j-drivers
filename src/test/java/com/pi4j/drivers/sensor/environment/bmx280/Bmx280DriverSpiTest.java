@@ -30,7 +30,7 @@ public class Bmx280DriverSpiTest extends AbstractBmx280DriverTest {
             Spi spi = pi4j.create(SpiConfigBuilder.newInstance(pi4j)
                     .bus(BUS).channel(CHANNEL).mode(SpiMode.MODE_0).baud(Spi.DEFAULT_BAUD).build());
             return new Bmx280Driver(spi);
-        } catch (Pi4JException e) {
+        } catch (Pi4JException | IllegalStateException e) {
             Assumptions.abort("BMx280 not found on spi bus " + BUS + " channel " + CHANNEL);
             throw new RuntimeException(e);
         }
