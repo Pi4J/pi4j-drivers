@@ -4,8 +4,14 @@ import com.pi4j.drivers.display.BitmapFont;
 
 import java.util.*;
 
+/**
+ * A "logical" graphics display; typically mapped to one or more graphics display drivers.
+ * <p>
+ * Provides low-level access to the shared frame buffer (setPixel and getPixel). For higher level
+ * functionality, please obtain a Graphics object using getGraphics. The purpose of this separation
+ * is to support multiple states (clipping, color) simultaneously.
+ */
 public class GraphicsDisplay {
-    // TODO(https://github.com/Pi4J/pi4j/issues/475): Remove or update this limitation.
     private static final int MAX_TRANSFER_SIZE = 4000;
 
     public enum Rotation {
@@ -170,7 +176,10 @@ public class GraphicsDisplay {
        return graphics.renderCharacter(x0, baselineY, codepoint);
     }
 
-    /** Sets the pixel at the given coordinates to the given color */
+    /**
+     * Sets the pixel at the given coordinates to the given color.
+     * Coordinates outside of the frame buffer will be ignored.
+     */
     public void setPixel(int x, int y, int color) {
         synchronized (lock) {
             if (x < 0 || y < 0 || x >= displayWidth || y >= displayHeight) {
@@ -180,6 +189,20 @@ public class GraphicsDisplay {
             markModified(x, y, x + 1, y + 1);
         }
     }
+
+    /**
+     * Returns the framebuffer RGB integer value of the pixel at the given coordinates.
+     * Returns -1 if the coordinates are out of bounds.
+     */
+    public int getPixel(int x, int y) {
+        synchronized (lock) {
+            if (x < 0 || y < 0 || x >= displayWidth || y >= displayHeight) {
+                return -1;
+            }
+            return displayBuffer[pixelAddress(x, y)];
+        }
+    }
+
 
     /**
      * Sets the maximum delay between graphics updates and the screen buffer transfer to the display driver.
