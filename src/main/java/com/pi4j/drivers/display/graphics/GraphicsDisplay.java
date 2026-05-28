@@ -93,12 +93,19 @@ public class GraphicsDisplay {
         }
     }
 
-    /** Draws an image at the given coordinates */
+    /**
+     * Draws an image at the given coordinates.
+     *
+     * @deprecated Please use the corresponding Graphics method instead.
+     */
     @Deprecated
     public void drawImage(int x, int y, int width, int height, int[] rgb888pixels) {
         getGraphics().drawRgb(x, y, width, height, rgb888pixels);
     }
 
+    /*
+     * @deprecated Please use the corresponding Graphics method instead.
+     */
     @Deprecated
     public void fillRect(int x, int y, int width, int height, int rgb888) {
         Graphics graphics = getGraphics();
@@ -138,7 +145,10 @@ public class GraphicsDisplay {
      * Renders a text string at the given position with the given font and color.
      * <p>
      * Returns the width of the rendered text in pixel.
+     *
+     * @deprecated Please use the corresponding Graphics method instead.
      */
+
     @Deprecated
     public int renderText(int x, int baselineY, String text, BitmapFont font, int color) {
         return renderText(x, baselineY, text, font, color, 1, 1);
@@ -148,6 +158,8 @@ public class GraphicsDisplay {
      * Renders a text string at the given position with the given font, color and scale.
      * <p>
      * Returns the width of the rendered text in pixel.
+     *
+     * @deprecated Please use the corresponding Graphics method instead.
      */
     @Deprecated
     public int renderText(
@@ -164,6 +176,8 @@ public class GraphicsDisplay {
      * Renders a single character at the given position.
      * <p>
      * Returns the width of the character in pixel.
+     *
+     * @deprecated Please use the corresponding Graphics method instead.
      */
     @Deprecated
     public int renderCharacter(
