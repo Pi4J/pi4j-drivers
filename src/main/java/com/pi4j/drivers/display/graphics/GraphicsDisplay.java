@@ -1,7 +1,5 @@
 package com.pi4j.drivers.display.graphics;
 
-import com.pi4j.drivers.display.BitmapFont;
-
 import java.util.*;
 
 /**
@@ -120,7 +118,7 @@ public class GraphicsDisplay {
     public int getHeight() {
         return displayHeight;
     }
-    
+
     /**
      * Sets the pixel at the given coordinates to the given color.
      * Coordinates outside of the frame buffer will be ignored.
