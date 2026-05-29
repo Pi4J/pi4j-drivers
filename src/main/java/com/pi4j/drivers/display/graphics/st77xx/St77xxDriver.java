@@ -1,7 +1,7 @@
 package com.pi4j.drivers.display.graphics.st77xx;
 
 import com.pi4j.drivers.display.graphics.GraphicsDisplayDriver;
-import com.pi4j.drivers.display.graphics.GraphicsDisplayInfo;
+import com.pi4j.drivers.display.graphics.GraphicsDisplayDescriptor;
 import com.pi4j.drivers.display.graphics.PixelFormat;
 import com.pi4j.io.gpio.digital.DigitalOutput;
 import com.pi4j.io.spi.Spi;
@@ -43,7 +43,7 @@ public class St77xxDriver implements GraphicsDisplayDriver {
     private final Spi spi;
     private final DigitalOutput dc;
     private final DigitalOutput rst;
-    private final GraphicsDisplayInfo displayInfo;
+    private final GraphicsDisplayDescriptor displayInfo;
     private final boolean invert;
 
     public St77xxDriver(
@@ -59,7 +59,7 @@ public class St77xxDriver implements GraphicsDisplayDriver {
         this.spi = spi;
         this.dc = dc;
         this.rst = rst;
-        this.displayInfo = new GraphicsDisplayInfo(displayWidth, displayHeight, pixelFormat);
+        this.displayInfo = new GraphicsDisplayDescriptor(displayWidth, displayHeight, pixelFormat);
         this.invert = invert;
         this.xOffset = xOffset;
         this.yOffset = yOffset;
@@ -145,7 +145,7 @@ public class St77xxDriver implements GraphicsDisplayDriver {
     }
 
     @Override
-    public GraphicsDisplayInfo getDisplayInfo() {
+    public GraphicsDisplayDescriptor getDisplayInfo() {
         return displayInfo;
     }
 

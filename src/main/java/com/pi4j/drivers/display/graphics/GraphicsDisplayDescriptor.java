@@ -1,6 +1,6 @@
 package com.pi4j.drivers.display.graphics;
 
-public class GraphicsDisplayInfo {
+public class GraphicsDisplayDescriptor {
 
     private final int width;
     private final int height;
@@ -19,7 +19,7 @@ public class GraphicsDisplayInfo {
         return xGranularity;
     }
 
-    public GraphicsDisplayInfo(int width, int height, PixelFormat pixelFormat, int xGranularity, GraphicsDisplay.Rotation rotation) {
+    public GraphicsDisplayDescriptor(int width, int height, PixelFormat pixelFormat, int xGranularity, GraphicsDisplay.Rotation rotation) {
         this.width = width;
         this.height = height;
         this.pixelFormat = pixelFormat;
@@ -27,7 +27,7 @@ public class GraphicsDisplayInfo {
         this.implicitRotation = rotation;
     }
 
-    public GraphicsDisplayInfo(int width, int height, PixelFormat pixelFormat) {
+    public GraphicsDisplayDescriptor(int width, int height, PixelFormat pixelFormat) {
         this(width, height, pixelFormat, granularityForBits(pixelFormat.getBitCount()), GraphicsDisplay.Rotation.ROTATE_0);
     }
 

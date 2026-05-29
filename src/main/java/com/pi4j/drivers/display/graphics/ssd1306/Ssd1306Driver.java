@@ -2,7 +2,7 @@ package com.pi4j.drivers.display.graphics.ssd1306;
 
 import com.pi4j.drivers.display.graphics.GraphicsDisplay;
 import com.pi4j.drivers.display.graphics.GraphicsDisplayDriver;
-import com.pi4j.drivers.display.graphics.GraphicsDisplayInfo;
+import com.pi4j.drivers.display.graphics.GraphicsDisplayDescriptor;
 import com.pi4j.drivers.display.graphics.PixelFormat;
 import com.pi4j.io.IODataWriter;
 import com.pi4j.io.OnOffWrite;
@@ -34,7 +34,7 @@ public class Ssd1306Driver implements GraphicsDisplayDriver {
     private static final int WITH_DATA_ONLY = 0x40;
 
     private final IODataWriter writer;
-    private final GraphicsDisplayInfo displayInfo;
+    private final GraphicsDisplayDescriptor displayInfo;
     private final byte[] page_buffer;
     private final OnOffWrite<?> dc;
     private final byte[] commandBuffer = new byte[8];
@@ -49,7 +49,7 @@ public class Ssd1306Driver implements GraphicsDisplayDriver {
     public Ssd1306Driver(IODataWriter writer, OnOffWrite<?> dc) {
         this.writer = writer;
         this.dc = dc;
-        this.displayInfo = new GraphicsDisplayInfo(128, 64, PixelFormat.MONOCHROME, 8, GraphicsDisplay.Rotation.ROTATE_0);
+        this.displayInfo = new GraphicsDisplayDescriptor(128, 64, PixelFormat.MONOCHROME, 8, GraphicsDisplay.Rotation.ROTATE_0);
         page_buffer = new byte[128 * 8]; // 1024
         commandBuffer[0] = WITH_ONE_COMMAND;
         init();
@@ -189,7 +189,7 @@ public class Ssd1306Driver implements GraphicsDisplayDriver {
     }
 
     @Override
-    public GraphicsDisplayInfo getDisplayInfo() {
+    public GraphicsDisplayDescriptor getDisplayInfo() {
         return displayInfo;
     }
 

@@ -1,7 +1,7 @@
 package com.pi4j.drivers.display.graphics.console;
 
 import com.pi4j.drivers.display.graphics.GraphicsDisplayDriver;
-import com.pi4j.drivers.display.graphics.GraphicsDisplayInfo;
+import com.pi4j.drivers.display.graphics.GraphicsDisplayDescriptor;
 import com.pi4j.drivers.display.graphics.PixelFormat;
 
 /**
@@ -14,17 +14,17 @@ public class ConsoleGraphicsDriver implements GraphicsDisplayDriver {
     // render on close option.
     private byte[] buffer;
 
-    private final GraphicsDisplayInfo displayInfo;
+    private final GraphicsDisplayDescriptor displayInfo;
     private final boolean renderOnClose;
 
     public ConsoleGraphicsDriver(int width, int height, boolean renderOnClose) {
-        this.displayInfo = new GraphicsDisplayInfo(width, height, PixelFormat.RGB_888);
+        this.displayInfo = new GraphicsDisplayDescriptor(width, height, PixelFormat.RGB_888);
         this.renderOnClose = renderOnClose;
         buffer = new byte[width * height * 3];
     }
 
     @Override
-    public GraphicsDisplayInfo getDisplayInfo() {
+    public GraphicsDisplayDescriptor getDisplayInfo() {
         return displayInfo;
     }
 
