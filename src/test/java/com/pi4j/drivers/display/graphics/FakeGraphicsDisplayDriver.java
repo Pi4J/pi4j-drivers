@@ -1,6 +1,6 @@
 package com.pi4j.drivers.display.graphics;
 
-import java.io.IOException;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class FakeGraphicsDisplayDriver implements GraphicsDisplayDriver {
 
@@ -16,6 +16,17 @@ public class FakeGraphicsDisplayDriver implements GraphicsDisplayDriver {
 
     public byte[] getData() {
         return data;
+    }
+
+    public void assertPixel(int x, int y, int expectedColor) {
+        if (getDisplayInfo().getPixelFormat() != PixelFormat.RGB_888) {
+            throw new RuntimeException("AssertPixel is only supported for RGB_888");
+        }
+        int expectedBits = getDisplayInfo().getPixelFormat().fromRgb(expectedColor);
+        int bitAddress = (y * displayInfo.getWidth() + x) * getDisplayInfo().getPixelFormat().getBitCount();
+        int address = bitAddress / 8;
+        int actualBits = ((data[address] & 0xff) << 16) | ((data[address+1] & 0xff) << 8) | (data[address+2] & 0xff);
+        assertEquals(Integer.toHexString(expectedBits), Integer.toHexString(actualBits), "At pixel position "+ x + ", " + y);
     }
 
     @Override

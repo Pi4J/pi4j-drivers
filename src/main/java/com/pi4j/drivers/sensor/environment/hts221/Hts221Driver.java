@@ -1,7 +1,11 @@
 package com.pi4j.drivers.sensor.environment.hts221;
 
+import com.pi4j.drivers.sensor.Sensor;
+import com.pi4j.drivers.sensor.SensorDescriptor;
 import com.pi4j.io.i2c.I2CRegisterDataReaderWriter;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -10,10 +14,17 @@ import java.nio.ByteOrder;
  *
  * Datasheet: https://www.st.com/resource/en/datasheet/hts221.pdf
  */
-public class Hts221Driver {
+public class Hts221Driver implements Sensor {
     public static final int I2C_ADDRESS = 0x5f;
-
     private static final int WHO_AM_I_VALUE = 0xbc;
+
+    public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor.Builder("HTS221")
+            .addValue(SensorDescriptor.Kind.HUMIDITY)
+            .addValue(SensorDescriptor.Kind.TEMPERATURE)
+            .addI2cAddress(I2C_ADDRESS)
+            .setI2cSensorDetector(i2c -> i2c.readRegister(Register.WHO_AM_I) == WHO_AM_I_VALUE ? new Hts221Driver(i2c) : null)
+            .build();
+
     private static final int STATUS_TEMPERATURE_AVAILABLE_MASK = 1;
     private static final int STATUS_HUMIDITY_AVAILABLE_MASK = 2;
 
@@ -30,6 +41,7 @@ public class Hts221Driver {
 
     private final int calibT0Out;
     private final int calibT1Out;
+
 
     public Hts221Driver(I2CRegisterDataReaderWriter registerAccess) {
         this.registerAccess = registerAccess;
@@ -62,18 +74,26 @@ public class Hts221Driver {
         calibT1Out = buffer.getShort(Register.CALIB_T1_OUT);
     }
 
-    /** Reads a temperature value. Requests a single shot measurement if no data is available. */
-    public float readTemperature() {
-        requestData(STATUS_TEMPERATURE_AVAILABLE_MASK); // Temperature bit in the status register
 
-        readRegisters(Register.TEMP_OUT_L,0, 2);
-        int rawTempOut = buffer.getShort(0);
-        return (calibT1DegC - calibT0DegC)
-                * (rawTempOut - calibT0Out) / (calibT1Out - calibT0Out)
-                + calibT0DegC;
+    @Override
+    public void close() {
+        // Disable the chip
+        int ctrl1 = registerAccess.readRegister(Register.CTRL_REG1);
+        registerAccess.writeRegister(Register.CTRL_REG1, ctrl1 & 0x7f);
+        if (registerAccess instanceof Closeable) {
+            try {
+                ((Closeable) registerAccess).close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
-
+    @Override
+    public SensorDescriptor getDescriptor() {
+        return DESCRIPTOR;
+    }
+    
     /** Reads a humidity value. Requests a single shot measurement if no data is available. */
     public float readHumidity() {
         requestData(STATUS_HUMIDITY_AVAILABLE_MASK);
@@ -83,6 +103,23 @@ public class Hts221Driver {
         return (calibH1Rh - calibH0Rh)
                 * (rawHumidityOut - calibH0T0Out) / (calibH1T0Out - calibH0T0Out)
                 + calibH0Rh;
+    }
+
+    @Override
+    public void readMeasurement(double[] values) {
+        values[0] = readHumidity();
+        values[1] = readTemperature();
+    }
+
+    /** Reads a temperature value. Requests a single shot measurement if no data is available. */
+    public float readTemperature() {
+        requestData(STATUS_TEMPERATURE_AVAILABLE_MASK); // Temperature bit in the status register
+
+        readRegisters(Register.TEMP_OUT_L,0, 2);
+        int rawTempOut = buffer.getShort(0);
+        return (calibT1DegC - calibT0DegC)
+                * (rawTempOut - calibT0Out) / (calibT1Out - calibT0Out)
+                + calibT0DegC;
     }
 
     // Private helpers

@@ -18,11 +18,11 @@ public class Lps25hDriverTest {
     public void testBasicMeasurementWorks() throws InterruptedException{
         Lps25hDriver driver = createDriver();
 
-        float temperature = driver.readTemperature();
+        double temperature = driver.readTemperature();
         assertTrue(temperature > 10);
         assertTrue(temperature < 60); // The chip is on the hat above the CPU...
 
-        float pressure = driver.readPressure();
+        double pressure = driver.readPressure();
         assertTrue(pressure > 900);
         assertTrue(pressure < 1100);
     }

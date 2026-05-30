@@ -1,11 +1,13 @@
 package com.pi4j.drivers.display.character.hd44780;
 
+import com.pi4j.drivers.display.character.CharacterDisplay;
 import com.pi4j.drivers.io.expander.mcp23008.Mcp23008Driver;
 import com.pi4j.io.OnOffWrite;
 import com.pi4j.io.i2c.I2C;
 import com.pi4j.drivers.io.expander.pcf8574.Pcf8574OutputDriver;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,7 +19,7 @@ import java.util.Map;
  *
  * Spec: https://cdn.sparkfun.com/assets/9/5/f/7/b/HD44780.pdf
  */
-public class Hd44780Driver {
+public class Hd44780Driver implements CharacterDisplay {
 
     // Specified values are multiplied by 2 to allow for the minimum frequency.
     private static final int STANDARD_DELAY_MICROS = 2 * 37;
@@ -81,6 +83,14 @@ public class Hd44780Driver {
                 height);
     }
 
+    public static Hd44780Driver withI2cConnection(I2C i2c, I2cConnectionType i2cConnectionType, int width, int height) {
+        return switch (i2cConnectionType) {
+            case AIP31068 -> withAip31068Connection(i2c, width, height);
+            case MCP23008 -> withMcp23008Connection(i2c, width, height);
+            case PCF8574 -> withPcf8574Connection(i2c, width, height);
+        };
+    }
+
     /**
      * Creates a HD 44780 Driver for a text LCD connected via I2C using a PCF 8574 IO expander. This implementation
      * uses the Pcf8574OutputDriver class to illustrate how different drivers can be combined (opposed to a simple
@@ -94,16 +104,16 @@ public class Hd44780Driver {
      */
     public static Hd44780Driver withPcf8574Connection(I2C i2c, int width, int height) {
         Pcf8574OutputDriver pcf8574 = new Pcf8574OutputDriver(i2c);
-        pcf8574.setTriggerMask(0b0100);
-        pcf8574.setOutput(0);
+        pcf8574.setOutputTriggerMask(0b0100);
+        pcf8574.setOutputState(0);
         return with4BitConnection(
-                /* rs */ pcf8574.getOnOffWrite(0),
-                /* enable */ pcf8574.getOnOffWrite(2),
-                /* backlight*/ pcf8574.getOnOffWrite(3),
-                /* d4 */ pcf8574.getOnOffWrite(4),
-                /* d5 */ pcf8574.getOnOffWrite(5),
-                /* d6 */ pcf8574.getOnOffWrite(6),
-                /* d7 */ pcf8574.getOnOffWrite(7),
+                /* rs */ pcf8574.getOutput(0),
+                /* enable */ pcf8574.getOutput(2),
+                /* backlight*/ pcf8574.getOutput(3),
+                /* d4 */ pcf8574.getOutput(4),
+                /* d5 */ pcf8574.getOutput(5),
+                /* d6 */ pcf8574.getOutput(6),
+                /* d7 */ pcf8574.getOutput(7),
                 width,
                 height);
     }
@@ -119,16 +129,16 @@ public class Hd44780Driver {
     public static Hd44780Driver withMcp23008Connection(I2C i2c, int width, int height) {
         Mcp23008Driver mcp23008 = new Mcp23008Driver(i2c);
         mcp23008.setIoDir(0); // All pins configured for output.
-        mcp23008.setTriggerMask(0b0100);
-        mcp23008.setOutput(0);
+        mcp23008.setOutputTriggerMask(0b0100);
+        mcp23008.setOutputState(0);
         return with4BitConnection(
-                /* registerSelect */ mcp23008.getOnOffWrite(1),
-                /* enable */ mcp23008.getOnOffWrite(2),
-                /* backLight */ mcp23008.getOnOffWrite(7),
-                /* d4 */ mcp23008.getOnOffWrite(3),
-                /* d5 */ mcp23008.getOnOffWrite(4),
-                /* d6 */ mcp23008.getOnOffWrite(5),
-                /* d7 */ mcp23008.getOnOffWrite(6),
+                /* registerSelect */ mcp23008.getOutput(1),
+                /* enable */ mcp23008.getOutput(2),
+                /* backLight */ mcp23008.getOutput(7),
+                /* d4 */ mcp23008.getOutput(3),
+                /* d5 */ mcp23008.getOutput(4),
+                /* d6 */ mcp23008.getOutput(5),
+                /* d7 */ mcp23008.getOutput(6),
                 width,
                 height);
     }
@@ -181,7 +191,7 @@ public class Hd44780Driver {
         setDisplayEnabled(true);
         setBacklightEnabled(true);
 
-        clearDisplay();
+        clear();
         returnHome();
     }
 
@@ -194,11 +204,22 @@ public class Hd44780Driver {
         this.characterRomMap = characterRomMap;
     }
 
-    public void clearDisplay() {
+    @Override
+    public void clear() {
         sendCommand(CommandCodes.CMD_CLEAR_DISPLAY);
         connection.setDelayMicros(LONG_DELAY_MICROS);
         cursorX = 0;
         cursorY = 0;
+    }
+
+    @Override
+    public int getWidth() {
+        return width;
+    }
+
+    @Override
+    public int getHeight() {
+        return height;
     }
 
     /**
@@ -257,14 +278,35 @@ public class Hd44780Driver {
     }
 
     /**
-     * Write a text on the given position by setting the cursor position
+     * Write a text on the given position by setting the cursor position. Text outside the screen
+     * will be cut off / ignored.
      */
-    public void writeAt(int x, int y, String text) {
-        if (y > height) {
-            throw new IllegalArgumentException("Line " + y + " out of range 1.." + height);
+    @Override
+    public void writeAt(float x, int y, String text, EnumSet<Attribute> attributes) {
+        if (y < 0 || y >= height) {
+            return;
         }
-        setCursorPosition(x, y);
-        write(text);
+
+        int col = (int) x;
+        if (col < 0) {
+            int start = -col;
+            if (start >= text.length()) {
+                return;
+            }
+            text = text.substring(start);
+            col = 0;
+        } else if (col >= width) {
+            return;
+        }
+
+        if (col + text.length() > width) {
+            text = text.substring(0, width - col);
+        }
+
+        if (!text.isEmpty()) {
+            setCursorPosition(col, y);
+            write(text);
+        }
     }
 
 
@@ -365,4 +407,8 @@ public class Hd44780Driver {
 
     /** Display row offsets for up to 4 rows. */
     private static final byte[] LCD_ROW_OFFSETS = {0x00, 0x40, 0x14, 0x54};
+
+    public enum I2cConnectionType {
+        AIP31068, MCP23008, PCF8574,
+    }
 }

@@ -365,6 +365,12 @@ public class BitmapFont {
             this.bitmap = bitmap;
         }
 
+        public int getData(int[] target) {
+            target[0] = (int) (bitmap >>> 32);
+            target[1] = (int) bitmap;
+            return 64 - cellHeight * cellWidth;
+        }
+
         /** Returns true if the pixel at the given coordinate in character space is set. */
         public boolean getPixel(int x, int y) {
             // This looks a bit wonky because the bits are written from high to low in the constants.
