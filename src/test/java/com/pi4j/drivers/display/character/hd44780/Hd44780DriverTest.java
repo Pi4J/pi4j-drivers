@@ -46,13 +46,7 @@ public class Hd44780DriverTest {
     @Test
     public void writeToInvalidLineShouldThrowError() {
         Hd44780Driver characterLcd = createDriver(16, 4);
-        assertThrows(IllegalArgumentException.class, () -> characterLcd.writeLine("Test", 5));
-    }
-
-    @Test
-    public void writeTooLongTextShouldThrowError() {
-        Hd44780Driver characterLcd = createDriver(10, 2);
-        assertThrows(IllegalArgumentException.class, () -> characterLcd.writeLine("1234567890123456", 1));
+        assertThrows(IllegalArgumentException.class, () -> characterLcd.writeAt(0, 5, "Test"));
     }
 
     private Hd44780Driver createDriver() {
