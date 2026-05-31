@@ -1,7 +1,7 @@
 package com.pi4j.drivers.display.graphics.framebuffer;
 
 import com.pi4j.drivers.display.graphics.GraphicsDisplayDriver;
-import com.pi4j.drivers.display.graphics.GraphicsDisplayInfo;
+import com.pi4j.drivers.display.graphics.GraphicsDisplayDescriptor;
 import com.pi4j.drivers.display.graphics.PixelFormat;
 
 import java.io.*;
@@ -9,7 +9,7 @@ import java.io.*;
 public class FramebufferDriver implements GraphicsDisplayDriver, Closeable {
 
     private static final String SENSE_HAT_FB_NAME = "RPi-Sense FB";
-    private final GraphicsDisplayInfo displayInfo;
+    private final GraphicsDisplayDescriptor displayInfo;
     private final RandomAccessFile file;
 
     public static String resolveFramebufferName(String name) {
@@ -42,7 +42,7 @@ public class FramebufferDriver implements GraphicsDisplayDriver, Closeable {
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
-        this.displayInfo = new GraphicsDisplayInfo(width, height, pixelFormat);
+        this.displayInfo = new GraphicsDisplayDescriptor(width, height, pixelFormat);
     }
 
     @Override
@@ -55,7 +55,7 @@ public class FramebufferDriver implements GraphicsDisplayDriver, Closeable {
     }
 
     @Override
-    public GraphicsDisplayInfo getDisplayInfo() {
+    public GraphicsDisplayDescriptor getDisplayInfo() {
         return displayInfo;
     }
 

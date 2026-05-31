@@ -1,4 +1,4 @@
-package com.pi4j.drivers.hat.elecrow;
+package com.pi4j.drivers.incubator.hat.elecrow;
 
 import com.pi4j.context.Context;
 import com.pi4j.drivers.display.character.hd44780.Hd44780Driver;

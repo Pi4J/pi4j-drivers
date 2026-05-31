@@ -1,7 +1,5 @@
 package com.pi4j.drivers.display.graphics;
 
-import com.pi4j.drivers.display.BitmapFont;
-
 import java.util.*;
 
 /**
@@ -93,26 +91,6 @@ public class GraphicsDisplay {
         }
     }
 
-    /**
-     * Draws an image at the given coordinates.
-     *
-     * @deprecated Please use the corresponding Graphics method instead.
-     */
-    @Deprecated
-    public void drawImage(int x, int y, int width, int height, int[] rgb888pixels) {
-        getGraphics().drawRgb(x, y, width, height, rgb888pixels);
-    }
-
-    /*
-     * @deprecated Please use the corresponding Graphics method instead.
-     */
-    @Deprecated
-    public void fillRect(int x, int y, int width, int height, int rgb888) {
-        Graphics graphics = getGraphics();
-        graphics.setColor(rgb888);
-        graphics.fillRect(x, y, width, height);
-    }
-
     /** Forces an immediate transfer of the modified screen area */
     public void flush() {
         synchronized (lock) {
@@ -139,55 +117,6 @@ public class GraphicsDisplay {
     /** Returns the height of this dispaly in pixel. */
     public int getHeight() {
         return displayHeight;
-    }
-
-    /**
-     * Renders a text string at the given position with the given font and color.
-     * <p>
-     * Returns the width of the rendered text in pixel.
-     *
-     * @deprecated Please use the corresponding Graphics method instead.
-     */
-
-    @Deprecated
-    public int renderText(int x, int baselineY, String text, BitmapFont font, int color) {
-        return renderText(x, baselineY, text, font, color, 1, 1);
-    }
-
-    /**
-     * Renders a text string at the given position with the given font, color and scale.
-     * <p>
-     * Returns the width of the rendered text in pixel.
-     *
-     * @deprecated Please use the corresponding Graphics method instead.
-     */
-    @Deprecated
-    public int renderText(
-            int x, int baselineY, String text, BitmapFont font, int color, int scaleX, int scaleY
-    ) {
-        Graphics graphics = getGraphics();
-        graphics.setColor(color);
-        graphics.setFont(font);
-        graphics.setTextScale(scaleX, scaleY);
-        return graphics.renderText(x, baselineY, text);
-    }
-
-    /**
-     * Renders a single character at the given position.
-     * <p>
-     * Returns the width of the character in pixel.
-     *
-     * @deprecated Please use the corresponding Graphics method instead.
-     */
-    @Deprecated
-    public int renderCharacter(
-            int x0, int baselineY, int codepoint, BitmapFont font, int color, int scaleX, int scaleY
-    ) {
-       Graphics graphics = getGraphics();
-       graphics.setColor(color);
-       graphics.setFont(font);
-       graphics.setTextScale(scaleX, scaleY);
-       return graphics.renderCharacter(x0, baselineY, codepoint);
     }
 
     /**
@@ -361,7 +290,7 @@ public class GraphicsDisplay {
 
         /** Transfers the given display buffer area to the display driver */
         private void transferBuffer(int sourceAddress, int sourceStrideX, int sourceStrideY, int xMin, int yMin, int xMax, int yMax) {
-            GraphicsDisplayInfo displayInfo = driver.getDisplayInfo();
+            GraphicsDisplayDescriptor displayInfo = driver.getDisplayInfo();
 
             // Bail out if the changed area is outside the area governed by this device.
             if (xMax <= 0 || yMax <= 0 || xMin >= displayInfo.getWidth() || yMin >= displayInfo.getHeight()) {
