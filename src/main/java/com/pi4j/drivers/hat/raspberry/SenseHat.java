@@ -102,6 +102,38 @@ public class SenseHat {
         return lsm9ds1MagnetometerDriver;
     }
 
+    public float getHumidity() {
+        return getHumiditySensor().readHumidity();
+    }
+
+    public double getPressure() {
+        return getPressureSensor().readPressure();
+    }
+
+    public double getTemperature() {
+        return getHumiditySensor().readTemperature();
+    }
+
+    public double getTemperatureFromHumidity() {
+        return getHumiditySensor().readTemperature();
+    }
+
+    public double getTemperatureFromPressure() {
+        return getPressureSensor().readTemperature();
+    }
+
+    public double[] getAccelerometerRaw() {
+        return getAccelerometer().readAccelerometer();
+    }
+
+    public double[] getGyroscopeRaw() {
+        return getAccelerometer().readGyroscope();
+    }
+
+    public double[] getMagnetometerRaw() {
+        return getMagnetometer().readMagneticField();
+    }
+
     public List<Sensor> getAllSensors() {
         List<Sensor> result = new ArrayList<>();
         result.add(getHumiditySensor());
