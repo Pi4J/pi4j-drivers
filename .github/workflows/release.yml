@@ -103,7 +103,7 @@ jobs:
       - name: Get release approval
         uses: trstringer/manual-approval@v1
         with:
-          secret: ${{ github.TOKEN }}
+          secret: ${{ secrets.GITHUB_TOKEN }}
           approvers: FDelporte,stefanhaustein
           minimum-approvals: 1
           issue-title: "Release v${{ needs.check-version.outputs.version }} to Maven Central"
