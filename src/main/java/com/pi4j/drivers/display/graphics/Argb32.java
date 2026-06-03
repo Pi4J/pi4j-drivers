@@ -3,6 +3,15 @@ package com.pi4j.drivers.display.graphics;
 /** Support functions for ARGB integers. */
 public class Argb32 {
 
+    public static final int BLACK = 0x0ff000000;
+    public static final int BLUE = 0x0ff0000ff;
+    public static final int GREEN = 0x0ff00ff00;
+    public static final int CYAN = 0x0ff00ffff;
+    public static final int RED = 0x0ffff0000;
+    public static final int MAGENTA = 0x0ffff00ff;
+    public static final int YELLOW = 0x0ffffff00;
+    public static final int WHITE = 0x0ffffffff;
+
     /**
      * Returns an ARGB integer for the given red, green and blue channels ranging from 0 to 255 each.
      * The alpha channel is set to 255.
@@ -32,7 +41,7 @@ public class Argb32 {
             case 3 -> fromRgb(m, x, c);
             case 4 -> fromRgb(x, m, c);
             case 5 -> fromRgb(c, m, x);
-            default -> 0;
+            default -> BLACK;
         };
     }
 }

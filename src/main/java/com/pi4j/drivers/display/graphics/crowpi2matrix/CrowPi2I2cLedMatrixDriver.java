@@ -2,7 +2,7 @@ package com.pi4j.drivers.display.graphics.crowpi2matrix;
 
 import com.pi4j.context.Context;
 import com.pi4j.drivers.display.graphics.GraphicsDisplayDriver;
-import com.pi4j.drivers.display.graphics.GraphicsDisplayInfo;
+import com.pi4j.drivers.display.graphics.GraphicsDisplayDescriptor;
 import com.pi4j.drivers.display.graphics.PixelFormat;
 import com.pi4j.io.i2c.I2C;
 
@@ -16,7 +16,7 @@ import java.util.Arrays;
 public class CrowPi2I2cLedMatrixDriver implements GraphicsDisplayDriver {
     public static final int I2C_ADDRESS = 0x66;
 
-    private final GraphicsDisplayInfo displayInfo = new GraphicsDisplayInfo(8, 8, PixelFormat.RGB_888);
+    private final GraphicsDisplayDescriptor displayInfo = new GraphicsDisplayDescriptor(8, 8, PixelFormat.RGB_888);
     private final I2C i2c;
     byte[] writeBuf = new byte[Offset.values().length];
 
@@ -35,7 +35,7 @@ public class CrowPi2I2cLedMatrixDriver implements GraphicsDisplayDriver {
     }
 
     @Override
-    public GraphicsDisplayInfo getDisplayInfo() {
+    public GraphicsDisplayDescriptor getDisplayInfo() {
         return displayInfo;
     }
 

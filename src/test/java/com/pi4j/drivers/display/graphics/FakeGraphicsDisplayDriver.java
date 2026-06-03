@@ -5,10 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class FakeGraphicsDisplayDriver implements GraphicsDisplayDriver {
 
     private final byte[] data;
-    private final GraphicsDisplayInfo displayInfo;
+    private final GraphicsDisplayDescriptor displayInfo;
 
     public FakeGraphicsDisplayDriver(int width, int height, PixelFormat pixelFormat) {
-        this.displayInfo = new GraphicsDisplayInfo(width, height, pixelFormat);
+        this.displayInfo = new GraphicsDisplayDescriptor(width, height, pixelFormat);
         this.data = new byte[(displayInfo.getWidth() * displayInfo.getHeight()
                 * displayInfo.getPixelFormat().getBitCount() + 7) / 8];
         checkAlignment(width, "Display width");
@@ -30,7 +30,7 @@ public class FakeGraphicsDisplayDriver implements GraphicsDisplayDriver {
     }
 
     @Override
-    public GraphicsDisplayInfo getDisplayInfo() {
+    public GraphicsDisplayDescriptor getDisplayInfo() {
         return displayInfo;
     }
 

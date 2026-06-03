@@ -1,6 +1,5 @@
 package com.pi4j.drivers.display.graphics;
 
-import java.awt.Color;
 import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
@@ -13,7 +12,9 @@ public class GraphicsDisplayTest {
     public void testRgb888toRgb444() throws IOException {
         FakeGraphicsDisplayDriver driver = new FakeGraphicsDisplayDriver(100, 100, PixelFormat.RGB_444);
         GraphicsDisplay display = new GraphicsDisplay(driver);
-        display.fillRect(0, 0, 48, 1, Color.RED.getRGB());
+        Graphics graphics = display.getGraphics();
+        graphics.setColor(Argb32.RED);
+        graphics.fillRect(0, 0, 48, 1);
         display.flush();
 
         byte[] data = driver.getData();
@@ -28,7 +29,9 @@ public class GraphicsDisplayTest {
         FakeGraphicsDisplayDriver driver = new FakeGraphicsDisplayDriver(100, 100, PixelFormat.RGB_565);
         GraphicsDisplay display = new GraphicsDisplay(driver);
         display.setTransferDelayMillis(0);
-        display.fillRect(0, 0, 48, 1, Color.RED.getRGB());
+        Graphics graphics = display.getGraphics();
+        graphics.setColor(Argb32.RED);
+        graphics.fillRect(0, 0, 48, 1);
 
         byte[] data = driver.getData();
 

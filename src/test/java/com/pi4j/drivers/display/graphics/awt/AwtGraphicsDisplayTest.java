@@ -1,4 +1,4 @@
-package com.pi4j.drivers.display.graphics;
+package com.pi4j.drivers.display.graphics.awt;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -13,6 +13,9 @@ import java.awt.image.WritableRaster;
 
 import java.io.IOException;
 
+import com.pi4j.drivers.display.graphics.FakeGraphicsDisplayDriver;
+import com.pi4j.drivers.display.graphics.GraphicsDisplay;
+import com.pi4j.drivers.display.graphics.PixelFormat;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -27,9 +30,9 @@ public class AwtGraphicsDisplayTest {
     @Test
     public void testRgb888toRgb444() throws IOException {
 
-        FakeGraphicsDisplayDriver display = new FakeGraphicsDisplayDriver(10, 10, PixelFormat.RGB_444);
-        AwtGraphicsDisplay mockDisplay = new AwtGraphicsDisplay(display);
-        mockDisplay.setTransferDelayMillis(0);
+        FakeGraphicsDisplayDriver driver = new FakeGraphicsDisplayDriver(10, 10, PixelFormat.RGB_444);
+        GraphicsDisplay display = new GraphicsDisplay(driver);
+        display.setTransferDelayMillis(0);
 
         BufferedImage img = new BufferedImage(12, 12, BufferedImage.TYPE_4BYTE_ABGR);
         Graphics2D g2d = img.createGraphics();
@@ -37,9 +40,9 @@ public class AwtGraphicsDisplayTest {
         g2d.setPaint(java.awt.Color.RED);
         g2d.fillRect(0, 0, img.getWidth(), img.getHeight());
         g2d.dispose();
-        mockDisplay.display(img);
+        AwtGraphics.drawImage(display.getGraphics(), 0, 0, img);
 
-        byte[] data = display.getData();
+        byte[] data = driver.getData();
 
         log.trace("Size of Data: {}", data.length);
         assertEquals((byte) 0xF0, data[0], "First pixel is unexpected");
@@ -50,8 +53,8 @@ public class AwtGraphicsDisplayTest {
     @Test
     public void testRgb888toRgb565() throws IOException {
 
-        FakeGraphicsDisplayDriver display = new FakeGraphicsDisplayDriver(10, 10, PixelFormat.RGB_565);
-        AwtGraphicsDisplay mockDisplay = new AwtGraphicsDisplay(display);
+        FakeGraphicsDisplayDriver driver = new FakeGraphicsDisplayDriver(10, 10, PixelFormat.RGB_565);
+        GraphicsDisplay mockDisplay = new GraphicsDisplay(driver);
         mockDisplay.setTransferDelayMillis(0);
 
         BufferedImage img = new BufferedImage(12, 12, BufferedImage.TYPE_4BYTE_ABGR);
@@ -60,9 +63,9 @@ public class AwtGraphicsDisplayTest {
         g2d.setPaint(java.awt.Color.RED);
         g2d.fillRect(0, 0, img.getWidth(), img.getHeight());
         g2d.dispose();
-        mockDisplay.display(img);
+        AwtGraphics.drawImage(mockDisplay.getGraphics(), 0, 0, img);
 
-        byte[] data = display.getData();
+        byte[] data = driver.getData();
 
         log.trace("Size of Data: {}", data.length);
         assertEquals((byte) 0xF8, data[0], "First pixel is unexpected");
@@ -73,11 +76,11 @@ public class AwtGraphicsDisplayTest {
     public void testDisplayDataBufferInt444() {
 
         FakeGraphicsDisplayDriver display = new FakeGraphicsDisplayDriver(10, 10, PixelFormat.RGB_444);
-        AwtGraphicsDisplay mockDisplay = new AwtGraphicsDisplay(display);
+        GraphicsDisplay mockDisplay = new GraphicsDisplay(display);
         mockDisplay.setTransferDelayMillis(0);
 
         BufferedImage img = makeDataBufferInt();
-        mockDisplay.display(img);
+        AwtGraphics.drawImage(mockDisplay.getGraphics(), 0, 0, img);
 
         byte[] data = display.getData();
 
@@ -89,14 +92,14 @@ public class AwtGraphicsDisplayTest {
     @Test
     public void testDisplayDataBufferInt565() {
 
-        FakeGraphicsDisplayDriver display = new FakeGraphicsDisplayDriver(10, 10, PixelFormat.RGB_565);
-        AwtGraphicsDisplay mockDisplay = new AwtGraphicsDisplay(display);
+        FakeGraphicsDisplayDriver driver = new FakeGraphicsDisplayDriver(10, 10, PixelFormat.RGB_565);
+        GraphicsDisplay mockDisplay = new GraphicsDisplay(driver);
         mockDisplay.setTransferDelayMillis(0);
 
         BufferedImage img = makeDataBufferInt();
-        mockDisplay.display(img);
+        AwtGraphics.drawImage(mockDisplay.getGraphics(), 0, 0, img);
 
-        byte[] data = display.getData();
+        byte[] data = driver.getData();
 
         assertEquals(10 * 10 * 16 / 8, data.length, "Length of data is unexpected");
         assertEquals((byte) 0xF8, data[0], "First pixel is unexpected");

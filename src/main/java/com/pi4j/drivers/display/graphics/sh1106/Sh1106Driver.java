@@ -2,7 +2,7 @@ package com.pi4j.drivers.display.graphics.sh1106;
 
 import com.pi4j.drivers.display.graphics.GraphicsDisplay;
 import com.pi4j.drivers.display.graphics.GraphicsDisplayDriver;
-import com.pi4j.drivers.display.graphics.GraphicsDisplayInfo;
+import com.pi4j.drivers.display.graphics.GraphicsDisplayDescriptor;
 import com.pi4j.drivers.display.graphics.PixelFormat;
 import com.pi4j.io.OnOffWrite;
 import com.pi4j.io.spi.Spi;
@@ -15,7 +15,7 @@ import java.io.IOException;
  * the GraphicsDisplay implementation. The rotation is automatically reversed there.
  */
 public class Sh1106Driver implements GraphicsDisplayDriver {
-    private static final GraphicsDisplayInfo DISPLAY_INFO = new GraphicsDisplayInfo(
+    private static final GraphicsDisplayDescriptor DISPLAY_INFO = new GraphicsDisplayDescriptor(
             64, 128, PixelFormat.MONOCHROME, 8, GraphicsDisplay.Rotation.ROTATE_90);
     private final Spi spi;
     private final OnOffWrite<?> dc;
@@ -52,7 +52,7 @@ public class Sh1106Driver implements GraphicsDisplayDriver {
     }
 
     @Override
-    public GraphicsDisplayInfo getDisplayInfo() {
+    public GraphicsDisplayDescriptor getDisplayInfo() {
         return DISPLAY_INFO;
     }
 
