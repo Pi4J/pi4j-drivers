@@ -22,7 +22,7 @@
 
         <!-- DEPENDENCIES VERSIONS -->
         <slf4j.version>2.0.16</slf4j.version>
-        <pi4j.version>4.0.0-SNAPSHOT</pi4j.version>
+        <pi4j.version>4.0.1</pi4j.version>
 
         <!-- TEST DEPENDENCIES VERSIONS -->
         <junit.jupiter.version>5.12.1</junit.jupiter.version>
@@ -33,6 +33,7 @@
         <maven-javadoc-plugin.version>3.11.1</maven-javadoc-plugin.version>
         <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
         <central-publishing-maven-plugin.version>0.8.0</central-publishing-maven-plugin.version>
+        <jreleaser-maven-plugin.version>1.15.0</jreleaser-maven-plugin.version>
     </properties>
 
     <dependencies>
@@ -116,10 +117,11 @@
 
     <!-- DISTRIBUTION REPOSITORIES -->
     <distributionManagement>
+        <!-- Releases are handled by JReleaser via local staging; this entry is a fallback only -->
         <repository>
-            <id>sonatype-oss-staging</id>
-            <name>Sonatype Open Source Maven Repository</name>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+            <id>central</id>
+            <name>Maven Central Portal</name>
+            <url>https://central.sonatype.com/api/v1/publisher</url>
         </repository>
         <snapshotRepository>
             <id>sonatype-oss-snapshots</id>
@@ -130,17 +132,6 @@
 
     <!-- DEPENDENCY REPOSITORIES -->
     <repositories>
-        <repository>
-            <id>sonatype-oss-staging</id>
-            <name>Sonatype Open Source Maven Repository</name>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
         <repository>
             <id>sonatype-oss-snapshots</id>
             <name>Sonatype Open Source Maven Snapshots Repository</name>
@@ -275,6 +266,54 @@
                             <publishingServerId>central</publishingServerId>
                             <!--                            <autoPublish>true</autoPublish>-->
                             <!--                            <waitUntil>published</waitUntil>-->
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- Profile to stage artifacts locally and release via JReleaser -->
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <!-- Generate sources JAR -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>${maven-source-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- Generate javadoc JAR -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>${maven-javadoc-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- JReleaser: signs, publishes to Maven Central, creates GitHub Release -->
+                    <plugin>
+                        <groupId>org.jreleaser</groupId>
+                        <artifactId>jreleaser-maven-plugin</artifactId>
+                        <version>${jreleaser-maven-plugin.version}</version>
+                        <configuration>
+                            <jreleaser>
+                                <!-- inherits project details (name, version, etc.) from Maven -->
+                            </jreleaser>
                         </configuration>
                     </plugin>
                 </plugins>
