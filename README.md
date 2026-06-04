@@ -27,24 +27,17 @@ As this is library is still in early stage, you can only get a SNAPSHOT-version.
 </dependencies>
 
 <repositories>
-   <!-- Non-snapshot Maven libraries + Pi4J Core snapshots -->
+   <!-- Pi4J Drivers snapshots -->
    <repository>
-      <id>oss-snapshots-repo</id>
-      <name>Sonatype OSS Maven Repository</name>
-      <url>https://oss.sonatype.org/content/groups/public</url>
+      <id>sonatype-snapshots</id>
+      <name>Maven Central Snapshots</name>
+      <url>https://central.sonatype.com/repository/maven-snapshots</url>
       <releases>
          <enabled>false</enabled>
       </releases>
       <snapshots>
          <enabled>true</enabled>
       </snapshots>
-   </repository>
-   
-   <!-- Pi4J Drivers snapshots -->
-   <repository>
-      <id>oss-snapshots-M2-repo</id>
-      <name>Sonatype OSS Maven2 Repository</name>
-      <url>https://central.sonatype.com/repository/maven-snapshots</url>
    </repository>
 </repositories>
 ```
@@ -96,7 +89,88 @@ Please refer to [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## BUILD DEPENDENCIES & INSTRUCTIONS
 
-This project can be built with Maven.
+This project can be built with Maven:
+
+```bash
+./mvnw verify
+```
+
+## Release Flow
+
+Releases are automated via [JReleaser](https://jreleaser.org) and GitHub Actions, but the workflow can also be started manually from the GitHub Actions tab.  
+The workflow is defined in [`.github/workflows/release.yml`](.github/workflows/release.yml).
+
+### How it works
+
+The release pipeline triggers automatically whenever `pom.xml` is pushed to `main` **and** the version does **not** end in `-SNAPSHOT`.  
+You can also run it manually if you already pushed a version change earlier and want to finish the release later.  
+No manual tag creation is needed — JReleaser creates the Git tag, GitHub Release, and publishes to Maven Central.
+
+```
+push pom.xml to main (non-SNAPSHOT version)
+        │
+        ▼
+ check-version job
+  └─ version is SNAPSHOT? → skip, do nothing
+  └─ version is release?  → continue
+        │
+        ▼
+ release job
+  ├─ Build JAR + sources JAR + javadoc JAR (-Prelease)
+  ├─ Stage artifacts to target/staging-deploy
+  ├─ Validate JReleaser config (jreleaser:config)
+  ├─ Open GitHub issue for manual approval (FDelporte / stefanhaustein)
+  │     └─ Approver comments "approved" on the issue
+  └─ JReleaser full-release
+        ├─ GPG-sign all artifacts
+        ├─ Publish bundle to Maven Central Portal
+        └─ Create GitHub Release with auto-generated changelog
+```
+
+### Step-by-step for maintainers
+
+**1. Remove the `-SNAPSHOT` suffix and push:**
+
+```bash
+# Set the release version (e.g. 1.0.0)
+./mvnw versions:set -DnewVersion=1.0.0 -DgenerateBackupPoms=false
+
+git add pom.xml
+git commit -m "chore: release 1.0.0"
+git push origin main
+```
+
+The workflow starts automatically. A GitHub issue is opened asking for approval.
+
+**2. Approve the release:**
+
+One of the listed approvers (`FDelporte`, `stefanhaustein`) comments **`approved`** on the auto-created issue.  
+The pipeline resumes and publishes to Maven Central.
+
+**3. Bump to the next development snapshot:**
+
+```bash
+./mvnw versions:set -DnewVersion=1.0.1-SNAPSHOT -DgenerateBackupPoms=false
+
+git add pom.xml
+git commit -m "chore: prepare next development iteration 1.0.1-SNAPSHOT"
+git push origin main
+# workflow triggers but immediately skips (SNAPSHOT detected)
+```
+
+### Required GitHub secrets
+
+| Secret | Description |
+|--------|-------------|
+| `JRELEASER_MAVENCENTRAL_USERNAME` | User Token username from [central.sonatype.com/account](https://central.sonatype.com/account) |
+| `JRELEASER_MAVENCENTRAL_TOKEN` | User Token password from [central.sonatype.com/account](https://central.sonatype.com/account) |
+| `JRELEASER_GPG_PASSPHRASE` | Passphrase for the GPG signing key |
+| `JRELEASER_GPG_SECRET_KEY` | ASCII-armored GPG secret key |
+| `JRELEASER_GPG_PUBLIC_KEY` | ASCII-armored GPG public key |
+| `GITHUB_TOKEN` | Automatically provided by GitHub Actions |
+
+> **Note:** The old `JRELEASER_NEXUS2_*` secrets (legacy Sonatype OSSRH) are no longer used.  
+> Generate fresh User Tokens at [central.sonatype.com/account](https://central.sonatype.com/account).
 
 ## LICENSE
 
