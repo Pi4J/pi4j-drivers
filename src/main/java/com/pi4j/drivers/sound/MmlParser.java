@@ -44,7 +44,7 @@ public class MmlParser {
                     }
                 }
             }
-            int n = 1;
+            int n = 0;
             boolean useDefault = true;
             while (pos < len) {
                 char d = mml.charAt(pos);
@@ -90,7 +90,7 @@ public class MmlParser {
                     continue;
                 }
             }
-            float length = ((dotted ? 1.5f : 1f) * 4 * 60_000f / tempoBpm) / (useDefault ? defaultLength : n);
+            double length = ((dotted ? 1.5 : 1.0) * 4 * 60_000.0 / tempoBpm) / (useDefault ? defaultLength : n);
             frequency *= Math.pow(2, octave - 4);
 
             if (rPos + 1 >= result.length) {
@@ -100,7 +100,6 @@ public class MmlParser {
             result[rPos++] = frequency;
             result[rPos++] = length;
         }
-
         return Arrays.copyOf(result, rPos);
     }
 
