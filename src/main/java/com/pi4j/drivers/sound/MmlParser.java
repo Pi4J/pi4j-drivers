@@ -100,10 +100,7 @@ public class MmlParser {
             result[rPos++] = frequency;
             result[rPos++] = length;
         }
-
-        double[] clamped = Arrays.copyOf(result, rPos);
-        System.out.println(Arrays.toString(clamped));
-        return clamped;
+        return Arrays.copyOf(result, rPos);
     }
 
 }
