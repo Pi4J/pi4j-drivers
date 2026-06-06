@@ -21,14 +21,14 @@ As this is library is still in early stage, you can only get a SNAPSHOT-version.
    <dependency>
       <groupId>com.pi4j</groupId>
       <artifactId>pi4j-drivers</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>${pi4j.drivers.version}</version>
    </dependency>
    ...
 </dependencies>
 
+<!-- Add the following if you want to use a SNAPSHOT version -->
 <repositories>
-   <!-- Pi4J Drivers snapshots -->
-   <repository>
+  <repository>
       <id>sonatype-snapshots</id>
       <name>Maven Central Snapshots</name>
       <url>https://central.sonatype.com/repository/maven-snapshots</url>
@@ -41,47 +41,6 @@ As this is library is still in early stage, you can only get a SNAPSHOT-version.
    </repository>
 </repositories>
 ```
-
-## The Case for A Pi4j “driver” Subproject
-
-Document created by **Stefan Haustein**.
-
-### Background
-
-Pi4J used to have a set of iot hardware drivers, but they have been removed from the main project due to maintenance issues. Currently, there is the [pi4j-example-devices](https://github.com/Pi4J/pi4j-example-devices/) subproject containing drivers.
-
-The examples cover several common devices and show how to use Pi4J to communicate with devices, but they are not suitable for external projects to “just” depend on.
-
-### Proposal
-
-The proposal here is to insert a new subproject `pi4j-drivers`, so the dependency structure for `pi4j-example-devices` is as follows:
-
-```text
-pi4j
-|
-pi4j-drivers
-|
-pi4j-example-devices
-```
-
-Ideally, this would not lead to an expansion of code size. Instead, drivers that are converted by the `pi4j-drivers` subproject will be deleted in the example-devices project – keeping the examples in place.
-
-Examples for the `pi4j-drivers` project will be contained in the `pi4j-example-devices` project.
-
-The drivers project will allow users to use covered hardware in a straightforward way, taking advantage of modern build / dependency management to keep them up to date.
-
-### Volunteers
-
-* @eitch
-  * Proper release management
-* @stefanhaustein
-  * Contribute a set of drivers (currently have [Bmx280Driver.java](https://github.com/stefanhaustein/tablecraft/blob/main/src/main/java/org/kobjects/pi4jdriver/sensor/bmx280/Bmx280Driver.java) and [Scd4xDriver.java](https://github.com/stefanhaustein/tablecraft/blob/main/src/main/java/org/kobjects/pi4jdriver/sensor/scd4x/Scd4xDriver.java) and can offer a PiXtendDriver if there is interest, but it’s a bit more “esoteric”; would also like to add a character lcd driver after some more cleanup). 
-  * Would be willing to take part in ownership, i.e guide contributors / do code review
-  * Would be willing to write PRs for removing redundant code from pi4j-example-devices
-* @fdelporte
-  * Documentation on the Pi4J website
-* Many others volunteered to contribute their existing driver implementations
-  * See this [Pi4J Discussion](https://github.com/Pi4J/pi4j/discussions/378)
 
 ## CONTRIBUTING
 
@@ -157,20 +116,6 @@ git commit -m "chore: prepare next development iteration 1.0.1-SNAPSHOT"
 git push origin main
 # workflow triggers but immediately skips (SNAPSHOT detected)
 ```
-
-### Required GitHub secrets
-
-| Secret | Description |
-|--------|-------------|
-| `JRELEASER_MAVENCENTRAL_USERNAME` | User Token username from [central.sonatype.com/account](https://central.sonatype.com/account) |
-| `JRELEASER_MAVENCENTRAL_TOKEN` | User Token password from [central.sonatype.com/account](https://central.sonatype.com/account) |
-| `JRELEASER_GPG_PASSPHRASE` | Passphrase for the GPG signing key |
-| `JRELEASER_GPG_SECRET_KEY` | ASCII-armored GPG secret key |
-| `JRELEASER_GPG_PUBLIC_KEY` | ASCII-armored GPG public key |
-| `GITHUB_TOKEN` | Automatically provided by GitHub Actions |
-
-> **Note:** The old `JRELEASER_NEXUS2_*` secrets (legacy Sonatype OSSRH) are no longer used.  
-> Generate fresh User Tokens at [central.sonatype.com/account](https://central.sonatype.com/account).
 
 ## LICENSE
 
