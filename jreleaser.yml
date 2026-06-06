@@ -67,7 +67,7 @@ deploy:
         url: https://central.sonatype.com/api/v1/publisher
         # Local staging directory populated by:
         #   ./mvnw -Prelease -DskipTests
-        #          -DaltDeploymentRepository=local::file:./target/staging-deploy
+        #          -DaltDeploymentRepository=local::default::file:./target/staging-deploy
         #          deploy
         stagingRepositories:
           - target/staging-deploy

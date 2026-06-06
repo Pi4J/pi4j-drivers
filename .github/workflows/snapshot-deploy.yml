@@ -13,7 +13,25 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Check project version
+        id: version
+        run: |
+          VERSION="$(grep -m1 '<version>' pom.xml | sed -E 's/.*<version>([^<]+)<\/version>.*/\1/')"
+          echo "project_version=$VERSION" >> "$GITHUB_OUTPUT"
+          if [[ "$VERSION" == *-SNAPSHOT ]]; then
+            echo "is_snapshot=true" >> "$GITHUB_OUTPUT"
+            echo "Snapshot version detected: $VERSION"
+          else
+            echo "is_snapshot=false" >> "$GITHUB_OUTPUT"
+            echo "Non-snapshot version detected: $VERSION. Deployment steps will be skipped."
+          fi
+
+      - name: Skip deploy for non-snapshot versions
+        if: steps.version.outputs.is_snapshot != 'true'
+        run: echo "Skipping deploy because pom.xml version is not a SNAPSHOT (${{ steps.version.outputs.project_version }})"
+
       - name: Validate secrets are available
+        if: steps.version.outputs.is_snapshot == 'true'
         run: |
           if [ -z "${{ secrets.OSSRH_USERNAME }}" ]; then
             echo "ERROR: OSSRH_USERNAME secret is not set"
@@ -30,8 +48,8 @@ jobs:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
 
-
       - name: Set up JDK
+        if: steps.version.outputs.is_snapshot == 'true'
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
@@ -41,6 +59,7 @@ jobs:
           server-password: MAVEN_PASSWORD
 
       - name: Verify Maven settings
+        if: steps.version.outputs.is_snapshot == 'true'
         run: |
           echo "Generated Maven settings.xml:"
           cat ~/.m2/settings.xml || echo "No settings.xml found"
@@ -49,12 +68,12 @@ jobs:
           MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
 
       - name: Grant execute permission for mvnw
+        if: steps.version.outputs.is_snapshot == 'true'
         run: chmod +x mvnw
 
       - name: Build with Maven
+        if: steps.version.outputs.is_snapshot == 'true'
         run: ./mvnw clean deploy --batch-mode
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-
-
