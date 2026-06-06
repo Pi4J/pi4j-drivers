@@ -8,7 +8,31 @@
     <artifactId>pi4j-drivers</artifactId>
     <name>Pi4J :: DRIVERS</name>
     <description>Pi4J drivers for various electronic components</description>
+    <url>https://github.com/Pi4J/pi4j-drivers</url>
     <version>1.0.0</version>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>pi4j</id>
+            <name>Pi4J Contributors</name>
+            <url>https://github.com/Pi4J</url>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:https://github.com/Pi4J/pi4j-drivers.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/Pi4J/pi4j-drivers.git</developerConnection>
+        <url>https://github.com/Pi4J/pi4j-drivers</url>
+        <tag>HEAD</tag>
+    </scm>
 
     <!-- BUILD PROPERTIES -->
     <properties>
