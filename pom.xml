@@ -154,21 +154,6 @@
         </snapshotRepository>
     </distributionManagement>
 
-    <!-- DEPENDENCY REPOSITORIES -->
-    <repositories>
-        <repository>
-            <id>sonatype-oss-snapshots</id>
-            <name>Sonatype Open Source Maven Snapshots Repository</name>
-            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
-
     <profiles>
         <!-- DEFAULT PROFILE -->
         <profile>
