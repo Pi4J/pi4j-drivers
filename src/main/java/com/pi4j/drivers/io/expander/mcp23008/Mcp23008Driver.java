@@ -34,7 +34,7 @@ public class Mcp23008Driver implements OutputExpander {
     private int outputBits = 0x0;
     private int triggerMask = -1;
     private int ioDir = -1;
-    
+
     public Mcp23008Driver(I2C i2c) {
         this.i2c = i2c;
         for (int i = 0; i < 8; i++) {
@@ -133,7 +133,7 @@ public class Mcp23008Driver implements OutputExpander {
      * configured as outputs.
      */
     public void setOutputLatches(int bits) {
-        return i2c.writeRegister(Register.OLAT, bits);
+        i2c.writeRegister(Register.OLAT, bits);
     }
 
     /**
