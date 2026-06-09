@@ -18,15 +18,15 @@ import com.pi4j.io.i2c.I2C;
 public class Mcp23008Driver implements OutputExpander {
 
     /** Contains the bit mask for SEQOP (1<<5) used in the setIoConfiguration() call. */
-    public final static int SEQOP = 1 << 5;
+    public static final int SEQOP = 1 << 5;
     /** Contains the bit mask for DISSLW (1<<4) used in the setIoConfiguration() call. */
-    public final static int DISSLW = 1 << 4;
+    public static final int DISSLW = 1 << 4;
     /** Contains the bit mask for HAEN (1<<3) used in the setIoConfiguration() call. */
-    public final static int HAEN = 1 << 3;
+    public static final int HAEN = 1 << 3;
     /** Contains the bit mask for ODR (1<<2) used in the setIoConfiguration() call. */
-    public final static int ODR = 1 << 2;
+    public static final int ODR = 1 << 2;
     /** Contains the bit mask for INTPOL (1<<1) used in the setIoConfiguration() call. */
-    public final static int INTPOL = 1 << 1;
+    public static final int INTPOL = 1 << 1;
 
     private final I2C i2c;
     private final OnOffWrite<?>[] onOffWriteArray = new OnOffWrite[8];
@@ -34,7 +34,7 @@ public class Mcp23008Driver implements OutputExpander {
     private int outputBits = 0x0;
     private int triggerMask = -1;
     private int ioDir = -1;
-
+    
     public Mcp23008Driver(I2C i2c) {
         this.i2c = i2c;
         for (int i = 0; i < 8; i++) {
