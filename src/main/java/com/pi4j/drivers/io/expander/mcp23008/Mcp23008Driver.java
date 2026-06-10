@@ -8,7 +8,7 @@ import com.pi4j.io.i2c.I2C;
 /**
  * Driver for the MCP 23008 io expander. Supports output only currently.
  *
- * Note that most configuration calls set the values for all pins simultaneously; please set the corresponding
+ * Note that many configuration calls set the values for all pins simultaneously; please set the corresponding
  * bits in the integer value accordingly; Java supports binary number representation usin a leading 0b. Alternatively,
  * (1 << pin) can be used (where pin ranges from 0 to 7).
  *
@@ -29,17 +29,13 @@ public class Mcp23008Driver implements OutputExpander {
     public static final int INTPOL = 1 << 1;
 
     private final I2C i2c;
-    private final OnOffWrite<?>[] onOffWriteArray = new OnOffWrite[8];
-
-    private int outputBits = 0x0;
-    private int triggerMask = -1;
-    private int ioDir = -1;
 
     public Mcp23008Driver(I2C i2c) {
+        this(i2c, null)
+
+    public Mcp23008Driver(I2C i2c, ListenableOnOffRead<?> interruptPin) {
+        super(8, interruptPin);
         this.i2c = i2c;
-        for (int i = 0; i < 8; i++) {
-            onOffWriteArray[i] = new OnOffWriteImpl(i);
-        }
     }
 
     /**
@@ -77,12 +73,43 @@ public class Mcp23008Driver implements OutputExpander {
     }
 
     /**
-     * If a bit is set, the corresponding pin is enabled for interrupt-on-change by writing to the "GPINTEN" chip
-     * register. The "DEFVAL" and "INTCON" registers must also be configured if any pins are enabled for
-     * interrupt-on-change.
+      * Reads the pin polarity for all pins by reading the "IPOL" register. If a bit is set, the corresponding GPIO
+      * register will reflect the inverted value on the pin.
+      */
+    public int getInputPolatity() {
+        return i2c.readRegsiter(Register.IPOL, pins);
+    }
+
+    /**
+     * Sets the interrupt mode for the given pin; please refer to InterruptMode for a description of the modes.
      */
-    public void setInterruptOnChange(int pins) {
-        i2c.writeRegister(Register.GPINTEN, pins);
+    public void setInterruptMode(int pin, InterruptMode mode) {
+        setInterruptModes(1 << pin, mode);
+    }
+
+    /**
+     * Sets the interrupt mode for multiple pins as indicated by the pin mask.
+     * Please refer to InterruptMode for a description of the modes.
+     */
+    public void setInterruptModes(int pinMask, InterruptMode mode) {
+        int interruptEnabled = i2c.readRegister(Register.GPINTEN);
+        if (mode == InterruptMode.OFF)
+            i2c.writeRegister(Register.GPINTEN, interruptEnabled & !pinMask);
+        } else {
+            i2c.writeRegister(Register.GPINTEN, interruptEnabled | pinMask);
+            int interruptOnChange = i2c.readRegister(Register.INTCON);
+            if (mode == InterruptMode.ON_CHANGE) {
+                i2c.writeRegister(Register.INTCON, interruptOnChange | pinMask);
+            } else {
+                i2c.writeRegister(Register.INTCON, interruptOnChange & ~pinMask);
+                int defaultValues = i2c.readRegister(Register.DEFVAL);
+                if (mode == InterruptMode.ON_0) {
+                    i2c.writeRegister(Register.DEFVAL, defaultValues | pinMask);
+                } else {
+                    i2c.writeRegister(Register.DEFVAL, defaultValues & ~pinMask);
+                }
+            }
+        }
     }
 
     /**
@@ -118,13 +145,9 @@ public class Mcp23008Driver implements OutputExpander {
         i2c.writeRegister(Register.IOCON, config);
     }
 
-    /**
-     * Controls how the associated pin value is compared for the interrupt-on-change feature by writing to the
-     * "INTCON" register. If a bit is set, the corresponding I/O pin is compared against the associated bit in the
-     * DEFVAL register. If a bit value is clear, the corresponding I/O pin is compared against the previous value.
-     */
-    public void setInterruptControl(int pins) {
-        i2c.writeRegister(Register.INTCON, pins);
+    /** Returns the current IO configuration; please refer to setIoConfiguration for details. */
+    public void getIoConfiguration() {
+        return i2c.readRegister(Register.IOCON, config);
     }
 
     /**
@@ -145,64 +168,31 @@ public class Mcp23008Driver implements OutputExpander {
     }
 
 
-    @Override
-    public void setOutputTriggerMask(int mask) {
-        this.triggerMask = mask;
-    }
-
     /**
      * Set each bit to 0 for output and 1 for input to configure the corresponding pin by writing to the "IODIR"
      * register.
+     *
+     * @deprecated Use setIoDirections instead.
      */
+    @Deprecated
     public void setIoDir(int ioDir) {
-        this.ioDir = ioDir;
-        i2c.writeRegister(Register.IODIR, ioDir);
+       i2c.writeRegister(Register.IODIR, pins);
     }
 
     @Override
-    public void setOutputState(int index, boolean state) {
-        int mask = 1 << index;
-        if ((ioDir & mask) != 0) {
-            throw new IllegalStateException("Pin " + index + " is configured for output.");
-        }
-        if (state) {
-            setOutputState(outputBits | mask);
-        } else {
-            setOutputState(outputBits & ~mask);
-        }
+    protected void writeOutputImpl() {
+        i2c.writeRegister(Register.GPIO, outputBits);
     }
 
-    @Override
-    public void setOutputState(int bits) {
-        int changedBits = outputBits ^ bits;
-        outputBits = bits;
-        if ((changedBits & triggerMask) != 0) {
-            this.i2c.writeRegister(Register.GPIO, outputBits);
-        }
+    public enum InterruptMode {
+        /** No interrupt */
+        OFF,
+        /** The interrupt pin is triggered if the value changes to 0. */
+        ON_0,
+        /** The interrupt pin is triggered if the value changes to 1. */
+        ON_1,
+        /** The interrupt pin is triggered if the value changes from the previous value. */
+        ON_CHANGE
     }
 
-    @Override
-    public OnOffWrite<?> getOutput(int index) {
-        return onOffWriteArray[index];
-    }
-
-    private class OnOffWriteImpl implements OnOffWrite<OnOffWriteImpl> {
-        final int index;
-
-        OnOffWriteImpl(int index) {
-            this.index = index;
-        }
-
-        @Override
-        public OnOffWriteImpl on() throws IOException {
-            setOutputState(index, true);
-            return this;
-        }
-
-        @Override
-        public OnOffWriteImpl off() throws IOException {
-            setOutputState(index, false);
-            return this;
-        }
-    }
 }
