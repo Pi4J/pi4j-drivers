@@ -111,26 +111,19 @@ public class SenseHat {
     }
 
     public double getTemperature() {
-        return getHumiditySensor().readTemperature();
+        return getHumiditySensor().readTemperature() + 
+        getPressureSensor().readTemperature() / 2.0;
     }
 
-    public double getTemperatureFromHumidity() {
-        return getHumiditySensor().readTemperature();
-    }
-
-    public double getTemperatureFromPressure() {
-        return getPressureSensor().readTemperature();
-    }
-
-    public double[] getAccelerometerRaw() {
+    public double[] readAccelerometer() {
         return getAccelerometer().readAccelerometer();
     }
 
-    public double[] getGyroscopeRaw() {
+    public double[] readGyroscope() {
         return getAccelerometer().readGyroscope();
     }
 
-    public double[] getMagnetometerRaw() {
+    public double[] readMagnetometer() {
         return getMagnetometer().readMagneticField();
     }
 
