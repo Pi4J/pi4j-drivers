@@ -1,6 +1,9 @@
 package com.pi4j.drivers.io.expander;
 
-public abstract class AbstractConfigurableIoExpander extends AbstractInputExpander implements ConfigurableIOExpander {
+import com.pi4j.io.ListenableOnOffRead;
+import com.pi4j.io.OnOffWrite;
+
+public abstract class AbstractConfigurableIoExpander extends AbstractInputExpander implements ConfigurableIoExpander {
 
     private final OnOffWrite<?>[] onOffWriteArray;
 
@@ -8,7 +11,7 @@ public abstract class AbstractConfigurableIoExpander extends AbstractInputExpand
     private int outputBits = -1;
     private int triggerMask = -1;
 
-    public AbstractOutputExpander(int size, ListenableOnOffRead<?> interruptPin) {
+    public AbstractConfigurableIoExpander(int size, ListenableOnOffRead<?> interruptPin) {
         super(size, interruptPin);
         this.onOffWriteArray = new OnOffWrite[size];
         for (int i = 0; i < size; i++) {
@@ -41,11 +44,11 @@ public abstract class AbstractConfigurableIoExpander extends AbstractInputExpand
         int changedBits = outputBits ^ bits;
         outputBits = bits;
         if ((changedBits & triggerMask) != 0) {
-            writeOutputImpl(outputBits);
+            writeOutputsImpl(outputBits);
         }
     }
 
-    abstract protected void writeOutputImpl(int bits);
+    abstract protected void writeOutputsImpl(int bits);
 
     private class OnOffWriteImpl implements OnOffWrite<OnOffWriteImpl> {
         final int index;
@@ -55,14 +58,14 @@ public abstract class AbstractConfigurableIoExpander extends AbstractInputExpand
         }
 
         @Override
-        public OnOffWriteImpl on() throws IOException {
-            AbstractOutputExpander.this.setOutputState(index, true);
+        public OnOffWriteImpl on() {
+            AbstractConfigurableIoExpander.this.setOutputState(index, true);
             return this;
         }
 
         @Override
-        public OnOffWriteImpl off() throws IOException {
-            AbstractOutputExpander.this.setOutputState(index, false);
+        public OnOffWriteImpl off()  {
+            AbstractConfigurableIoExpander.this.setOutputState(index, false);
             return this;
         }
     }

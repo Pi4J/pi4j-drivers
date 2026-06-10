@@ -1,9 +1,9 @@
 package com.pi4j.drivers.io.expander;
 
 /** An IO expander where the direction (input or output) is configurable. */
-interface ConfigurableIoExpander implements InputExpander, OutputExpander {
+public interface ConfigurableIoExpander extends InputExpander, OutputExpander {
 
-    /** Sets the IO direction for the given pin number. */
+    /** Sets the IO direction for the given pin number (0..size). */
     default void setIoDirection(int pin, Direction direction) {
         setIoDirections(1 << pin, direction);
     }

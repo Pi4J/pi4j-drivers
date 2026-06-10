@@ -1,12 +1,8 @@
 package com.pi4j.drivers.io.expander;
 
-import com.pi4j.drivers.io.expander.OutputExpander;
 import com.pi4j.io.OnOffWrite;
-import com.pi4j.io.exception.IOException;
-import com.pi4j.io.i2c.I2C;
 
-
-public class AbstractOutputExpander implements OutputExpander, Closeable {
+public abstract class AbstractOutputExpander implements OutputExpander {
     private final int size;
     private final OnOffWrite<?>[] onOffWriteArray;
 
@@ -47,11 +43,15 @@ public class AbstractOutputExpander implements OutputExpander, Closeable {
         int changedBits = outputBits ^ bits;
         outputBits = bits;
         if ((changedBits & triggerMask) != 0) {
-            writeOutputImpl(outputBits);
+            writeOutputsImpl(outputBits);
         }
     }
 
-    abstract protected void writeOutputImpl(int bits);
+    public int getSize() {
+        return size;
+    }
+
+    protected abstract void writeOutputsImpl(int bits);
 
     private class OnOffWriteImpl implements OnOffWrite<OnOffWriteImpl> {
         final int index;
@@ -61,13 +61,13 @@ public class AbstractOutputExpander implements OutputExpander, Closeable {
         }
 
         @Override
-        public OnOffWriteImpl on() throws IOException {
+        public OnOffWriteImpl on() {
             AbstractOutputExpander.this.setOutputState(index, true);
             return this;
         }
 
         @Override
-        public OnOffWriteImpl off() throws IOException {
+        public OnOffWriteImpl off() {
             AbstractOutputExpander.this.setOutputState(index, false);
             return this;
         }

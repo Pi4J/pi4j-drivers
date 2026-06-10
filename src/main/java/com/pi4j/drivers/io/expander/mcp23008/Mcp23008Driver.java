@@ -1,8 +1,7 @@
 package com.pi4j.drivers.io.expander.mcp23008;
 
-import com.pi4j.drivers.io.expander.OutputExpander;
-import com.pi4j.io.OnOffWrite;
-import com.pi4j.io.exception.IOException;
+import com.pi4j.drivers.io.expander.AbstractConfigurableIoExpander;
+import com.pi4j.io.ListenableOnOffRead;
 import com.pi4j.io.i2c.I2C;
 
 /**
@@ -15,7 +14,7 @@ import com.pi4j.io.i2c.I2C;
  * Datasheet:
  * https://ww1.microchip.com/downloads/aemDocuments/documents/APID/ProductDocuments/DataSheets/MCP23008-MCP23S08-Data-Sheet-DS20001919.pdf
  */
-public class Mcp23008Driver implements OutputExpander {
+public class Mcp23008Driver extends AbstractConfigurableIoExpander {
 
     /** Contains the bit mask for SEQOP (1<<5) used in the setIoConfiguration() call. */
     public static final int SEQOP = 1 << 5;
@@ -31,7 +30,8 @@ public class Mcp23008Driver implements OutputExpander {
     private final I2C i2c;
 
     public Mcp23008Driver(I2C i2c) {
-        this(i2c, null)
+        this(i2c, null);
+    }
 
     public Mcp23008Driver(I2C i2c, ListenableOnOffRead<?> interruptPin) {
         super(8, interruptPin);
@@ -76,8 +76,8 @@ public class Mcp23008Driver implements OutputExpander {
       * Reads the pin polarity for all pins by reading the "IPOL" register. If a bit is set, the corresponding GPIO
       * register will reflect the inverted value on the pin.
       */
-    public int getInputPolatity() {
-        return i2c.readRegsiter(Register.IPOL, pins);
+    public int getInputPolarity() {
+        return i2c.readRegister(Register.IPOL);
     }
 
     /**
@@ -93,8 +93,8 @@ public class Mcp23008Driver implements OutputExpander {
      */
     public void setInterruptModes(int pinMask, InterruptMode mode) {
         int interruptEnabled = i2c.readRegister(Register.GPINTEN);
-        if (mode == InterruptMode.OFF)
-            i2c.writeRegister(Register.GPINTEN, interruptEnabled & !pinMask);
+        if (mode == InterruptMode.OFF) {
+            i2c.writeRegister(Register.GPINTEN, interruptEnabled & ~pinMask);
         } else {
             i2c.writeRegister(Register.GPINTEN, interruptEnabled | pinMask);
             int interruptOnChange = i2c.readRegister(Register.INTCON);
@@ -146,8 +146,8 @@ public class Mcp23008Driver implements OutputExpander {
     }
 
     /** Returns the current IO configuration; please refer to setIoConfiguration for details. */
-    public void getIoConfiguration() {
-        return i2c.readRegister(Register.IOCON, config);
+    public int getIoConfiguration() {
+        return i2c.readRegister(Register.IOCON);
     }
 
     /**
@@ -176,12 +176,23 @@ public class Mcp23008Driver implements OutputExpander {
      */
     @Deprecated
     public void setIoDir(int ioDir) {
-       i2c.writeRegister(Register.IODIR, pins);
+       i2c.writeRegister(Register.IODIR, ioDir);
+    }
+
+
+    @Override
+    protected void writeOutputsImpl(int bits) {
+        i2c.writeRegister(Register.GPIO, bits);
     }
 
     @Override
-    protected void writeOutputImpl() {
-        i2c.writeRegister(Register.GPIO, outputBits);
+    protected int readInputsImpl() {
+        return i2c.readRegister(Register.GPIO);
+    }
+
+    @Override
+    public void setIoDirections(int pinMask, Direction direction) {
+
     }
 
     public enum InterruptMode {
