@@ -123,7 +123,7 @@ public class SenseHat {
         return getAccelerometer().readGyroscope();
     }
 
-    public double[] readMagnetometer() {
+    public double[] readMagneticField() {
         return getMagnetometer().readMagneticField();
     }
 
