@@ -112,14 +112,6 @@ public class Mcp23008Driver extends AbstractConfigurableIoExpander {
         }
     }
 
-    /**
-     * Sets the default comparison value for the associated pin by writing to the "DEFVAL" register.
-     * If enabled via the "GPINTEN" and "INTCON" registers to compare against the "DEFVAL" register, only an
-     * opposite value on the associated pin will cause an interrupt to occur.
-     */
-    public void setDefaultValues(int pins) {
-       i2c.writeRegister(Register.DEFVAL, pins);
-    }
 
     /**
      * Writes to the "IOCON" register, managing several bits for configuring the device:
@@ -167,6 +159,13 @@ public class Mcp23008Driver extends AbstractConfigurableIoExpander {
         i2c.writeRegister(Register.GPPU, pins);
     }
 
+    /**
+     * Reads the pull-up resistor configuration. If a bit is set and the corresponding pin is
+     * configured as an input, the corresponding PORT pin is internally pulled up with a 100 kOhm resistor
+     */
+    public int getPullupResistorConfiguration() {
+        return i2c.readRegister(Register.GPPU);
+    }
 
     /**
      * Set each bit to 0 for output and 1 for input to configure the corresponding pin by writing to the "IODIR"
