@@ -60,7 +60,7 @@ public class Mcp23008Driver extends AbstractConfigurableIoExpander {
      * via the GPINTEN register. A ‘set’ bit indicates that the associated pin caused the interrupt.
      */
     public int getInterruptFlags() {
-        return i2c.readRegister(Register.INTF);
+        return readRegister(Register.INTF);
     }
 
     /**
@@ -109,12 +109,12 @@ public class Mcp23008Driver extends AbstractConfigurableIoExpander {
      * Please refer to InterruptMode for a description of the modes.
      */
     public void setInterruptModes(int pinMask, InterruptMode mode) {
-        int interruptEnabled = i2c.readRegister(Register.GPINTEN);
+        int interruptEnabled = readRegister(Register.GPINTEN);
         if (mode == InterruptMode.OFF) {
             writeRegister(Register.GPINTEN, interruptEnabled & ~pinMask);
         } else {
             writeRegister(Register.GPINTEN, interruptEnabled | pinMask);
-            int interruptOnChange = i2c.readRegister(Register.INTCON);
+            int interruptOnChange = readRegister(Register.INTCON);
             if (mode == InterruptMode.ON_CHANGE) {
                 writeRegister(Register.INTCON, interruptOnChange | pinMask);
             } else {
@@ -175,7 +175,7 @@ public class Mcp23008Driver extends AbstractConfigurableIoExpander {
      * configured as an input, the corresponding PORT pin is internally pulled up with a 100 kOhm resistor
      */
     public void setPullupResistorConfiguration(int pins) {
-        i2c.writeRegister(Register.GPPU, pins);
+        writeRegister(Register.GPPU, pins);
     }
 
     /**
@@ -183,7 +183,7 @@ public class Mcp23008Driver extends AbstractConfigurableIoExpander {
      * configured as an input, the corresponding PORT pin is internally pulled up with a 100 kOhm resistor
      */
     public int getPullupResistorConfiguration() {
-        return i2c.readRegister(Register.GPPU);
+        return readRegister(Register.GPPU);
     }
 
     /**
@@ -194,18 +194,18 @@ public class Mcp23008Driver extends AbstractConfigurableIoExpander {
      */
     @Deprecated
     public void setIoDir(int ioDir) {
-       i2c.writeRegister(Register.IODIR, ioDir);
+       writeRegister(Register.IODIR, ioDir);
     }
 
 
     @Override
     protected void writeOutputsImpl(int bits) {
-        i2c.writeRegister(Register.GPIO, bits);
+        writeRegister(Register.GPIO, bits);
     }
 
     @Override
     protected int readInputsImpl() {
-        return i2c.readRegister(Register.GPIO);
+        return readRegister(Register.GPIO);
     }
 
     @Override
