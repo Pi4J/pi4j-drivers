@@ -5,11 +5,11 @@ import com.pi4j.io.ListenableOnOffRead;
 import com.pi4j.io.i2c.I2C;
 
 /**
- * Driver for the MCP 23008 io expander. Supports output only currently.
+ * Driver for the MCP 23008 io expander.
  *
  * Note that many configuration calls set the values for all pins simultaneously; please set the corresponding
- * bits in the integer value accordingly; Java supports binary number representation usin a leading 0b. Alternatively,
- * (1 << pin) can be used (where pin ranges from 0 to 7).
+ * bits in the integer value accordingly; Java supports binary number representation using the "0b" prefix.
+ * Alternatively, (1 << pin) can be used (where pin ranges from 0 to 7).
  *
  * Datasheet:
  * https://ww1.microchip.com/downloads/aemDocuments/documents/APID/ProductDocuments/DataSheets/MCP23008-MCP23S08-Data-Sheet-DS20001919.pdf
@@ -34,8 +34,25 @@ public class Mcp23008Driver extends AbstractConfigurableIoExpander {
     }
 
     public Mcp23008Driver(I2C i2c, ListenableOnOffRead<?> interruptPin) {
-        super(8, interruptPin);
+        this(i2c, 8, interruptPin);
+    }
+
+    protected Mcp23008Driver(I2C i2c, int size, ListenableOnOffRead<?> interruptPin) {
+        super(size, interruptPin);
         this.i2c = i2c;
+        if (interruptPin != null) {
+            setInterruptModes((1 << size) - 1, InterruptMode.ON_CHANGE);
+        }
+    }
+
+    /** Protected to allow the Mcp23017 driver to write a 16-bit value */
+    protected void writeRegister(int register, int value) {
+        i2c.writeRegister(register, value);
+    }
+
+    /** Protected to allow the Mcp23017 driver to write a 16-bit value */
+    protected int readRegister(int register) {
+        return i2c.readRegister(register);
     }
 
     /**
@@ -52,7 +69,7 @@ public class Mcp23008Driver extends AbstractConfigurableIoExpander {
      * interrupt is cleared via a read of the 'INTCAP' or GPIO registers..
      */
     public int getInterruptCapture() {
-        return i2c.readRegister(Register.INTCAP);
+        return readRegister(Register.INTCAP);
     }
 
     /**
@@ -61,7 +78,7 @@ public class Mcp23008Driver extends AbstractConfigurableIoExpander {
      * configured as outputs.
      */
     public int getOutputLatches() {
-        return i2c.readRegister(Register.OLAT);
+        return readRegister(Register.OLAT);
     }
 
     /**
@@ -69,7 +86,7 @@ public class Mcp23008Driver extends AbstractConfigurableIoExpander {
      * register will reflect the inverted value on the pin.
      */
     public void setInputPolarity(int pins) {
-        i2c.writeRegister(Register.IPOL, pins);
+        writeRegister(Register.IPOL, pins);
     }
 
     /**
@@ -77,7 +94,7 @@ public class Mcp23008Driver extends AbstractConfigurableIoExpander {
       * register will reflect the inverted value on the pin.
       */
     public int getInputPolarity() {
-        return i2c.readRegister(Register.IPOL);
+        return readRegister(Register.IPOL);
     }
 
     /**
@@ -94,19 +111,19 @@ public class Mcp23008Driver extends AbstractConfigurableIoExpander {
     public void setInterruptModes(int pinMask, InterruptMode mode) {
         int interruptEnabled = i2c.readRegister(Register.GPINTEN);
         if (mode == InterruptMode.OFF) {
-            i2c.writeRegister(Register.GPINTEN, interruptEnabled & ~pinMask);
+            writeRegister(Register.GPINTEN, interruptEnabled & ~pinMask);
         } else {
-            i2c.writeRegister(Register.GPINTEN, interruptEnabled | pinMask);
+            writeRegister(Register.GPINTEN, interruptEnabled | pinMask);
             int interruptOnChange = i2c.readRegister(Register.INTCON);
             if (mode == InterruptMode.ON_CHANGE) {
-                i2c.writeRegister(Register.INTCON, interruptOnChange | pinMask);
+                writeRegister(Register.INTCON, interruptOnChange | pinMask);
             } else {
-                i2c.writeRegister(Register.INTCON, interruptOnChange & ~pinMask);
-                int defaultValues = i2c.readRegister(Register.DEFVAL);
+                writeRegister(Register.INTCON, interruptOnChange & ~pinMask);
+                int defaultValues = readRegister(Register.DEFVAL);
                 if (mode == InterruptMode.ON_0) {
-                    i2c.writeRegister(Register.DEFVAL, defaultValues | pinMask);
+                    writeRegister(Register.DEFVAL, defaultValues | pinMask);
                 } else {
-                    i2c.writeRegister(Register.DEFVAL, defaultValues & ~pinMask);
+                    writeRegister(Register.DEFVAL, defaultValues & ~pinMask);
                 }
             }
         }
@@ -134,21 +151,23 @@ public class Mcp23008Driver extends AbstractConfigurableIoExpander {
      * Bits 0 and 6-7 are unused and should be set to 0.
      */
     public void setIoConfiguration(int config) {
+        // Note that we directly use i2c.writeRegister here since this is an 8-bit register even on the MCP230017.
         i2c.writeRegister(Register.IOCON, config);
     }
 
     /** Returns the current IO configuration; please refer to setIoConfiguration for details. */
     public int getIoConfiguration() {
+        // Note that we directly use i2c.readRegister here since this is an 8-bit register even on the MCP230017.
         return i2c.readRegister(Register.IOCON);
     }
 
     /**
      * The OLAT register provides access to the output latches. A read from this register results in a read of the
-     * OLAT and not the port itself. A write to this register modifies the output latches that modify the pins
+     * OLAT and not the port itself. Writing to this register modifies the output latches that modify the pins
      * configured as outputs.
      */
     public void setOutputLatches(int bits) {
-        i2c.writeRegister(Register.OLAT, bits);
+        writeRegister(Register.OLAT, bits);
     }
 
     /**
@@ -191,7 +210,8 @@ public class Mcp23008Driver extends AbstractConfigurableIoExpander {
 
     @Override
     public void setIoDirections(int pinMask, Direction direction) {
-
+        int previous = readRegister(Register.IODIR);
+        writeRegister(Register.IODIR, direction == Direction.OUTPUT ? previous & ~pinMask : previous | pinMask);
     }
 
     public enum InterruptMode {
