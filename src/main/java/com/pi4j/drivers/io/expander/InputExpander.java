@@ -14,7 +14,7 @@ public interface InputExpander {
     /**
      * Returns the input state of all inputs encode in an integer (for each input that is on, the corresponding bit is
      * set. Note that this returns the current internal state and does not query the chip. If no interrupt line
-     * is set up, please use poll() to request an updated state from the chip. $
+     * is set up, please use poll() to request an updated state from the chip.
      */
     int getInputState();
 
@@ -22,4 +22,8 @@ public interface InputExpander {
      * Reads the current state from the chip, updates the internal state and notifies all listeners.
      */
     int poll();
+
+    /** Returns the number of pins. */
+    int getSize();
+
 }
