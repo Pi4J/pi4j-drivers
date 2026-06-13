@@ -30,8 +30,7 @@ public abstract class AbstractConfigurableIoExpander extends AbstractInputExpand
     }
 
     @Override
-    public void setOutputState(int index, boolean state) {
-        int mask = 1 << index;
+    public void setOutputStates(int mask, boolean state) {
         if (state) {
             setOutputState(outputBits | mask);
         } else {
@@ -40,7 +39,7 @@ public abstract class AbstractConfigurableIoExpander extends AbstractInputExpand
     }
 
     @Override
-    public void setOutputState(int bits) {
+    public void setOutputStates(int bits) {
         int changedBits = outputBits ^ bits;
         outputBits = bits;
         if ((changedBits & triggerMask) != 0) {
