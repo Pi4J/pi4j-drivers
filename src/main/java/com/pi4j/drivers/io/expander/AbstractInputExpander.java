@@ -16,7 +16,7 @@ public abstract class AbstractInputExpander implements InputExpander, Closeable 
     private final ListenableOnOffRead<?> interruptPin;
     private final List<IntConsumer> inputStateListeners = new ArrayList<>();
     private final int size;
-    private int inputState;
+    private int inputStates;
 
     protected AbstractInputExpander(int size, ListenableOnOffRead<?> interruptPin) {
         this.size = size;
@@ -27,9 +27,8 @@ public abstract class AbstractInputExpander implements InputExpander, Closeable 
         }
         if (interruptPin != null) {
             interruptPin.addConsumer(value -> {
-                if (value) {
-                    poll();
-                }
+                // We poll on any flank to be sure not to miss anything...
+                poll();
             });
         }
     }
@@ -54,17 +53,17 @@ public abstract class AbstractInputExpander implements InputExpander, Closeable 
 
 
     @Override
-    public final int getInputState() {
-        return inputState;
+    public final int getInputStates() {
+        return inputStates;
     }
 
 
     @Override
     public final int poll() {
         int newState = readInputsImpl();
-        if (newState != inputState) {
-            this.inputState = newState;
-            for (int i = 0; i < 8; i++) {
+        if (newState != inputStates) {
+            this.inputStates = newState;
+            for (int i = 0; i < size; i++) {
                 inputs[i].setState((newState & (1 << i)) != 0);
             }
             inputStateListeners.forEach(listener -> listener.accept(newState));

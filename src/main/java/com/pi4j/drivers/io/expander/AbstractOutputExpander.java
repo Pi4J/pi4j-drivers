@@ -28,10 +28,10 @@ public abstract class AbstractOutputExpander implements OutputExpander {
         return onOffWriteArray[index];
     }
 
+
     @Override
-    public void setOutputState(int index, boolean state) {
-        int mask = 1 << index;
-        if (state) {
+    public void setOutputStates(int mask, boolean newState) {
+        if (newState) {
             setOutputState(outputBits | mask);
         } else {
             setOutputState(outputBits & ~mask);
@@ -39,7 +39,7 @@ public abstract class AbstractOutputExpander implements OutputExpander {
     }
 
     @Override
-    public void setOutputState(int bits) {
+    public void setOutputStates(int bits) {
         int changedBits = outputBits ^ bits;
         outputBits = bits;
         if ((changedBits & triggerMask) != 0) {
