@@ -27,12 +27,16 @@ public class Mcp23008Driver extends AbstractConfigurableIoExpander {
     /** Contains the bit mask for INTPOL (1<<1) used in the setIoConfiguration() call. */
     public static final int INTPOL = 1 << 1;
 
-    private final I2C i2c;
+    protected final I2C i2c;
 
     public Mcp23008Driver(I2C i2c) {
         this(i2c, null);
     }
 
+    /**
+     * If the interrupt pin is provided, it is used to trigger interrupts for the individual input pin
+     * abstractions available on this driver via getInput(pin).
+     */
     public Mcp23008Driver(I2C i2c, ListenableOnOffRead<?> interruptPin) {
         this(i2c, 8, interruptPin);
     }
@@ -116,9 +120,9 @@ public class Mcp23008Driver extends AbstractConfigurableIoExpander {
             writeRegister(Register.GPINTEN, interruptEnabled | pinMask);
             int interruptOnChange = readRegister(Register.INTCON);
             if (mode == InterruptMode.ON_CHANGE) {
-                writeRegister(Register.INTCON, interruptOnChange | pinMask);
-            } else {
                 writeRegister(Register.INTCON, interruptOnChange & ~pinMask);
+            } else {
+                writeRegister(Register.INTCON, interruptOnChange | pinMask);
                 int defaultValues = readRegister(Register.DEFVAL);
                 if (mode == InterruptMode.ON_0) {
                     writeRegister(Register.DEFVAL, defaultValues | pinMask);
