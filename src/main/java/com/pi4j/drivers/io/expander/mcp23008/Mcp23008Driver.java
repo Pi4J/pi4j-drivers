@@ -155,14 +155,12 @@ public class Mcp23008Driver extends AbstractConfigurableIoExpander {
      * Bits 0 and 6-7 are unused and should be set to 0.
      */
     public void setIoConfiguration(int config) {
-        // Note that we directly use i2c.writeRegister here since this is an 8-bit register even on the MCP230017.
-        i2c.writeRegister(Register.IOCON, config);
+        writeRegister(Register.IOCON, config);
     }
 
     /** Returns the current IO configuration; please refer to setIoConfiguration for details. */
     public int getIoConfiguration() {
-        // Note that we directly use i2c.readRegister here since this is an 8-bit register even on the MCP230017.
-        return i2c.readRegister(Register.IOCON);
+        return readRegister(Register.IOCON);
     }
 
     /**
