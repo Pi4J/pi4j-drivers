@@ -47,16 +47,16 @@ public abstract class AbstractConfigurableIoExpander extends AbstractInputExpand
     }
 
     @Override
-    public setIoDirections(int pinMask, Direction direction) {
+    public void setIoDirections(int pinMask, Direction direction) {
         int newInputDirectionBits = direction == Direction.INPUT ? inputDirectionBits | pinMask : inputDirectionBits &~ pinMask;
         int changedPins = newInputDirectionBits ^ inputDirectionBits;
         if (changedPins != 0) {
             setIoDirectionsImpl(newInputDirectionBits);
             if (direction == Direction.INPUT) {
                 // We silently update the pins that were changed to input direction without triggering any events.
-                inputStates = inputState & ~changedPins | (readInputImpl() & changedPins);
+                inputStates = inputStates & ~changedPins | (readInputsImpl() & changedPins);
             } else {
-                writeOutputImpl(outputStates);
+                writeOutputsImpl(outputStates);
             }
             inputDirectionBits = newInputDirectionBits;
         }
