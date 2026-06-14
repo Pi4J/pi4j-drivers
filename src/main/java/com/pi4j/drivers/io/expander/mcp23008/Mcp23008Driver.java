@@ -89,15 +89,31 @@ public class Mcp23008Driver extends AbstractConfigurableIoExpander {
      * Sets the pin polarity for all pins by writing to the "IPOL" register. If a bit is set, the corresponding GPIO
      * register will reflect the inverted value on the pin.
      */
-    public void setInputPolarity(int pins) {
+    public void setInputPolarities(int pins) {
         writeRegister(Register.IPOL, pins);
+    }
+
+    /**
+     * Sets the pin polarity for the given pin by updating the "IPOL" register. If a bit is set, the corresponding GPIO
+     * register will reflect the inverted value on the pin.
+     */
+    public void setInputPolarity(int pin, boolean invert) {
+        setInputPolarities(1 << pin, invert);
+    }
+
+    /**
+     * Sets the pin polarities for all pins indicated by the given pin mask to the given value.
+     */
+    public void setInputPolarities(int pinMask, boolean invert) {
+        int previous = getInputPolarities();
+        setInputPolarities(invert ? previous | pinMask : previous & ~pinMask);
     }
 
     /**
       * Reads the pin polarity for all pins by reading the "IPOL" register. If a bit is set, the corresponding GPIO
       * register will reflect the inverted value on the pin.
       */
-    public int getInputPolarity() {
+    public int getInputPolarities() {
         return readRegister(Register.IPOL);
     }
 
@@ -164,27 +180,56 @@ public class Mcp23008Driver extends AbstractConfigurableIoExpander {
     }
 
     /**
-     * The OLAT register provides access to the output latches. A read from this register results in a read of the
-     * OLAT and not the port itself. Writing to this register modifies the output latches that modify the pins
-     * configured as outputs.
+     * The OLAT register provides access to the output latches. Writing to this register modifies the output latches
+     * that modify the pins configured as outputs.
      */
     public void setOutputLatches(int bits) {
         writeRegister(Register.OLAT, bits);
+    }
+
+    /** Configures the output latch for the given pin to the given value */
+    public void setOutputLatch(int pin, boolean value) {
+        setOutputLatches(1 << pin, value);
+    }
+
+    /** Configures the output latch for all pins indicated by the given bit mask to the given value. */
+    public void setOutputLatches(int pinMask, boolean value) {
+        int previous = getOutputLatches();
+        setOutputLatches(value ? previous | pinMask : previous & ~pinMask);
     }
 
     /**
      * Enables the pull-up resistors for the PORT pins. If a bit is set and the corresponding pin is
      * configured as an input, the corresponding PORT pin is internally pulled up with a 100 kOhm resistor
      */
-    public void setPullupResistorConfiguration(int pins) {
+    public void setPullupResistorConfigurations(int pins) {
         writeRegister(Register.GPPU, pins);
+    }
+
+    /**
+     * Enables or disables the pull-up resistors for the given PORT pin. If enable is true
+     * and the corresponding pin is configured as an input, the corresponding PORT pin is internally pulled
+     * up with a 100 kOhm resistor
+     */
+    public void setPullupResistorConfiguration(int pin, boolean enable) {
+        setPullupResistorConfigurations(1 << pin, enable);
+    }
+
+    /**
+     * Enables or disables the pull-up resistors for the given set of PORT pins indicated by the pinMask.
+     * For any pin in the mask, if enable is true and the corresponding pin is configured as an input,
+     * the corresponding PORT pin is internally pulled up with a 100 kOhm resistor
+     */
+    public void setPullupResistorConfigurations(int pinMask, boolean enable) {
+        int previous = getPullupResistorConfigurations();
+        setPullupResistorConfigurations(enable ? previous | pinMask : previous & ~pinMask);
     }
 
     /**
      * Reads the pull-up resistor configuration. If a bit is set and the corresponding pin is
      * configured as an input, the corresponding PORT pin is internally pulled up with a 100 kOhm resistor
      */
-    public int getPullupResistorConfiguration() {
+    public int getPullupResistorConfigurations() {
         return readRegister(Register.GPPU);
     }
 
