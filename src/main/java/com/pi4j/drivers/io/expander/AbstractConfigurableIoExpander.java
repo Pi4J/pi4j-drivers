@@ -7,7 +7,6 @@ public abstract class AbstractConfigurableIoExpander extends AbstractInputExpand
 
     private final OnOffWrite<?>[] onOffWriteArray;
 
-    // At power on, the I/Os are high.
     private int outputBits = -1;
     private int triggerMask = -1;
 
