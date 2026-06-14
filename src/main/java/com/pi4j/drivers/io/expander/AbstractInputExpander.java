@@ -16,7 +16,8 @@ public abstract class AbstractInputExpander implements InputExpander, Closeable 
     private final ListenableOnOffRead<?> interruptPin;
     private final List<IntConsumer> inputStateListeners = new ArrayList<>();
     private final int size;
-    private int inputStates;
+
+    protected int inputStates;
 
     protected AbstractInputExpander(int size, ListenableOnOffRead<?> interruptPin) {
         this.size = size;

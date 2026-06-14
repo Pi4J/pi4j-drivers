@@ -7,8 +7,12 @@ public abstract class AbstractConfigurableIoExpander extends AbstractInputExpand
 
     private final OnOffWrite<?>[] onOffWriteArray;
 
-    private int outputBits = -1;
     private int triggerMask = -1;
+
+    /** Implementations are expected to obain the initial output and input state in the constructor. */
+    protected int outputStates = -1;
+    /** Implementations are expected to set this to the chip state in the constructor. */
+    protected int inputDirectionBits = -1;
 
     public AbstractConfigurableIoExpander(int size, ListenableOnOffRead<?> interruptPin) {
         super(size, interruptPin);
@@ -30,21 +34,39 @@ public abstract class AbstractConfigurableIoExpander extends AbstractInputExpand
 
     @Override
     public void setOutputStates(int mask, boolean state) {
-        if (state) {
-            setOutputState(outputBits | mask);
-        } else {
-            setOutputState(outputBits & ~mask);
-        }
+        setOutputState(state ? outputStates | mask : outputStates & ~mask);
     }
 
     @Override
     public void setOutputStates(int bits) {
-        int changedBits = outputBits ^ bits;
-        outputBits = bits;
+        int changedBits = outputStates ^ bits;
+        outputStates = bits;
         if ((changedBits & triggerMask) != 0) {
-            writeOutputsImpl(outputBits);
+            writeOutputsImpl(outputStates);
         }
     }
+
+    @Override
+    public setIoDirections(int pinMask, Direction direction) {
+        int newInputDirectionBits = direction == Direction.INPUT ? inputDirectionBits | pinMask : inputDirectionBits &~ pinMask;
+        int changedPins = newInputDirectionBits ^ inputDirectionBits;
+        if (changedPins != 0) {
+            setIoDirectionsImpl(newInputDirectionBits);
+            if (direction == Direction.INPUT) {
+                // We silently update the pins that were changed to input direction without triggering any events.
+                inputStates = inputState & ~changedPins | (readInputImpl() & changedPins);
+            } else {
+                writeOutputImpl(outputStates);
+            }
+            inputDirectionBits = newInputDirectionBits;
+        }
+    }
+
+    /**
+     * Subclasses are supposed to implement this, setting pins to input mode for bits set in inputPins and to
+     * output mode otherwise.
+     */
+    abstract protected void setIoDirectionsImpl(int inputPins);
 
     abstract protected void writeOutputsImpl(int bits);
 
