@@ -6,8 +6,7 @@ public abstract class AbstractOutputExpander implements OutputExpander {
     private final int size;
     private final OnOffWrite<?>[] onOffWriteArray;
 
-    // At power on, the I/Os are high.
-    private int outputBits = -1;
+    private int outputStates = -1;
     private int triggerMask = -1;
 
     public AbstractOutputExpander(int size) {
@@ -31,19 +30,15 @@ public abstract class AbstractOutputExpander implements OutputExpander {
 
     @Override
     public void setOutputStates(int mask, boolean newState) {
-        if (newState) {
-            setOutputState(outputBits | mask);
-        } else {
-            setOutputState(outputBits & ~mask);
-        }
+        setOutputStates(newState ? outputStates | mask : outputStates & ~mask);
     }
 
     @Override
     public void setOutputStates(int bits) {
-        int changedBits = outputBits ^ bits;
-        outputBits = bits;
+        int changedBits = outputStates ^ bits;
+        outputStates = bits;
         if ((changedBits & triggerMask) != 0) {
-            writeOutputsImpl(outputBits);
+            writeOutputsImpl(outputStates);
         }
     }
 

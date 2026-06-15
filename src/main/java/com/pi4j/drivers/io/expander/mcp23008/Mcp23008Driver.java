@@ -7,6 +7,12 @@ import com.pi4j.io.i2c.I2C;
 /**
  * Driver for the MCP 23008 io expander.
  *
+ * Contains the implementation of the abstract methods from AnbstractConfigurableIoExpander and the corresponding
+ * initialization code.
+ *
+ * Additionally, this contains method to set all the configuration options and registers that are not covered
+ * by the ConfigurableIoExpander interface.
+ *
  * Note that many configuration calls set the values for all pins simultaneously; please set the corresponding
  * bits in the integer value accordingly; Java supports binary number representation using the "0b" prefix.
  * Alternatively, (1 << pin) can be used (where pin ranges from 0 to 7).
@@ -47,6 +53,8 @@ public class Mcp23008Driver extends AbstractConfigurableIoExpander {
         if (interruptPin != null) {
             setInterruptModes((1 << size) - 1, InterruptMode.ON_CHANGE);
         }
+        inputDirectionBits = readRegister(Register.IODIR);
+        inputStates = outputStates = readInputsImpl();
     }
 
     /** Protected to allow the Mcp23017 driver to write a 16-bit value */
@@ -233,18 +241,6 @@ public class Mcp23008Driver extends AbstractConfigurableIoExpander {
         return readRegister(Register.GPPU);
     }
 
-    /**
-     * Set each bit to 0 for output and 1 for input to configure the corresponding pin by writing to the "IODIR"
-     * register.
-     *
-     * @deprecated Use setIoDirections instead.
-     */
-    @Deprecated
-    public void setIoDir(int ioDir) {
-       writeRegister(Register.IODIR, ioDir);
-    }
-
-
     @Override
     protected void writeOutputsImpl(int bits) {
         writeRegister(Register.GPIO, bits);
@@ -256,9 +252,8 @@ public class Mcp23008Driver extends AbstractConfigurableIoExpander {
     }
 
     @Override
-    public void setIoDirections(int pinMask, Direction direction) {
-        int previous = readRegister(Register.IODIR);
-        writeRegister(Register.IODIR, direction == Direction.OUTPUT ? previous & ~pinMask : previous | pinMask);
+    public void setIoDirectionsImpl(int inputPins) {
+        writeRegister(Register.IODIR, inputPins);
     }
 
     public enum InterruptMode {
