@@ -2,6 +2,10 @@ package com.pi4j.drivers.io.expander;
 
 import com.pi4j.io.OnOffWrite;
 
+/**
+ * Models an output expander. Typically, IO expanders support input and output. This interface only covers the output
+ * aspects and can be used to isolate code from configuration options.
+ */
 public interface OutputExpander {
 
     /**

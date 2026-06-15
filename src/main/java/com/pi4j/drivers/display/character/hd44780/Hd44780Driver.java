@@ -106,7 +106,7 @@ public class Hd44780Driver implements CharacterDisplay {
     public static Hd44780Driver withPcf8574Connection(I2C i2c, int width, int height) {
         Pcf8574OutputDriver pcf8574 = new Pcf8574OutputDriver(i2c);
         pcf8574.setOutputTriggerMask(0b0100);
-        pcf8574.setOutputState(0);
+        pcf8574.setOutputStates(0);
         return with4BitConnection(
                 /* rs */ pcf8574.getOutput(0),
                 /* enable */ pcf8574.getOutput(2),

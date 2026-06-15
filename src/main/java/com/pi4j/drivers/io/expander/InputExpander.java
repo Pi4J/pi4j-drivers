@@ -4,6 +4,10 @@ import com.pi4j.io.ListenableOnOffRead;
 
 import java.util.function.IntConsumer;
 
+/**
+ * Models an input expander. Typically, IO expanders support input and output. This interface only covers the input
+ * aspects and can be used to isolate code from configuration options.
+ */
 public interface InputExpander {
     /** Note that this will only trigger automatically if an interrupt pin is connected */
     void addInputStateListener(IntConsumer listener);
