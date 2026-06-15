@@ -14,6 +14,9 @@ public interface OutputExpander {
      */
     OnOffWrite<?> getOutput(int index);
 
+    /** Returns the number of pins on this chip. */
+    int getSize();
+
     /** Sets the state for the output pin with the given index. */
     default void setOutputState(int index, boolean state) {
         setOutputStates(1 << index, state);
@@ -38,8 +41,9 @@ public interface OutputExpander {
     void setOutputStates(int mask, boolean newState);
 
     /**
-     * Sets a mask for which bit changes trigger sending the changed state over i2c. By default,
-     * the mask is -1 and all bit changes trigger an update. This can be useful when
+     * Sets a mask for which bit changes trigger sending the changed state over i2c. By default,  the mask is -1 and
+     * all bit changes trigger an update. This can be useful to avoid unnecessary transfers when an explict "commit"
+     * pin is used.
      */
     void setOutputTriggerMask(int mask);
 }
