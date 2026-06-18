@@ -69,7 +69,7 @@ public abstract class AbstractIoExpander implements ConfigurableIoExpander, Clos
 
     @Override
     public final int getInputStates() {
-        return inputStates;
+        return interruptPin == null ? poll() : inputStates;
     }
 
     @Override
