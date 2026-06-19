@@ -1,6 +1,6 @@
 package com.pi4j.drivers.io.expander.mcp23008;
 
-import com.pi4j.drivers.io.expander.AbstractConfigurableIoExpander;
+import com.pi4j.drivers.io.expander.AbstractIoExpander;
 import com.pi4j.io.ListenableOnOffRead;
 import com.pi4j.io.i2c.I2C;
 
@@ -20,7 +20,7 @@ import com.pi4j.io.i2c.I2C;
  * Datasheet:
  * https://ww1.microchip.com/downloads/aemDocuments/documents/APID/ProductDocuments/DataSheets/MCP23008-MCP23S08-Data-Sheet-DS20001919.pdf
  */
-public class Mcp23008Driver extends AbstractConfigurableIoExpander {
+public class Mcp23008Driver extends AbstractIoExpander {
 
     /** Contains the bit mask for SEQOP (1<<5) used in the setIoConfiguration() call. */
     public static final int SEQOP = 1 << 5;
