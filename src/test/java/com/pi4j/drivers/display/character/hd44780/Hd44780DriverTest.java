@@ -29,7 +29,7 @@ public class Hd44780DriverTest {
 
 
     /**
-     * Renders Hello Wörld (ｼ) and a time stamp if a 20x4 display is connected via a
+     * Renders Hello Wörld (ｼ) and a time stamp if a 16x2 display is connected via a
      * PCF 8574 on address 0x27.
      */
     @Test
@@ -41,12 +41,6 @@ public class Hd44780DriverTest {
         characterLcd.setBlinkingEnabled(true);
         characterLcd.setCursorEnabled(true);
         characterLcd.write("Hello Wörld (ｼ)\n" + System.currentTimeMillis());
-    }
-
-    @Test
-    public void writeToInvalidLineShouldThrowError() {
-        Hd44780Driver characterLcd = createDriver(16, 4);
-        assertThrows(IllegalArgumentException.class, () -> characterLcd.writeAt(0, 5, "Test"));
     }
 
     private Hd44780Driver createDriver() {

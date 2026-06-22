@@ -1,6 +1,7 @@
 package com.pi4j.drivers.display.character.hd44780;
 
 import com.pi4j.drivers.display.character.CharacterDisplay;
+import com.pi4j.drivers.io.expander.ConfigurableIoExpander;
 import com.pi4j.drivers.io.expander.mcp23008.Mcp23008Driver;
 import com.pi4j.io.OnOffWrite;
 import com.pi4j.io.i2c.I2C;
@@ -105,7 +106,7 @@ public class Hd44780Driver implements CharacterDisplay {
     public static Hd44780Driver withPcf8574Connection(I2C i2c, int width, int height) {
         Pcf8574OutputDriver pcf8574 = new Pcf8574OutputDriver(i2c);
         pcf8574.setOutputTriggerMask(0b0100);
-        pcf8574.setOutputState(0);
+        pcf8574.setOutputStates(0);
         return with4BitConnection(
                 /* rs */ pcf8574.getOutput(0),
                 /* enable */ pcf8574.getOutput(2),
@@ -128,7 +129,7 @@ public class Hd44780Driver implements CharacterDisplay {
      */
     public static Hd44780Driver withMcp23008Connection(I2C i2c, int width, int height) {
         Mcp23008Driver mcp23008 = new Mcp23008Driver(i2c);
-        mcp23008.setIoDir(0); // All pins configured for output.
+        mcp23008.setIoDirections(0xf, ConfigurableIoExpander.Direction.OUTPUT); // All pins configured for output.
         mcp23008.setOutputTriggerMask(0b0100);
         mcp23008.setOutputState(0);
         return with4BitConnection(

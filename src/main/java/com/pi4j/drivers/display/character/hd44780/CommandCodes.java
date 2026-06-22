@@ -21,10 +21,10 @@ class CommandCodes {
     static final int DC_BLINK_ON         = 0x01;
     static final int DC_BLINK_OFF        = 0x00;
 
-    static final int CMD_CURSOR_SHIFT_LEFT   = 0x0001_0000;
-    static final int CMD_CURSOR_SHIFT_RIGHT  = 0x0001_0100;
-    static final int CMD_DISPLAY_SHIFT_LEFT  = 0x0001_1000;
-    static final int CMD_DISPLAY_SHIFT_RIGHT = 0x0001_1100;
+    static final int CMD_CURSOR_SHIFT_LEFT   = 0b0001_0000;
+    static final int CMD_CURSOR_SHIFT_RIGHT  = 0b0001_0100;
+    static final int CMD_DISPLAY_SHIFT_LEFT  = 0b0001_1000;
+    static final int CMD_DISPLAY_SHIFT_RIGHT = 0b0001_1100;
 
     static final int CMD_FUNCTION_SET    = 0x20;
     static final int FS_8_BIT            = 0x10;
