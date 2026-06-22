@@ -3,8 +3,10 @@ package com.pi4j.drivers.hat.raspberry;
 import com.pi4j.context.Context;
 import com.pi4j.drivers.display.graphics.GraphicsDisplay;
 import com.pi4j.drivers.display.graphics.GraphicsDisplayDriver;
+import com.pi4j.drivers.display.graphics.GraphicsDisplay.Rotation;
 import com.pi4j.drivers.display.graphics.framebuffer.FramebufferDriver;
 import com.pi4j.drivers.display.BitmapFont;
+import com.pi4j.drivers.display.graphics.Argb32;
 import com.pi4j.drivers.display.graphics.Graphics;
 import com.pi4j.drivers.input.GameController;
 import com.pi4j.drivers.input.linux.LinuxInputDriver;
@@ -22,6 +24,7 @@ import java.util.List;
 
 public class SenseHat {
     private final Context pi4j;
+    private final Rotation rotation;
     private GameController controller;
     private GraphicsDisplayDriver displayDriver;
     private GraphicsDisplay display;
@@ -40,11 +43,15 @@ public class SenseHat {
 
     private static final int WIDTH = 8;
     private static final int HEIGHT = 8;
-    private static final int BLACK = 0x000000;
-    private static final int WHITE = 0xffffff;
 
     public SenseHat(Context pi4j) {
         this.pi4j = pi4j;
+        this.rotation = Rotation.ROTATE_0;
+    }
+
+    public SenseHat(Context pi4j, Rotation rotation) {
+        this.pi4j = pi4j;
+        this.rotation = rotation;
     }
 
     public LinuxInputDriver getInputDriver() {
@@ -153,7 +160,7 @@ public class SenseHat {
 
     public GraphicsDisplay getDisplay() {
         if (display == null) {
-            display = new GraphicsDisplay(getDisplayDriver());
+            display = new GraphicsDisplay(getDisplayDriver(), rotation);
         }
         return display;
     }
@@ -180,30 +187,42 @@ public class SenseHat {
     }
 
     public void clear() {
-        clear(BLACK);
+        fill(Argb32.BLACK);
     }
     
-    public void clear(int r, int g, int b) {
-        clear(rgb(r, g, b));
+    public void fill(int r, int g, int b) {
+        fill(Argb32.fromRgb(r, g, b));
     }
     
-    public void clear(int color) {
+    public void fill(int color) {
         Graphics graphics = getDisplay().getGraphics();
         graphics.setColor(color);
         graphics.fillRect(0, 0, WIDTH, HEIGHT);
-        getDisplay().flush();
     }
     
     public void setPixel(int x, int y, int r, int g, int b) {
-        setPixel(x, y, rgb(r, g, b));
+        setPixel(x, y, Argb32.fromRgb(r, g, b));
     }
     
     public void setPixel(int x, int y, int color) {
         checkCoordinates(x, y);
         getDisplay().setPixel(x, y, color);
-        getDisplay().flush();
+    }
+
+    public int getPixel(int x, int y) {
+        checkCoordinates(x, y);
+        return getDisplay().getPixel(x, y);
     }
     
+    /**
+     * Sets all 64 pixels of the SenseHat LED Matrix.
+     * 
+     * <p>The array must contain exactly 64 RGB values in row-major order:
+     * index {@code 0} maps to {code x=0, y=0}, index {@code 1} maps to {code x=1, y=0}, ..., index {@code 63} maps to {code x=7, y=7}.
+     * </p>
+     * 
+     * @param pixels 64 RGB/ARGB color values
+     */
     public void setPixels(int[] pixels) {
         Objects.requireNonNull(pixels, "pixels must not be null");
     
@@ -216,10 +235,18 @@ public class SenseHat {
         for (int i = 0; i < pixels.length; i++) {
             display.setPixel(i % WIDTH, i / WIDTH, pixels[i]);
         }
-    
-        display.flush();
     }
     
+    /**
+     * Sets all pixels of the SenseHAt LED matrix.
+     * 
+     * <p>The array must contain exactly 64 {@code [r, g, b]} entries in
+     * row-major order: index {@code 0} maps to {code x=0, y=0},
+     * index {@code 1} maps to {code x=1, y=0}, ..., index {@code 63} maps to {code x=7, y=7}.
+     * </p>
+     * 
+     * @param pixels 64 RGB entries, each entry is an array of 3 integers representing [r, g, b]
+     */
     public void setPixels(int[][] pixels) {
         Objects.requireNonNull(pixels, "pixels must not be null");
     
@@ -236,40 +263,36 @@ public class SenseHat {
                 throw new IllegalArgumentException("pixel " + i + " must contain [r, g, b]");
             }
     
-            display.setPixel(i % WIDTH, i / WIDTH, rgb(pixel[0], pixel[1], pixel[2]));
+            display.setPixel(i % WIDTH, i / WIDTH, Argb32.fromRgb(pixel[0], pixel[1], pixel[2]));
         }
-    
-        display.flush();
     }
     
-    public void showLetter(char letter) {
-        showLetter(letter, WHITE);
+    public void showCharacter(char character) {
+        showCharacter(character, Argb32.WHITE);
     }
     
-    public void showLetter(char letter, int r, int g, int b) {
-        showLetter(letter, rgb(r, g, b));
+    public void showCharacter(char character, int r, int g, int b) {
+        showCharacter(character, Argb32.fromRgb(r, g, b));
     }
     
-    public void showLetter(char letter, int color) {
+    public void showCharacter(char character, int color) {
         var display = getDisplay();
         Graphics graphics = display.getGraphics();
     
-        graphics.setColor(BLACK);
+        graphics.setColor(Argb32.BLACK);
         graphics.fillRect(0, 0, WIDTH, HEIGHT);
     
         graphics.setFont(BitmapFont.get5x8Font());
         graphics.setColor(color);
-        graphics.renderCharacter(1, HEIGHT, letter);
-    
-        display.flush();
+        graphics.renderCharacter(1, HEIGHT, character);
     }
     
     public void showMessage(String message) {
-        showMessage(message, WHITE, 100);
+        showMessage(message, Argb32.WHITE, 100);
     }
     
     public void showMessage(String message, int r, int g, int b, long delayMillis) {
-        showMessage(message, rgb(r, g, b), delayMillis);
+        showMessage(message, Argb32.fromRgb(r, g, b), delayMillis);
     }
     
     public void showMessage(String message, int color, long delayMillis) {
@@ -283,27 +306,14 @@ public class SenseHat {
         int textWidth = message.length() * 6;
     
         for (int x = WIDTH; x >= -textWidth; x--) {
-            graphics.setColor(BLACK);
+            graphics.setColor(Argb32.BLACK);
             graphics.fillRect(0, 0, WIDTH, HEIGHT);
     
             graphics.setColor(color);
             graphics.renderText(x, HEIGHT, message);
     
-            display.flush();
             sleep(delayMillis);
         }
-    }
-    
-    
-    private static int rgb(int r, int g, int b) {
-        return 0xff000000
-            | (clamp(r) << 16)
-            | (clamp(g) << 8)
-            | clamp(b);
-    }
-    
-    private static int clamp(int value) {
-        return Math.max(0, Math.min(255, value));
     }
     
     private static void checkCoordinates(int x, int y) {
