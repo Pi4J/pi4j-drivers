@@ -17,6 +17,11 @@ public class Mcp23017Driver extends Mcp23008Driver {
     /** Contains the bit mask for BANK (1<<6) used in the setIoConfiguration() call. */
     public static final int BANK = 1 << 7;
 
+
+    public Mcp23017Driver(I2C i2c) {
+        this(i2c, null);
+    }
+
     /**
      * If an interruptPin is provided, we enable change interrupts on all pins and set the pins to MIRROR mode.
      * For more details, please refer to the superclass documentation.
