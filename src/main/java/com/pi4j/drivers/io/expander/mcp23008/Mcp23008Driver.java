@@ -15,22 +15,22 @@ import com.pi4j.io.i2c.I2C;
  *
  * Note that many configuration calls set the values for all pins simultaneously; please set the corresponding
  * bits in the integer value accordingly; Java supports binary number representation using the "0b" prefix.
- * Alternatively, (1 << pin) can be used (where pin ranges from 0 to 7).
+ * Alternatively, {@code (1 << pin)} can be used (where pin ranges from 0 to 7).
  *
  * Datasheet:
  * https://ww1.microchip.com/downloads/aemDocuments/documents/APID/ProductDocuments/DataSheets/MCP23008-MCP23S08-Data-Sheet-DS20001919.pdf
  */
 public class Mcp23008Driver extends AbstractIoExpander {
 
-    /** Contains the bit mask for SEQOP (1<<5) used in the setIoConfiguration() call. */
+    /** Contains the bit mask for SEQOP ({@code 1<<5}) used in the setIoConfiguration() call. */
     public static final int SEQOP = 1 << 5;
-    /** Contains the bit mask for DISSLW (1<<4) used in the setIoConfiguration() call. */
+    /** Contains the bit mask for DISSLW ({@code 1<<4}) used in the setIoConfiguration() call. */
     public static final int DISSLW = 1 << 4;
-    /** Contains the bit mask for HAEN (1<<3) used in the setIoConfiguration() call. */
+    /** Contains the bit mask for HAEN ({@code 1<<3}) used in the setIoConfiguration() call. */
     public static final int HAEN = 1 << 3;
-    /** Contains the bit mask for ODR (1<<2) used in the setIoConfiguration() call. */
+    /** Contains the bit mask for ODR ({@code 1<<2}) used in the setIoConfiguration() call. */
     public static final int ODR = 1 << 2;
-    /** Contains the bit mask for INTPOL (1<<1) used in the setIoConfiguration() call. */
+    /** Contains the bit mask for INTPOL ({@code 1<<1}) used in the setIoConfiguration() call. */
     public static final int INTPOL = 1 << 1;
 
     protected final I2C i2c;

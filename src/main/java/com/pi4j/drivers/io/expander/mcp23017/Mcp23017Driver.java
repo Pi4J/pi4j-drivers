@@ -11,10 +11,10 @@ import com.pi4j.io.i2c.I2C;
  */
 public class Mcp23017Driver extends Mcp23008Driver {
 
-    /** Contains the bit mask for MIRROR (1<<6) used in the setIoConfiguration() call. */
+    /** Contains the bit mask for MIRROR ({@code 1<<6}) used in the setIoConfiguration() call. */
     public static final int MIRROR = 1 << 6;
 
-    /** Contains the bit mask for BANK (1<<6) used in the setIoConfiguration() call. */
+    /** Contains the bit mask for BANK ({@code 1<<7}) used in the setIoConfiguration() call. */
     public static final int BANK = 1 << 7;
 
 

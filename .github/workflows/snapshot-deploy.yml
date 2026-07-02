@@ -71,6 +71,10 @@ jobs:
         if: steps.version.outputs.is_snapshot == 'true'
         run: chmod +x mvnw
 
+      - name: Validate Javadoc
+        if: steps.version.outputs.is_snapshot == 'true'
+        run: ./mvnw javadoc:jar
+
       - name: Build with Maven
         if: steps.version.outputs.is_snapshot == 'true'
         run: ./mvnw clean deploy --batch-mode
