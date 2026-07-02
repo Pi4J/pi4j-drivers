@@ -286,49 +286,10 @@ public class SenseHat {
         graphics.setColor(color);
         graphics.renderCharacter(1, HEIGHT, character);
     }
-    
-    public void showMessage(String message) {
-        showMessage(message, Argb32.WHITE, 100);
-    }
-    
-    public void showMessage(String message, int r, int g, int b, long delayMillis) {
-        showMessage(message, Argb32.fromRgb(r, g, b), delayMillis);
-    }
-    
-    public void showMessage(String message, int color, long delayMillis) {
-        Objects.requireNonNull(message, "message must not be null");
-    
-        var display = getDisplay();
-        Graphics graphics = display.getGraphics();
-    
-        graphics.setFont(BitmapFont.get5x8Font(BitmapFont.Option.PROPORTIONAL));
-    
-        int textWidth = message.length() * 6;
-    
-        for (int x = WIDTH; x >= -textWidth; x--) {
-            graphics.setColor(Argb32.BLACK);
-            graphics.fillRect(0, 0, WIDTH, HEIGHT);
-    
-            graphics.setColor(color);
-            graphics.renderText(x, HEIGHT, message);
-    
-            sleep(delayMillis);
-        }
-    }
-    
+
     private static void checkCoordinates(int x, int y) {
         if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) {
             throw new IllegalArgumentException("x and y must be between 0 and 7");
         }
     }
-    
-    private static void sleep(long delayMillis) {
-        try {
-            Thread.sleep(delayMillis);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IllegalStateException("Interrupted while scrolling message", e);
-        }
-    }
-
 }
