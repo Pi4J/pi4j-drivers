@@ -5,6 +5,8 @@ import com.pi4j.drivers.display.graphics.GraphicsDisplay;
 import com.pi4j.drivers.display.graphics.GraphicsDisplayDriver;
 import com.pi4j.drivers.display.graphics.GraphicsDisplay.Rotation;
 import com.pi4j.drivers.display.graphics.framebuffer.FramebufferDriver;
+import com.pi4j.drivers.display.graphics.text.TextAnimationDirection;
+import com.pi4j.drivers.display.graphics.text.TextAnimator;
 import com.pi4j.drivers.display.BitmapFont;
 import com.pi4j.drivers.display.graphics.Argb32;
 import com.pi4j.drivers.display.graphics.Graphics;
@@ -76,7 +78,7 @@ public class SenseHat {
         return controller;
     }
 
-    public Hts221Driver getHumiditySensor()  {
+    public Hts221Driver getHumiditySensor() {
         if (hts221Driver == null) {
             I2C i2c = pi4j.create(I2C.newConfigBuilder(pi4j).bus(1).device(Hts221Driver.I2C_ADDRESS));
             hts221Driver = new Hts221Driver(i2c);
@@ -84,7 +86,7 @@ public class SenseHat {
         return hts221Driver;
     }
 
-    public Lps25hDriver getPressureSensor()  {
+    public Lps25hDriver getPressureSensor() {
         if (lps25hDriver == null) {
             I2C i2c = pi4j.create(I2C.newConfigBuilder(pi4j).bus(1).device(Lps25hDriver.I2C_ADDRESS));
             lps25hDriver = new Lps25hDriver(i2c);
@@ -92,7 +94,7 @@ public class SenseHat {
         return lps25hDriver;
     }
 
-    public Tcs3400Driver getLightSensor()  {
+    public Tcs3400Driver getLightSensor() {
         if (tcs3400Driver == null) {
             I2C i2c = pi4j.create(I2C.newConfigBuilder(pi4j).bus(1).device(Tcs3400Driver.I2C_ADDRESS));
             tcs3400Driver = new Tcs3400Driver(i2c);
@@ -124,9 +126,13 @@ public class SenseHat {
         return getPressureSensor().readPressure();
     }
 
+    /**
+     * Returns the average temperature reported by the humidity and pressure
+     * sensors.
+     */
     public double getTemperature() {
-        return getHumiditySensor().readTemperature() + 
-        getPressureSensor().readTemperature() / 2.0;
+        return (getHumiditySensor().readTemperature() +
+                getPressureSensor().readTemperature()) / 2.0;
     }
 
     public double[] readAccelerometer() {
@@ -189,21 +195,21 @@ public class SenseHat {
     public void clear() {
         fill(Argb32.BLACK);
     }
-    
+
     public void fill(int r, int g, int b) {
         fill(Argb32.fromRgb(r, g, b));
     }
-    
+
     public void fill(int color) {
         Graphics graphics = getDisplay().getGraphics();
         graphics.setColor(color);
         graphics.fillRect(0, 0, WIDTH, HEIGHT);
     }
-    
+
     public void setPixel(int x, int y, int r, int g, int b) {
         setPixel(x, y, Argb32.fromRgb(r, g, b));
     }
-    
+
     public void setPixel(int x, int y, int color) {
         checkCoordinates(x, y);
         getDisplay().setPixel(x, y, color);
@@ -213,75 +219,80 @@ public class SenseHat {
         checkCoordinates(x, y);
         return getDisplay().getPixel(x, y);
     }
-    
+
     /**
      * Sets all 64 pixels of the SenseHat LED Matrix.
      * 
-     * <p>The array must contain exactly 64 RGB values in row-major order:
-     * index {@code 0} maps to {code x=0, y=0}, index {@code 1} maps to {code x=1, y=0}, ..., index {@code 63} maps to {code x=7, y=7}.
+     * <p>
+     * The array must contain exactly 64 RGB values in row-major order:
+     * index {@code 0} maps to {@code x=0, y=0}, index {@code 1} maps to {code x=1,
+     * y=0}, ..., index {@code 63} maps to {code x=7, y=7}.
      * </p>
      * 
      * @param pixels 64 RGB/ARGB color values
      */
     public void setPixels(int[] pixels) {
         Objects.requireNonNull(pixels, "pixels must not be null");
-    
+
         if (pixels.length != WIDTH * HEIGHT) {
             throw new IllegalArgumentException("pixels must contain exactly 64 RGB values");
         }
-    
+
         var display = getDisplay();
-    
+
         for (int i = 0; i < pixels.length; i++) {
             display.setPixel(i % WIDTH, i / WIDTH, pixels[i]);
         }
     }
-    
+
     /**
-     * Sets all pixels of the SenseHAt LED matrix.
+     * Sets all pixels of the SenseHat LED matrix.
      * 
-     * <p>The array must contain exactly 64 {@code [r, g, b]} entries in
-     * row-major order: index {@code 0} maps to {code x=0, y=0},
-     * index {@code 1} maps to {code x=1, y=0}, ..., index {@code 63} maps to {code x=7, y=7}.
+     * <p>
+     * The array must contain exactly 64 {@code [r, g, b]} entries in
+     * row-major order: index {@code 0} maps to {@code x=0, y=0},
+     * index {@code 1} maps to {code x=1, y=0}, ..., index {@code 63} maps to {code
+     * x=7, y=7}.
      * </p>
      * 
-     * @param pixels 64 RGB entries, each entry is an array of 3 integers representing [r, g, b]
+     * @param pixels 64 RGB entries, each entry is an array of 3 integers
+     *               representing [r, g, b]
      */
     public void setPixels(int[][] pixels) {
         Objects.requireNonNull(pixels, "pixels must not be null");
-    
+
         if (pixels.length != WIDTH * HEIGHT) {
             throw new IllegalArgumentException("pixels must contain exactly 64 [r, g, b] entries");
         }
-    
+
         var display = getDisplay();
-    
+
         for (int i = 0; i < pixels.length; i++) {
             int[] pixel = pixels[i];
-    
+
             if (pixel == null || pixel.length < 3) {
                 throw new IllegalArgumentException("pixel " + i + " must contain [r, g, b]");
             }
-    
+
             display.setPixel(i % WIDTH, i / WIDTH, Argb32.fromRgb(pixel[0], pixel[1], pixel[2]));
         }
     }
-    
+
     public void showCharacter(char character) {
         showCharacter(character, Argb32.WHITE);
     }
-    
+
     public void showCharacter(char character, int r, int g, int b) {
         showCharacter(character, Argb32.fromRgb(r, g, b));
     }
-    
+
     public void showCharacter(char character, int color) {
         var display = getDisplay();
         Graphics graphics = display.getGraphics();
-    
+
         graphics.setColor(Argb32.BLACK);
         graphics.fillRect(0, 0, WIDTH, HEIGHT);
-    
+
         graphics.setFont(BitmapFont.get5x8Font());
         graphics.setColor(color);
         graphics.renderCharacter(1, HEIGHT, character);
@@ -292,4 +303,53 @@ public class SenseHat {
             throw new IllegalArgumentException("x and y must be between 0 and 7");
         }
     }
+
+    public void showMessage(String message) {
+        showMessage(
+                message,
+                Argb32.WHITE,
+                TextAnimationDirection.RIGHT_TO_LEFT,
+                100);
+    }
+
+    public void showMessage(
+            String message,
+            int color,
+            long delayMillis) {
+        showMessage(
+                message,
+                color,
+                TextAnimationDirection.RIGHT_TO_LEFT,
+                delayMillis);
+    }
+
+    public void showMessage(
+            String message,
+            int r,
+            int g,
+            int b,
+            TextAnimationDirection direction,
+            long delayMillis) {
+        showMessage(
+                message,
+                Argb32.fromRgb(r, g, b),
+                direction,
+                delayMillis);
+    }
+
+    public void showMessage(
+            String message,
+            int color,
+            TextAnimationDirection direction,
+            long delayMillis) {
+        TextAnimator animator = new TextAnimator(getDisplay());
+
+        animator.setForeground(color);
+        animator.setBackground(Argb32.BLACK);
+        animator.setDelayMillis(delayMillis);
+        animator.setDirection(direction);
+
+        animator.scroll(message);
+    }
+
 }
