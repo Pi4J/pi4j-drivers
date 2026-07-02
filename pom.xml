@@ -9,7 +9,7 @@
     <name>Pi4J :: DRIVERS</name>
     <description>Pi4J drivers for various electronic components</description>
     <url>https://github.com/Pi4J/pi4j-drivers</url>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.1.0</version>
 
     <licenses>
         <license>
