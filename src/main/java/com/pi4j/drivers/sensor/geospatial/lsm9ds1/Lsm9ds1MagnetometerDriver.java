@@ -23,7 +23,7 @@ public class Lsm9ds1MagnetometerDriver implements Sensor {
     public static final int I2C_ADDRESS_1 = 0x1e;
     private static final int WHO_AM_I_VALUE = 0b111101;
 
-    public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor.Builder()
+    public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor.Builder("LSM9DS1-Magnetometer")
             .addValue(SensorDescriptor.Kind.MAGNETIC_FIELD_X)
             .addValue(SensorDescriptor.Kind.MAGNETIC_FIELD_Y)
             .addValue(SensorDescriptor.Kind.MAGNETIC_FIELD_Z)
@@ -72,11 +72,11 @@ public class Lsm9ds1MagnetometerDriver implements Sensor {
         // Request single measurement
         setRegisterBits(Register.CTRL_REG3_M, 1, 0, 1);
 
-        float scale = switch (range) {
-            case GAUSS_4 -> 4f;
-            case GAUSS_8 -> 8f;
-            case GAUSS_12 -> 12f;
-            case GAUSS_16 -> 16f;
+        double scale = switch (range) {
+            case GAUSS_4 -> 4.0;
+            case GAUSS_8 -> 8.0;
+            case GAUSS_12 -> 12.0;
+            case GAUSS_16 -> 16.0;
         } / Short.MAX_VALUE;
 
         while ((registerAccess.readRegister(Register.STATUS_REG_M) & 8) == 0) {
@@ -95,8 +95,8 @@ public class Lsm9ds1MagnetometerDriver implements Sensor {
         values[2] = buffer.getShort(4) * scale;
     }
 
-    public float[] readMagneticField() {
-        float[] result = new float[3];
+    public double[] readMagneticField() {
+        double[] result = new double[3];
         readMeasurement(result);
         return result;
     }

@@ -20,7 +20,7 @@ public class Tcs3400Driver implements Sensor {
     private static final int ID_TCS34001_34005 = 0b100100_00;
     private static final int ID_TCS34003_34007 = 0b100100_11;
 
-    public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor.Builder()
+    public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor.Builder("TCS3400")
             .addValue(SensorDescriptor.Kind.LIGHT)
             .addValue(SensorDescriptor.Kind.LIGHT_RED)
             .addValue(SensorDescriptor.Kind.LIGHT_GREEN)
@@ -65,10 +65,10 @@ public class Tcs3400Driver implements Sensor {
 
     /**
      * Reads the "clear", red, green and blue values from the sensor and returns them as an array of four
-     * integers.
+     * doubles.
      */
-    public float[] readCrgb() {
-        float[] result = new float[4];
+    public double[] readCrgb() {
+        double[] result = new double[4];
         readMeasurement(result);
         return result;
     }

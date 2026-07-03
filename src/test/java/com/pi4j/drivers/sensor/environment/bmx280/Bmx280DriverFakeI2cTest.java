@@ -19,17 +19,17 @@ public class Bmx280DriverFakeI2cTest extends AbstractBmx280DriverTest {
         FakeI2CRegisterDataReaderWriter fakeI2c =  new FakeI2CRegisterDataReaderWriter();
 
         // Chip id
-        fakeI2c.writeRegister(Bmp280Constants.CHIP_ID, Bmp280Constants.ID_VALUE_BME);
+        fakeI2c.write(new byte[]{(byte) Bmp280Constants.CHIP_ID, Bmp280Constants.ID_VALUE_BME});
 
         // Calibration data
-        fakeI2c.writeRegister(0x88, new byte[] {
+        fakeI2c.write(new byte[] {(byte) 0x88,
                 0, 110, -114, 103, 50, 0, 67, -111, 102, -42, -48, 11, -61, 27, 44, 0,
                 -7, -1, -76, 45, -24, -47, -120, 19});
 
-        fakeI2c.writeRegister(0xe0, new byte[] {0, 110, 1, 0, 19, 39, 3, 30, 4, 65, -1, -1, -1, -1, -1, -1});
+        fakeI2c.write(new byte[] {(byte) 0xe0, 0, 110, 1, 0, 19, 39, 3, 30, 4, 65, -1, -1, -1, -1, -1, -1});
 
         // Measurement data
-        fakeI2c.writeRegister(0xf7, new byte[] {86, -61, 0, 126, -63, 0, 123, 82, -128});
+        fakeI2c.write(new byte[] {(byte) 0xf7, 86, -61, 0, 126, -63, 0, 123, 82, -128});
 
         return new Bmx280Driver(fakeI2c);
     }

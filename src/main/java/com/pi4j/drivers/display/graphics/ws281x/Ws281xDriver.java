@@ -1,7 +1,7 @@
 package com.pi4j.drivers.display.graphics.ws281x;
 
 import com.pi4j.drivers.display.graphics.GraphicsDisplayDriver;
-import com.pi4j.drivers.display.graphics.GraphicsDisplayInfo;
+import com.pi4j.drivers.display.graphics.GraphicsDisplayDescriptor;
 import com.pi4j.drivers.display.graphics.PixelFormat;
 import com.pi4j.io.spi.Spi;
 
@@ -37,7 +37,7 @@ public class Ws281xDriver implements GraphicsDisplayDriver {
 
     /** A buffer of the transformed pixels in the format they will be sent over SPI */
     private final byte[] spiBuffer;
-    private final GraphicsDisplayInfo displayInfo;
+    private final GraphicsDisplayDescriptor displayInfo;
     private final Spi spi;
     private final int[] pixelMap;
 
@@ -93,11 +93,11 @@ public class Ws281xDriver implements GraphicsDisplayDriver {
         }
 
         spiBuffer = new byte[width * height * COLOR_CHANNELS * BIT_STRETCH];
-        displayInfo = new GraphicsDisplayInfo(width, height, PixelFormat.GRB_888);
+        displayInfo = new GraphicsDisplayDescriptor(width, height, PixelFormat.GRB_888);
     }
 
     @Override
-    public GraphicsDisplayInfo getDisplayInfo() {
+    public GraphicsDisplayDescriptor getDisplayInfo() {
         return displayInfo;
     }
 

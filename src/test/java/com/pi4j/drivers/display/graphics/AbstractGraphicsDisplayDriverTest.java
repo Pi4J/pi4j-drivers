@@ -34,7 +34,9 @@ public abstract class AbstractGraphicsDisplayDriverTest {
         display.setTransferDelayMillis(0);
         int width = display.getWidth();
         int height = display.getHeight();
-        display.fillRect(0, 0, width, height, 0x0);
+        Graphics graphics = display.getGraphics();
+        graphics.setColor(Argb32.BLACK);
+        graphics.fillRect(0, 0, width, height);
         Random random = new Random(0);
         for (int i = 0; i < 10; i++) {
             int x = random.nextInt(width);
@@ -42,7 +44,8 @@ public abstract class AbstractGraphicsDisplayDriverTest {
             int w = random.nextInt(width - x);
             int h = random.nextInt(height - y);
             int color = random.nextInt(0xffffff);
-            display.fillRect(x, y, w, h, color);
+            graphics.setColor(color);
+            graphics.fillRect(x, y, w, h);
         }
         display.close();
     }
@@ -131,12 +134,13 @@ public abstract class AbstractGraphicsDisplayDriverTest {
         display.setTransferDelayMillis(transferDelay);
         int width = display.getWidth();
         int height = display.getHeight();
-        display.fillRect(0, 0, width, height, 0);
+        Graphics graphics = display.getGraphics();
+        graphics.setColor(Argb32.BLACK);
+        graphics.fillRect(0, 0, width, height);
 
         BitmapFont font = BitmapFont.get5x8Font();
         BitmapFont proportionalFont = BitmapFont.get5x10Font();//BitmapFont.Option.PROPORTIONAL);
 
-        Graphics graphics = display.getGraphics();
         graphics.setColor(0xffff8888);
         graphics.setFont(font);
 
@@ -174,8 +178,11 @@ public abstract class AbstractGraphicsDisplayDriverTest {
         display.setTransferDelayMillis(0);
         int width = display.getWidth();
         int height = display.getHeight();
-        display.fillRect(0, 0, width, height, java.awt.Color.WHITE.getRGB() );
-        display.fillRect(1, 1, width-2, height-2, Color.BLACK.getRGB() );
+        Graphics graphics = display.getGraphics();
+        graphics.setColor(Argb32.WHITE);
+        graphics.fillRect(0, 0, width, height);
+        graphics.setColor(Argb32.BLACK);
+        graphics.fillRect(1, 1, width-2, height-2);
 
         for( int y = 0; y < height; y++ ) {
             for( int x = 0; x < width; x++ ) {

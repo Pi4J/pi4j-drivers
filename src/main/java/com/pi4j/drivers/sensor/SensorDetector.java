@@ -19,7 +19,7 @@ import java.util.List;
  * Tools for detecting sensors.
  */
 public class SensorDetector {
-    private static final SensorDescriptor[] DESCRIPTORS = {
+    public static final List<SensorDescriptor> DESCRIPTORS = List.of(
             Bmx280Driver.DESCRIPTOR_BME_280,
             Bmx280Driver.DESCRIPTOR_BMP_280,
             Hts221Driver.DESCRIPTOR,
@@ -27,8 +27,7 @@ public class SensorDetector {
             Scd4xDriver.DESCRIPTOR,
             Tcs3400Driver.DESCRIPTOR,
             Lsm9ds1Driver.DESCRIPTOR,
-            Lsm9ds1MagnetometerDriver.DESCRIPTOR,
-    };
+            Lsm9ds1MagnetometerDriver.DESCRIPTOR);
 
     /** Returns a list of all detected I2c sensors on the given bus. */
     public static List<Sensor> detectI2cSensors(Context context, int bus) {

@@ -4,7 +4,6 @@ import com.pi4j.context.Context;
 import com.pi4j.drivers.display.graphics.AbstractGraphicsDisplayDriverTest;
 import com.pi4j.drivers.display.graphics.GraphicsDisplayDriver;
 import com.pi4j.drivers.display.graphics.PixelFormat;
-import com.pi4j.drivers.display.graphics.st7789.St7789Driver;
 import com.pi4j.io.gpio.digital.DigitalOutput;
 import com.pi4j.io.gpio.digital.DigitalOutputConfigBuilder;
 import com.pi4j.io.spi.Spi;
@@ -20,7 +19,6 @@ import org.junit.jupiter.api.Disabled;
 public class St77xxDriverTest extends AbstractGraphicsDisplayDriverTest {
     private static final int BACKLIGHT_BCM = 24;
     private static final int DC_ADDRESS = 25;
-    private static final int SPI_BAUDRATE = 62_500_000;
     private static final int RST_BCM = 27;
     private static final int SPI_BUS = 0;
     private static final int SPI_BCM = 0;
@@ -35,8 +33,8 @@ public class St77xxDriverTest extends AbstractGraphicsDisplayDriverTest {
             rst.high();
             DigitalOutput dc = pi4j.create(DigitalOutputConfigBuilder.newInstance(pi4j).bcm(DC_ADDRESS).build());
             Spi spi = pi4j.create(
-                    SpiConfigBuilder.newInstance(pi4j).bus(SPI_BUS).bcm(SPI_BCM).baud(SPI_BAUDRATE).build());
-            return new St7789Driver(spi, dc, 240, PixelFormat.RGB_444);
+                    SpiConfigBuilder.newInstance(pi4j).bus(SPI_BUS).channel(SPI_BCM).baud(St77xxDriver.ST_7735_SPI_BAUDRATE).build());
+            return new St77xxDriver(spi, dc, rst, PixelFormat.RGB_444, false, 128, 128, 2, 3);
         } catch (RuntimeException e) {
             e.printStackTrace();
             // TODO(https://github.com/Pi4J/pi4j/issues/489): Catch Pi4j exceptions instead.

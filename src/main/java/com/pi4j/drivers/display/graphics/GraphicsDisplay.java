@@ -1,11 +1,15 @@
 package com.pi4j.drivers.display.graphics;
 
-import com.pi4j.drivers.display.BitmapFont;
-
 import java.util.*;
 
+/**
+ * A "logical" graphics display; typically mapped to one or more graphics display drivers.
+ * <p>
+ * Provides low-level access to the shared frame buffer (setPixel and getPixel). For higher level
+ * functionality, please obtain a Graphics object using getGraphics. The purpose of this separation
+ * is to support multiple states (clipping, color) simultaneously.
+ */
 public class GraphicsDisplay {
-    // TODO(https://github.com/Pi4J/pi4j/issues/475): Remove or update this limitation.
     private static final int MAX_TRANSFER_SIZE = 4000;
 
     public enum Rotation {
@@ -87,19 +91,6 @@ public class GraphicsDisplay {
         }
     }
 
-    /** Draws an image at the given coordinates */
-    @Deprecated
-    public void drawImage(int x, int y, int width, int height, int[] rgb888pixels) {
-        getGraphics().drawRgb(x, y, width, height, rgb888pixels);
-    }
-
-    @Deprecated
-    public void fillRect(int x, int y, int width, int height, int rgb888) {
-        Graphics graphics = getGraphics();
-        graphics.setColor(rgb888);
-        graphics.fillRect(x, y, width, height);
-    }
-
     /** Forces an immediate transfer of the modified screen area */
     public void flush() {
         synchronized (lock) {
@@ -129,48 +120,9 @@ public class GraphicsDisplay {
     }
 
     /**
-     * Renders a text string at the given position with the given font and color.
-     * <p>
-     * Returns the width of the rendered text in pixel.
+     * Sets the pixel at the given coordinates to the given color.
+     * Coordinates outside of the frame buffer will be ignored.
      */
-    @Deprecated
-    public int renderText(int x, int baselineY, String text, BitmapFont font, int color) {
-        return renderText(x, baselineY, text, font, color, 1, 1);
-    }
-
-    /**
-     * Renders a text string at the given position with the given font, color and scale.
-     * <p>
-     * Returns the width of the rendered text in pixel.
-     */
-    @Deprecated
-    public int renderText(
-            int x, int baselineY, String text, BitmapFont font, int color, int scaleX, int scaleY
-    ) {
-        Graphics graphics = getGraphics();
-        graphics.setColor(color);
-        graphics.setFont(font);
-        graphics.setTextScale(scaleX, scaleY);
-        return graphics.renderText(x, baselineY, text);
-    }
-
-    /**
-     * Renders a single character at the given position.
-     * <p>
-     * Returns the width of the character in pixel.
-     */
-    @Deprecated
-    public int renderCharacter(
-            int x0, int baselineY, int codepoint, BitmapFont font, int color, int scaleX, int scaleY
-    ) {
-       Graphics graphics = getGraphics();
-       graphics.setColor(color);
-       graphics.setFont(font);
-       graphics.setTextScale(scaleX, scaleY);
-       return graphics.renderCharacter(x0, baselineY, codepoint);
-    }
-
-    /** Sets the pixel at the given coordinates to the given color */
     public void setPixel(int x, int y, int color) {
         synchronized (lock) {
             if (x < 0 || y < 0 || x >= displayWidth || y >= displayHeight) {
@@ -180,6 +132,20 @@ public class GraphicsDisplay {
             markModified(x, y, x + 1, y + 1);
         }
     }
+
+    /**
+     * Returns the framebuffer RGB integer value of the pixel at the given coordinates.
+     * Returns -1 if the coordinates are out of bounds.
+     */
+    public int getPixel(int x, int y) {
+        synchronized (lock) {
+            if (x < 0 || y < 0 || x >= displayWidth || y >= displayHeight) {
+                return -1;
+            }
+            return displayBuffer[pixelAddress(x, y)];
+        }
+    }
+
 
     /**
      * Sets the maximum delay between graphics updates and the screen buffer transfer to the display driver.
@@ -298,9 +264,11 @@ public class GraphicsDisplay {
             this.y0 = y0;
             this.driver = driver;
             this.rotation = rotation;
+            int bitsPerRow = driver.getDisplayInfo().getWidth() * driver.getDisplayInfo().getPixelFormat().getBitCount();
+            // We limit the transfer size to 4000 bytes, but at least a full row of pixels
             this.transferBuffer = new byte[Math.min(
-                    MAX_TRANSFER_SIZE,
-                    (driver.getDisplayInfo().getWidth() * driver.getDisplayInfo().getHeight() * driver.getDisplayInfo().getPixelFormat().getBitCount() + 7) / 8)];
+                    Math.max(MAX_TRANSFER_SIZE, (bitsPerRow + 7) / 8),
+                    (bitsPerRow * driver.getDisplayInfo().getHeight() + 7) / 8)];
         }
 
         private void transferBuffer(int xMin, int yMin, int xMax, int yMax) {
@@ -322,7 +290,7 @@ public class GraphicsDisplay {
 
         /** Transfers the given display buffer area to the display driver */
         private void transferBuffer(int sourceAddress, int sourceStrideX, int sourceStrideY, int xMin, int yMin, int xMax, int yMax) {
-            GraphicsDisplayInfo displayInfo = driver.getDisplayInfo();
+            GraphicsDisplayDescriptor displayInfo = driver.getDisplayInfo();
 
             // Bail out if the changed area is outside the area governed by this device.
             if (xMax <= 0 || yMax <= 0 || xMin >= displayInfo.getWidth() || yMin >= displayInfo.getHeight()) {

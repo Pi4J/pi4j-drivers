@@ -19,9 +19,8 @@ package com.pi4j.drivers.sensor.environment.bmx280;
 import com.pi4j.context.Context;
 import com.pi4j.drivers.sensor.Sensor;
 import com.pi4j.drivers.sensor.SensorDescriptor;
-import com.pi4j.io.gpio.digital.DigitalOutput;
+import com.pi4j.io.SerialCircuitIO;
 import com.pi4j.io.i2c.I2C;
-import com.pi4j.io.i2c.I2CRegisterDataReaderWriter;
 import com.pi4j.io.spi.Spi;
 
 import java.io.Closeable;
@@ -42,14 +41,14 @@ public class Bmx280Driver implements Sensor {
     public final static int ADDRESS_BME_280_PRIMARY = 0x076;
     public final static int ADDRESS_BME_280_SECONDARY = 0x077;
 
-    public final static SensorDescriptor DESCRIPTOR_BMP_280 = new SensorDescriptor.Builder()
+    public final static SensorDescriptor DESCRIPTOR_BMP_280 = new SensorDescriptor.Builder("BMP280")
             .addValue(SensorDescriptor.Kind.TEMPERATURE)
             .addValue(SensorDescriptor.Kind.PRESSURE)
             .addI2cAddress(ADDRESS_BMP_280)
             .setI2cSensorDetector(i2c -> i2c.readRegister(Bmp280Constants.CHIP_ID) == Bmp280Constants.ID_VALUE_BMP ? new Bmx280Driver(i2c) : null)
             .build();
 
-    public final static SensorDescriptor DESCRIPTOR_BME_280 = new SensorDescriptor.Builder()
+    public final static SensorDescriptor DESCRIPTOR_BME_280 = new SensorDescriptor.Builder("BME280")
             .addValue(SensorDescriptor.Kind.TEMPERATURE)
             .addValue(SensorDescriptor.Kind.PRESSURE)
             .addValue(SensorDescriptor.Kind.HUMIDITY)
@@ -61,7 +60,7 @@ public class Bmx280Driver implements Sensor {
     private final static double[] BME_280_STANDBY_TIMES = {0.5, 62.5, 125, 250, 500, 1000, 2000, 4000};
     private final static double[] BMP_280_STANDBY_TIMES = {0.5, 62.5, 125, 250, 500, 1000, 10, 20};
 
-    private final I2CRegisterDataReaderWriter registerAccess;
+    private final SerialCircuitIO io;
     private final Model model;
 
     /** Calibration values for temperature */
@@ -98,28 +97,14 @@ public class Bmx280Driver implements Sensor {
         return null;
     }
 
-
     /**
-     * Creates a BMx280 SPI driver using the given Spi instance. As the device requires csb to remain low
-     * during each register access, a dedicated pin is needed (opposed to a "standard" cs pin managed by the
-     * SPI driver.
+     * Creates a BMx280 I2C or SPI driver using the given SerialCircuitIO Connection (Spi and I2C both implement this
+     * interface).
      */
-    public Bmx280Driver(Spi spi, DigitalOutput csb) {
-        this (new SpiRegisterAccess(spi, csb));
-    }
+    public Bmx280Driver(SerialCircuitIO io) {
+        this.io = io;
 
-    /**
-     * Creates a BMx280 I2C driver using the given parameter
-     */
-    public Bmx280Driver(I2C i2c) {
-        this ((I2CRegisterDataReaderWriter) i2c);
-    }
-
-    // Visible for testing
-    protected Bmx280Driver(I2CRegisterDataReaderWriter registerAccess) {
-        this.registerAccess = registerAccess;
-
-        int chipId = registerAccess.readRegister(Bmp280Constants.CHIP_ID);
+        int chipId = readRegister(Bmp280Constants.CHIP_ID);
         if (chipId == Bmp280Constants.ID_VALUE_BMP) {
             model = Model.BMP280;
             digH1 = digH2 = digH3 = digH4 = digH5 = digH6 = 0;
@@ -128,25 +113,25 @@ public class Bmx280Driver implements Sensor {
         } else if (chipId == Bmp280Constants.ID_VALUE_BME) {
             model = Model.BME280;
 
-            digH1 = registerAccess.readRegister(Bme280Constants.REG_DIG_H1);
+            digH1 = readRegister(Bme280Constants.REG_DIG_H1);
             digH2 = readRegisterS16(Bme280Constants.REG_DIG_H2);
-            digH3 = registerAccess.readRegister(Bme280Constants.REG_DIG_H3);
+            digH3 = readRegister(Bme280Constants.REG_DIG_H3);
 
-            int e4 = registerAccess.readRegister(0xe4);
-            int e5 = registerAccess.readRegister(0xe5);
+            int e4 = readRegister(0xe4);
+            int e5 = readRegister(0xe5);
 
             int h4Hsb = e4 * 16;
             int h4Lsb = e5 & 0x0f;
             digH4 = h4Hsb | h4Lsb;
 
-            int e6 = registerAccess.readRegister(0xe6);
+            int e6 = readRegister(0xe6);
 
             int h5Lsb = e5 >> 4;
             int h5Hsb = e6 * 16;
             digH5 = h5Hsb | h5Lsb;
 
             // Casting to byte will force a sign extension
-            digH6 = (byte) registerAccess.readRegister(Bme280Constants.REG_DIG_H6);
+            digH6 = (byte) readRegister(Bme280Constants.REG_DIG_H6);
             humidityMode = SensorMode.ENABLED;
 
         } else {
@@ -180,12 +165,10 @@ public class Bmx280Driver implements Sensor {
 
     @Override
     public void close() {
-        if (registerAccess instanceof Closeable) {
-            try {
-                ((Closeable) registerAccess).close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        try {
+            ((Closeable) io).close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -208,19 +191,19 @@ public class Bmx280Driver implements Sensor {
         int config = (spi3WireMode ? 1 : 0)
                 | (filterCoefficientIndex << 2)
                 | (standByTimeIndex << 5);
-        registerAccess.writeRegister(Bmp280Constants.CONFIG, config);
+        writeRegister(Bmp280Constants.CONFIG, config);
 
         if (model == Model.BME280) {
-            int ctlHum = registerAccess.readRegister(Bme280Constants.CTRL_HUM);
+            int ctlHum = readRegister(Bme280Constants.CTRL_HUM);
             ctlHum = (ctlHum & ~Bme280Constants.CTRL_HUM_MSK) | humidityMode.ordinal();
-            registerAccess.writeRegister(Bme280Constants.CTRL_HUM, ctlHum);
+            writeRegister(Bme280Constants.CTRL_HUM, ctlHum);
         }
 
         int ctlReg = Bmp280Constants.POWERMODE_FORCED
                 | (temperatureMode.ordinal() << Bmp280Constants.CTRL_TEMP_POS)
                 | (pressureMode.ordinal() << Bmp280Constants.CTRL_PRESS_POS);
 
-        registerAccess.writeRegister(Bmp280Constants.CTRL_MEAS, ctlReg);
+        writeRegister(Bmp280Constants.CTRL_MEAS, ctlReg);
 
         setDelayMs((int) Math.ceil(getMeasurementTime()));
     }
@@ -305,7 +288,7 @@ public class Bmx280Driver implements Sensor {
 
         materializeDelay();
 
-        registerAccess.readRegister(Bmp280Constants.PRESS_MSB, ioBuf, 0, model == Model.BME280 ? 8 : 6);
+        readRegister(Bmp280Constants.PRESS_MSB, ioBuf, 0, model == Model.BME280 ? 8 : 6);
 
         float adcT = ((ioBuf[3] & 0xFF) << 12) + ((ioBuf[4] & 0xFF) << 4) + (ioBuf[5] & 0xFF);
         float adcP = ((ioBuf[0] & 0xFF) << 12) + ((ioBuf[1] & 0xFF) << 4) + (ioBuf[2] & 0xFF);
@@ -370,7 +353,7 @@ public class Bmx280Driver implements Sensor {
      */
     public void reset() {
         materializeDelay();
-        registerAccess.writeRegister(Bmp280Constants.RESET, Bmp280Constants.RESET_CMD);
+        writeRegister(Bmp280Constants.RESET, Bmp280Constants.RESET_CMD);
         setDelayMs(100);
     }
 
@@ -418,13 +401,32 @@ public class Bmx280Driver implements Sensor {
         }
     }
 
+    private void readRegister(int register, byte[] target, int offset, int length) {
+        ioBuf[0] = (byte) register;
+        io.writeThenRead(ioBuf, 0, 1, 0, target, offset, length);
+    }
+
+    private int readRegister(int register) {
+        readRegister(register, ioBuf, 0, 1);
+        return ioBuf[0] & 0xFF;
+    }
+
     private int readRegisterS16(int register) {
-        registerAccess.readRegister(register, ioBuf, 0, 2);
+        readRegister(register, ioBuf, 0, 2);
         return (ioBuf[0] & 0xFF) | (ioBuf[1] << 8);
     }
 
     private int readRegisterU16(int register) {
         return readRegisterS16(register) & 0xFFFF;
+    }
+
+    private void writeRegister(int register, int value) {
+        // The constants have the SPI read bit baked in, so we need to clear it here for SPI writs (and do noting in
+        // reads). Unfortunately, clearing the bit for I2C doesn't work as expected, so we have to have a case
+        // distinction here.
+        ioBuf[0] = (byte) (io instanceof Spi ? register & 0x7F : register);
+        ioBuf[1] = (byte) value;
+        io.write(ioBuf, 0, 2);
     }
 
     @Override

@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Assumptions;
 public class Bmx280DriverI2cTest extends AbstractBmx280DriverTest {
 
     static final int BUS = 1;
-    static final int ADDRESS = Bmx280Driver.ADDRESS_BMP_280;
+    static final int ADDRESS = Bmx280Driver.ADDRESS_BME_280_PRIMARY;
 
     static final Context pi4j = Pi4J.newAutoContext();
 

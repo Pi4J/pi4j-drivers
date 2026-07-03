@@ -21,7 +21,7 @@ import java.io.IOException;
  * measure distance based on the duration of the echo pulse.
  */
 public class Hcsr04Driver implements Sensor {
-    public static SensorDescriptor DESCRIPTOR = new SensorDescriptor.Builder().addValue(SensorDescriptor.Kind.DISTANCE).build();
+    public static SensorDescriptor DESCRIPTOR = new SensorDescriptor.Builder("HC-SR04").addValue(SensorDescriptor.Kind.DISTANCE).build();
 
     private static final int TRIGGER_DURATION_NANOS = 10_000; // 10us
     private static final int TIMEOUT_NANOS = 100_000_000;

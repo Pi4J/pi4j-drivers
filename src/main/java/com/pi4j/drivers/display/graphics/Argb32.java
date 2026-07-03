@@ -3,6 +3,15 @@ package com.pi4j.drivers.display.graphics;
 /** Support functions for ARGB integers. */
 public class Argb32 {
 
+    public static final int BLACK = 0x0ff000000;
+    public static final int BLUE = 0x0ff0000ff;
+    public static final int GREEN = 0x0ff00ff00;
+    public static final int CYAN = 0x0ff00ffff;
+    public static final int RED = 0x0ffff0000;
+    public static final int MAGENTA = 0x0ffff00ff;
+    public static final int YELLOW = 0x0ffffff00;
+    public static final int WHITE = 0x0ffffffff;
+
     /**
      * Returns an ARGB integer for the given red, green and blue channels ranging from 0 to 255 each.
      * The alpha channel is set to 255.
@@ -11,17 +20,18 @@ public class Argb32 {
         return 0xff000000 | (r << 16) | (g << 8) | b;
     }
 
-    /** Returns a rgb integer for the given red, green and blue channels ranging from 0f to 1f each. */
-    public static int fromRgb(float r, float g, float b) {
+
+    /** Returns a rgb integer for the given red, green and blue channels ranging from 0.0 to 1.0 each. */
+    public static int fromRgb(double r, double g, double b) {
         return fromRgb((int) (255 * r), (int) (255 * g), (int) (255 * b));
     }
 
     /** Returns a rgb integer for the given hue (0..360), saturation (0..1) and lightness (0..1) values. */
-    public static int fromHsl(float hue, float saturation, float lightness) {
-        float hue6 = (hue % 360) / 60;
-        float c = (1f - Math.abs(2 * lightness - 1)) * saturation;
-        float x = c * (1 - Math.abs(hue6 % 2 - 1));
-        float m = lightness - c / 2;
+    public static int fromHsl(double hue, double saturation, double lightness) {
+        double hue6 = (hue % 360) / 60;
+        double c = (1f - Math.abs(2 * lightness - 1)) * saturation;
+        double x = c * (1 - Math.abs(hue6 % 2 - 1));
+        double m = lightness - c / 2;
         c += m;
         x += m;
         return switch ((int) hue6) {
@@ -31,7 +41,7 @@ public class Argb32 {
             case 3 -> fromRgb(m, x, c);
             case 4 -> fromRgb(x, m, c);
             case 5 -> fromRgb(c, m, x);
-            default -> 0;
+            default -> BLACK;
         };
     }
 }

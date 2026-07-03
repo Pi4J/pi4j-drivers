@@ -1,4 +1,4 @@
-package com.pi4j.drivers.hat.elecrow;
+package com.pi4j.drivers.incubator.hat.elecrow;
 
 import com.pi4j.context.Context;
 import com.pi4j.drivers.display.character.hd44780.Hd44780Driver;
@@ -119,11 +119,11 @@ public class CrowPi2 implements Closeable {
         if (gameController == null) {
             gameController = new GameController(Collections.emptyMap()) {
                 @Override
-                public float getAnalogJoystickY() {
+                public double getAnalogJoystickY() {
                     return Math.max(-1f, Math.min((getMcp3008().readChannel(0) - 512f) / 256f, 1f));
                 }
                 @Override
-                public float getAnalogJoystickX() {
+                public double getAnalogJoystickX() {
                     return -Math.max(-1f, Math.min((getMcp3008().readChannel(1) - 512f) / 256f, 1f));
                 }
             };

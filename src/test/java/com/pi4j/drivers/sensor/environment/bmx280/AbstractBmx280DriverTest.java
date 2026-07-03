@@ -15,10 +15,13 @@ abstract class AbstractBmx280DriverTest {
 
         Bmx280Driver.Measurement measurement = driver.readMeasurement();
 
-        assertTrue(measurement.getTemperature() > 0);
-        assertTrue(measurement.getTemperature() < 50);
-        assertTrue(measurement.getPressure() > 90_000);
-        assertTrue(measurement.getPressure() < 110_000);
+        double temperature = measurement.getTemperature();
+        assertTrue(temperature > 0, "Temperature should be greater than 0°C; was: " + temperature);
+        assertTrue(temperature < 50, "Temperature should be smaller than 50°C; was: " + temperature);
+
+        double pressure = measurement.getPressure();
+        assertTrue(pressure > 90_000, "Pressure should be greater than 90 kPa; was: " + pressure + " Pa");
+        assertTrue(pressure < 110_000, "Pressure should be less than 110 kPa; was: " + pressure + " Pa");
     }
 
     abstract Bmx280Driver createDriver();
