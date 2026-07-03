@@ -129,6 +129,26 @@ public abstract class AbstractGraphicsDisplayDriverTest {
         renderBitmapFont(GraphicsDisplay.Rotation.ROTATE_270, 0);
     }
 
+    @Test
+    public void testBitmapFontFlipHorizontal() throws InterruptedException {
+        renderBitmapFont(GraphicsDisplay.Rotation.FLIP_HORIZONTAL, 100);
+    }
+
+    @Test
+    public void testBitmapFontFlipVertical() throws InterruptedException {
+        renderBitmapFont(GraphicsDisplay.Rotation.FLIP_VERTICAL, 100);
+    }
+
+    @Test
+    public void testBitmapFontFlipPrimaryDiagonal() throws InterruptedException {
+        renderBitmapFont(GraphicsDisplay.Rotation.FLIP_PRIMARY_DIAGONAL, 100);
+    }
+
+    @Test
+    public void testBitmapFontFlipSecondaryDiagonal() throws InterruptedException {
+        renderBitmapFont(GraphicsDisplay.Rotation.FLIP_SECONDARY_DIAGONAL, 100);
+    }
+    
     private void renderBitmapFont(GraphicsDisplay.Rotation rotation, int transferDelay) throws InterruptedException {
         GraphicsDisplay display = new GraphicsDisplay(createDriver(pi4j), rotation);
         display.setTransferDelayMillis(transferDelay);

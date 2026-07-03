@@ -25,16 +25,18 @@ public class GraphicsDisplay {
         FLIP_HORIZONTAL, FLIP_VERTICAL, FLIP_PRIMARY_DIAGONAL, FLIP_SECONDARY_DIAGONAL;
 
         public Rotation plus(Rotation other) {
-            if (this > ROTATE_270 || other > ROTATE_270) {
-                throw new IllegalArgumentException("Addition permitted for rotation values only.")
+            // Skip flipping for now
+            if (this.ordinal() > ROTATE_270.ordinal() ||  other.ordinal() > ROTATE_270.ordinal()) {
+                return this;
             }
             Rotation[] values = Rotation.values();
             return values[(ordinal() + other.ordinal()) % 4];
         }
 
         public Rotation minus(Rotation other) {
-            if (this > ROTATE_270 || other > ROTATE_270) {
-                throw new IllegalArgumentException("Subtraction permitted for rotation values only.")
+            // Skip flipping for now
+            if (this.ordinal() > ROTATE_270.ordinal() ||  other.ordinal() > ROTATE_270.ordinal()) {
+                return this;
             }
             Rotation[] values = Rotation.values();
             return values[(values.length + ordinal() - other.ordinal()) % 4];
@@ -338,7 +340,7 @@ public class GraphicsDisplay {
                                 pixelAddress(xMin, yMax -1),
                                 1,
                                 -displayWidth,
-                                xMin - x0
+                                xMin - x0,
                                 displayHeight - yMax - y0,
                                 xMax - x0,
                                 displayHeight - yMin - y0);
