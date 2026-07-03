@@ -349,10 +349,10 @@ public class GraphicsDisplay {
                                 pixelAddress(xMin, yMin),
                                 displayWidth,
                                 1,
-                                xMin - x0,
                                 yMin - y0,
-                                xMax - x0,
-                                yMax - y0);
+                                xMin - x0,
+                                yMax - y0,
+                                xMax - x0);
                 case FLIP_SECONDARY_DIAGONAL ->
                         transferBuffer(
                                 pixelAddress(xMax - 1, yMax - 1),
