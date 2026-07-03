@@ -1,15 +1,12 @@
-package com.pi4j.drivers.display.graphics.text;
+package com.pi4j.drivers.display.graphics;
 
 import com.pi4j.drivers.display.BitmapFont;
-import com.pi4j.drivers.display.graphics.Argb32;
-import com.pi4j.drivers.display.graphics.Graphics;
-import com.pi4j.drivers.display.graphics.GraphicsDisplay;
 
 import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public final class TextAnimator {
+public final class GraphicsTextAnimator {
 
     private final GraphicsDisplay display;
     private final AtomicBoolean running = new AtomicBoolean(false);
@@ -18,7 +15,7 @@ public final class TextAnimator {
     private int foreground = Argb32.WHITE;
     private int background = Argb32.BLACK;
     private Duration delay = Duration.ofMillis(100);
-    private TextAnimationDirection direction = TextAnimationDirection.RIGHT_TO_LEFT;
+    private Direction direction = Direction.RIGHT_TO_LEFT;
     private boolean loop = false;
     private boolean clearOnStop = false;
     private int stepPixels = 1;
@@ -30,7 +27,12 @@ public final class TextAnimator {
 
     private Thread worker;
 
-    public TextAnimator(GraphicsDisplay display) {
+    public enum Direction {
+        RIGHT_TO_LEFT,
+        LEFT_TO_RIGHT
+    }
+
+    public GraphicsTextAnimator(GraphicsDisplay display) {
         this.display = Objects.requireNonNull(display, "display must not be null");
         this.frameWidth = display.getWidth();
         this.frameHeight = display.getHeight();
@@ -86,11 +88,11 @@ public final class TextAnimator {
         return delay;
     }
 
-    public void setDirection(TextAnimationDirection direction) {
+    public void setDirection(Direction direction) {
         this.direction = Objects.requireNonNull(direction, "direction must not be null");
     }
 
-    public TextAnimationDirection getDirection() {
+    public Direction getDirection() {
         return direction;
     }
 
@@ -228,7 +230,7 @@ public final class TextAnimator {
         int endX;
         int step;
 
-        if (direction == TextAnimationDirection.RIGHT_TO_LEFT) {
+        if (direction == Direction.RIGHT_TO_LEFT) {
             startX = frameX + frameWidth;
             endX = frameX - textWidth;
             step = -stepPixels;

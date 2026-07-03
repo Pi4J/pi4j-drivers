@@ -5,8 +5,7 @@ import com.pi4j.drivers.display.graphics.GraphicsDisplay;
 import com.pi4j.drivers.display.graphics.GraphicsDisplayDriver;
 import com.pi4j.drivers.display.graphics.GraphicsDisplay.Rotation;
 import com.pi4j.drivers.display.graphics.framebuffer.FramebufferDriver;
-import com.pi4j.drivers.display.graphics.text.TextAnimationDirection;
-import com.pi4j.drivers.display.graphics.text.TextAnimator;
+import com.pi4j.drivers.display.graphics.GraphicsTextAnimator;
 import com.pi4j.drivers.display.BitmapFont;
 import com.pi4j.drivers.display.graphics.Argb32;
 import com.pi4j.drivers.display.graphics.Graphics;
@@ -308,7 +307,7 @@ public class SenseHat {
         showMessage(
                 message,
                 Argb32.WHITE,
-                TextAnimationDirection.RIGHT_TO_LEFT,
+                GraphicsTextAnimator.Direction.RIGHT_TO_LEFT,
                 100);
     }
 
@@ -319,7 +318,7 @@ public class SenseHat {
         showMessage(
                 message,
                 color,
-                TextAnimationDirection.RIGHT_TO_LEFT,
+                GraphicsTextAnimator.Direction.RIGHT_TO_LEFT,
                 delayMillis);
     }
 
@@ -328,7 +327,7 @@ public class SenseHat {
             int r,
             int g,
             int b,
-            TextAnimationDirection direction,
+            GraphicsTextAnimator.Direction direction,
             long delayMillis) {
         showMessage(
                 message,
@@ -340,9 +339,9 @@ public class SenseHat {
     public void showMessage(
             String message,
             int color,
-            TextAnimationDirection direction,
+            GraphicsTextAnimator.Direction direction,
             long delayMillis) {
-        TextAnimator animator = new TextAnimator(getDisplay());
+        GraphicsTextAnimator animator = new GraphicsTextAnimator(getDisplay());
 
         animator.setForeground(color);
         animator.setBackground(Argb32.BLACK);
