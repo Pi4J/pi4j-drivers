@@ -12,17 +12,32 @@ import java.util.*;
 public class GraphicsDisplay {
     private static final int MAX_TRANSFER_SIZE = 4000;
 
-    public enum Rotation {
-        ROTATE_0, ROTATE_90, ROTATE_180, ROTATE_270;
+    /**
+     * This enum represents the display transformation, which can be a rotation in 90° steps or a refection along
+     * the x and y axis. It's named "Rotation" for historical reasons.
+     * <p>
+     * There are exactly 8 possible combinations of flipping (reflecting) and rotating an object in
+     * 90° steps, each represented by the corresponding enum entry. These unique operations form a mathematical group
+     * known as the dihedral group of order 8, denoted as D4, see https://en.wikipedia.org/wiki/Dihedral_group.
+     */
+     public enum Rotation {
+        ROTATE_0, ROTATE_90, ROTATE_180, ROTATE_270,
+        FLIP_HORIZONTAL, FLIP_VERTICAL, FLIP_PRIMARY_DIAGONAL, FLIP_SECONDARY_DIAGONAL;
 
         public Rotation plus(Rotation other) {
+            if (this > ROTATE_270 || other > ROTATE_270) {
+                throw new IllegalArgumentException("Addition permitted for rotation values only.")
+            }
             Rotation[] values = Rotation.values();
-            return values[(ordinal() + other.ordinal()) % values.length];
+            return values[(ordinal() + other.ordinal()) % 4];
         }
 
         public Rotation minus(Rotation other) {
+            if (this > ROTATE_270 || other > ROTATE_270) {
+                throw new IllegalArgumentException("Subtraction permitted for rotation values only.")
+            }
             Rotation[] values = Rotation.values();
-            return values[(values.length + ordinal() - other.ordinal()) % values.length];
+            return values[(values.length + ordinal() - other.ordinal()) % 4];
         }
     }
 
@@ -274,17 +289,77 @@ public class GraphicsDisplay {
         private void transferBuffer(int xMin, int yMin, int xMax, int yMax) {
             switch (rotation) {
                 case ROTATE_0 ->
-                        transferBuffer(pixelAddress(xMin, yMin), 1, displayWidth,
-                                xMin - x0, yMin - y0, xMax - x0, yMax - y0);
+                        transferBuffer(
+                                pixelAddress(xMin, yMin),
+                                1,
+                                displayWidth,
+                                xMin - x0,
+                                yMin - y0,
+                                xMax - x0,
+                                yMax - y0);
                 case ROTATE_90 ->
-                        transferBuffer(pixelAddress(xMin, yMax - 1), -displayWidth, 1,
-                                displayHeight - yMax - y0, xMin - x0, displayHeight - yMin - y0, xMax - x0);
+                        transferBuffer(
+                                pixelAddress(xMin, yMax - 1),
+                                -displayWidth,
+                                1,
+                                displayHeight - yMax - y0,
+                                xMin - x0,
+                                displayHeight - yMin - y0,
+                                xMax - x0);
                 case ROTATE_180 ->
-                        transferBuffer(pixelAddress(xMax - 1, yMax - 1), -1, -displayWidth,
-                                displayWidth - xMax - x0, displayHeight - yMax - y0, displayWidth - xMin - x0, displayHeight - yMin - y0);
+                        transferBuffer(
+                                pixelAddress(xMax - 1, yMax - 1),
+                                -1,
+                                -displayWidth,
+                                displayWidth - xMax - x0,
+                                displayHeight - yMax - y0,
+                                displayWidth - xMin - x0,
+                                displayHeight - yMin - y0);
                 case ROTATE_270 ->
-                        transferBuffer(pixelAddress(xMax - 1, yMin), displayWidth, -1,
-                                yMin - y0, displayWidth - xMax - x0, yMax - y0, displayWidth - xMin - x0);
+                        transferBuffer(
+                                pixelAddress(xMax - 1, yMin),
+                                displayWidth,
+                                -1,
+                                yMin - y0,
+                                displayWidth - xMax - x0,
+                                yMax - y0,
+                                displayWidth - xMin - x0);
+                case FLIP_HORIZONTAL ->
+                    transferBuffer(
+                            pixelAddress(xMax - 1, yMin),
+                            -1,
+                            displayWidth,
+                            displayWidth - xMax - x0,
+                            yMin - y0,
+                            displayWidth - xMin - x0,
+                            yMax - y0);
+                case FLIP_VERTICAL ->
+                        transferBuffer(
+                                pixelAddress(xMin, yMax -1),
+                                1,
+                                -displayWidth,
+                                xMin - x0
+                                displayHeight - yMax - y0,
+                                xMax - x0,
+                                displayHeight - yMin - y0);
+                case FLIP_PRIMARY_DIAGONAL ->
+                        transferBuffer(
+                                pixelAddress(xMin, yMin),
+                                displayWidth,
+                                1,
+                                xMin - x0,
+                                yMin - y0,
+                                xMax - x0,
+                                yMax - y0);
+                case FLIP_SECONDARY_DIAGONAL ->
+                        transferBuffer(
+                                pixelAddress(xMax - 1, yMax - 1),
+                                -displayWidth,
+                                -1,
+                                displayWidth - xMax - x0,
+                                displayHeight - yMax - y0,
+                                displayWidth - xMin - x0,
+                                displayHeight - yMin - y0);
             }
         }
 
