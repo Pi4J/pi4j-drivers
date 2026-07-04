@@ -5,7 +5,6 @@ import com.pi4j.drivers.display.graphics.GraphicsDisplay;
 import com.pi4j.drivers.display.graphics.GraphicsDisplayDriver;
 import com.pi4j.drivers.display.graphics.GraphicsDisplay.Rotation;
 import com.pi4j.drivers.display.graphics.framebuffer.FramebufferDriver;
-import com.pi4j.drivers.display.graphics.GraphicsTextAnimator;
 import com.pi4j.drivers.display.BitmapFont;
 import com.pi4j.drivers.display.graphics.Argb32;
 import com.pi4j.drivers.display.graphics.Graphics;
@@ -301,10 +300,6 @@ public class SenseHat {
         if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) {
             throw new IllegalArgumentException("x and y must be between 0 and 7");
         }
-    }
-
-    public GraphicsTextAnimator getTextAnimator() {
-        return new GraphicsTextAnimator(getDisplay());
     }
      
 }

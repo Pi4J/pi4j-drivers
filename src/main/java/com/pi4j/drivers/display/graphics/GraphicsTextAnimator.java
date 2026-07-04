@@ -22,16 +22,17 @@ public final class GraphicsTextAnimator {
     private Duration delay = Duration.ofMillis(100);
     private boolean clearOnStop = false;
     private int stepPixels = 1;
-    private String text = "";
+    private String text;
 
     private Thread worker;
 
-    public GraphicsTextAnimator(GraphicsDisplay display) {
-        this(display, 0, 0, display.getWidth(), display.getHeight());
+    public GraphicsTextAnimator(GraphicsDisplay display, String text) {
+        this(display, text, 0, 0, display.getWidth(), display.getHeight());
     }
 
-    public GraphicsTextAnimator(GraphicsDisplay display, int frameX, int frameY, int frameWidth, int frameHeight) {
+    public GraphicsTextAnimator(GraphicsDisplay display, String text, int frameX, int frameY, int frameWidth, int frameHeight) {
         this.display = Objects.requireNonNull(display, "display must not be null");
+        this.text = Objects.requireNonNull(text, "text must not be null");
 
         if (frameWidth <= 0) {
             throw new IllegalArgumentException("frameWidth must be > 0");
@@ -124,7 +125,7 @@ public final class GraphicsTextAnimator {
     public int getStepPixels() {
         return stepPixels;
     }
-    
+
     public int getFrameX() {
         return frameX;
     }
