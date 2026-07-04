@@ -201,25 +201,25 @@ public final class GraphicsTextAnimator {
 
         int startX = frameX + frameWidth;
         int endX = frameX - textWidth;
-        int baselineY = frameY + font.getCellHeight();
+        int textBaseline = frameY + font.getCellHeight();
 
         for (int x = startX; running.get() && x >= endX; x -= stepPixels) {
             clear(graphics);
 
             graphics.setColor(foreground);
-            graphics.renderText(x, baselineY, text);
+            graphics.renderText(x, textBaseline, text);
 
             sleep(delay);
         }
     }
 
     private int measureTextWidth(Graphics graphics) {
-        int baselineY = frameY + font.getCellHeight();
+        int textBaseline = frameY + font.getCellHeight();
 
         clear(graphics);
 
         graphics.setColor(foreground);
-        int width = graphics.renderText(frameX + frameWidth, baselineY, text);
+        int width = graphics.renderText(frameX + frameWidth, textBaseline, text);
 
         clear(graphics);
 
