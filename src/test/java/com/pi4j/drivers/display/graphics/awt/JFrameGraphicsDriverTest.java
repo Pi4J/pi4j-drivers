@@ -1,4 +1,4 @@
-package com.pi4j.drivers.display.graphics.jframe;
+package com.pi4j.drivers.display.graphics.awt;
 
 import com.pi4j.context.Context;
 import com.pi4j.drivers.display.graphics.AbstractGraphicsDisplayDriverTest;
