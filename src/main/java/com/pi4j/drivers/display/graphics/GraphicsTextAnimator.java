@@ -11,31 +11,48 @@ public final class GraphicsTextAnimator {
     private final GraphicsDisplay display;
     private final AtomicBoolean running = new AtomicBoolean(false);
 
+    private final int frameX;
+    private final int frameY;
+    private final int frameWidth;
+    private final int frameHeight;
+
     private BitmapFont font = BitmapFont.get5x8Font(BitmapFont.Option.PROPORTIONAL);
     private int foreground = Argb32.WHITE;
     private int background = Argb32.BLACK;
     private Duration delay = Duration.ofMillis(100);
-    private Direction direction = Direction.RIGHT_TO_LEFT;
-    private boolean loop = false;
     private boolean clearOnStop = false;
     private int stepPixels = 1;
-
-    private int frameX = 0;
-    private int frameY = 0;
-    private int frameWidth;
-    private int frameHeight;
+    private String text = "";
 
     private Thread worker;
 
-    public enum Direction {
-        RIGHT_TO_LEFT,
-        LEFT_TO_RIGHT
+    public GraphicsTextAnimator(GraphicsDisplay display) {
+        this(display, 0, 0, display.getWidth(), display.getHeight());
     }
 
-    public GraphicsTextAnimator(GraphicsDisplay display) {
+    public GraphicsTextAnimator(GraphicsDisplay display, int frameX, int frameY, int frameWidth, int frameHeight) {
         this.display = Objects.requireNonNull(display, "display must not be null");
-        this.frameWidth = display.getWidth();
-        this.frameHeight = display.getHeight();
+
+        if (frameWidth <= 0) {
+            throw new IllegalArgumentException("frameWidth must be > 0");
+        }
+
+        if (frameHeight <= 0) {
+            throw new IllegalArgumentException("frameHeight must be > 0");
+        }
+
+        this.frameX = frameX;
+        this.frameY = frameY;
+        this.frameWidth = frameWidth;
+        this.frameHeight = frameHeight;
+    }
+
+    public void setText(String text) {
+        this.text = Objects.requireNonNull(text, "text must not be null");
+    }
+
+    public String getText() {
+        return text;
     }
 
     public void setFont(BitmapFont font) {
@@ -46,8 +63,8 @@ public final class GraphicsTextAnimator {
         return font;
     }
 
-    public void setForeground(int color) {
-        this.foreground = color;
+    public void setForeground(int foreground) {
+        this.foreground = foreground;
     }
 
     public void setForeground(int r, int g, int b) {
@@ -58,8 +75,8 @@ public final class GraphicsTextAnimator {
         return foreground;
     }
 
-    public void setBackground(int color) {
-        this.background = color;
+    public void setBackground(int background) {
+        this.background = background;
     }
 
     public void setBackground(int r, int g, int b) {
@@ -88,22 +105,6 @@ public final class GraphicsTextAnimator {
         return delay;
     }
 
-    public void setDirection(Direction direction) {
-        this.direction = Objects.requireNonNull(direction, "direction must not be null");
-    }
-
-    public Direction getDirection() {
-        return direction;
-    }
-
-    public void setLoop(boolean loop) {
-        this.loop = loop;
-    }
-
-    public boolean isLoop() {
-        return loop;
-    }
-
     public void setClearOnStop(boolean clearOnStop) {
         this.clearOnStop = clearOnStop;
     }
@@ -123,22 +124,7 @@ public final class GraphicsTextAnimator {
     public int getStepPixels() {
         return stepPixels;
     }
-
-    public void setFrame(int x, int y, int width, int height) {
-        if (width <= 0) {
-            throw new IllegalArgumentException("width must be > 0");
-        }
-
-        if (height <= 0) {
-            throw new IllegalArgumentException("height must be > 0");
-        }
-
-        this.frameX = x;
-        this.frameY = y;
-        this.frameWidth = width;
-        this.frameHeight = height;
-    }
-
+    
     public int getFrameX() {
         return frameX;
     }
@@ -158,17 +144,15 @@ public final class GraphicsTextAnimator {
     /**
      * Blocking call. Runs on the current thread.
      */
-    public void scroll(String text) {
-        Objects.requireNonNull(text, "text must not be null");
-
+    public void scroll() {
         if (!running.compareAndSet(false, true)) {
-            throw new IllegalStateException("TextAnimator is already running");
+            throw new IllegalStateException("GraphicsTextAnimator is already running");
         }
 
         try {
             do {
-                scrollOnce(text);
-            } while (running.get() && loop);
+                scrollOnce();
+            } while (running.get());
         } finally {
             running.set(false);
 
@@ -181,18 +165,16 @@ public final class GraphicsTextAnimator {
     /**
      * Non-blocking call. Runs on a background thread.
      */
-    public void start(String text) {
-        Objects.requireNonNull(text, "text must not be null");
-
+    public void start() {
         if (!running.compareAndSet(false, true)) {
-            throw new IllegalStateException("TextAnimator is already running");
+            throw new IllegalStateException("GraphicsTextAnimator is already running");
         }
 
         worker = new Thread(() -> {
             try {
                 do {
-                    scrollOnce(text);
-                } while (running.get() && loop);
+                    scrollOnce();
+                } while (running.get());
             } finally {
                 running.set(false);
                 worker = null;
@@ -201,7 +183,7 @@ public final class GraphicsTextAnimator {
                     clear();
                 }
             }
-        }, "pi4j-text-animator");
+        }, "pi4j-graphics-text-animator");
 
         worker.setDaemon(true);
         worker.start();
@@ -220,27 +202,16 @@ public final class GraphicsTextAnimator {
         return running.get();
     }
 
-    private void scrollOnce(String text) {
+    private void scrollOnce() {
         Graphics graphics = display.getGraphics();
         graphics.setFont(font);
 
-        int textWidth = measureTextWidth(graphics, text);
+        int textWidth = measureTextWidth(graphics);
 
-        int startX;
-        int endX;
-        int step;
+        int startX = frameX + frameWidth;
+        int endX = frameX - textWidth;
 
-        if (direction == Direction.RIGHT_TO_LEFT) {
-            startX = frameX + frameWidth;
-            endX = frameX - textWidth;
-            step = -stepPixels;
-        } else {
-            startX = frameX - textWidth;
-            endX = frameX + frameWidth;
-            step = stepPixels;
-        }
-
-        for (int x = startX; running.get() && shouldContinue(x, endX, step); x += step) {
+        for (int x = startX; running.get() && x >= endX; x -= stepPixels) {
             clear(graphics);
 
             graphics.setColor(foreground);
@@ -250,7 +221,7 @@ public final class GraphicsTextAnimator {
         }
     }
 
-    private int measureTextWidth(Graphics graphics, String text) {
+    private int measureTextWidth(Graphics graphics) {
         clear(graphics);
 
         graphics.setColor(foreground);
@@ -259,14 +230,6 @@ public final class GraphicsTextAnimator {
         clear(graphics);
 
         return width;
-    }
-
-    private boolean shouldContinue(int x, int endX, int step) {
-        if (step < 0) {
-            return x >= endX;
-        }
-
-        return x <= endX;
     }
 
     private void clear() {

@@ -303,52 +303,8 @@ public class SenseHat {
         }
     }
 
-    public void showMessage(String message) {
-        showMessage(
-                message,
-                Argb32.WHITE,
-                GraphicsTextAnimator.Direction.RIGHT_TO_LEFT,
-                100);
+    public GraphicsTextAnimator getTextAnimator() {
+        return new GraphicsTextAnimator(getDisplay());
     }
-
-    public void showMessage(
-            String message,
-            int color,
-            long delayMillis) {
-        showMessage(
-                message,
-                color,
-                GraphicsTextAnimator.Direction.RIGHT_TO_LEFT,
-                delayMillis);
-    }
-
-    public void showMessage(
-            String message,
-            int r,
-            int g,
-            int b,
-            GraphicsTextAnimator.Direction direction,
-            long delayMillis) {
-        showMessage(
-                message,
-                Argb32.fromRgb(r, g, b),
-                direction,
-                delayMillis);
-    }
-
-    public void showMessage(
-            String message,
-            int color,
-            GraphicsTextAnimator.Direction direction,
-            long delayMillis) {
-        GraphicsTextAnimator animator = new GraphicsTextAnimator(getDisplay());
-
-        animator.setForeground(color);
-        animator.setBackground(Argb32.BLACK);
-        animator.setDelayMillis(delayMillis);
-        animator.setDirection(direction);
-
-        animator.scroll(message);
-    }
-
+     
 }
