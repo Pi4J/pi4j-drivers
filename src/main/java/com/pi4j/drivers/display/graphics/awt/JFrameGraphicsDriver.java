@@ -1,5 +1,14 @@
 package com.pi4j.drivers.display.graphics.awt;
 
+/**
+ * A graphics driver that renders to a swing JFrame, mostly for proof of concept / developing purposes.
+ * <p>
+ * Suppose you come up with an awesome idea and just want to start working on it, now you can!
+ * No need to order, wait, wire, then test the hardware display - you can use any existing monitor to 'see' it work.
+ * There is a good chance your computer is faster than your pi. Compile and testing on you computer will provide quicker turn-around time.
+ * Once your code is stable - replace this driver with any other graphics display driver and see your creation come to life.
+ */
+
 import com.pi4j.drivers.display.graphics.GraphicsDisplayDescriptor;
 import com.pi4j.drivers.display.graphics.GraphicsDisplayDriver;
 import com.pi4j.drivers.display.graphics.PixelFormat;
