@@ -14,7 +14,6 @@ public final class GraphicsTextAnimator {
     private final int frameX;
     private final int frameY;
     private final int frameWidth;
-    private final int frameHeight;
 
     private BitmapFont font = BitmapFont.get5x8Font(BitmapFont.Option.PROPORTIONAL);
     private int foreground = Argb32.WHITE;
@@ -27,10 +26,16 @@ public final class GraphicsTextAnimator {
     private Thread worker;
 
     public GraphicsTextAnimator(GraphicsDisplay display, String text) {
-        this(display, text, 0, 0, display.getWidth(), display.getHeight());
+        this(display, text, 0, 0, display.getWidth());
     }
 
-    public GraphicsTextAnimator(GraphicsDisplay display, String text, int frameX, int frameY, int frameWidth, int frameHeight) {
+    public GraphicsTextAnimator(
+        GraphicsDisplay display,
+        String text,
+        int frameX,
+        int frameY,
+        int frameWidth
+    ) {
         this.display = Objects.requireNonNull(display, "display must not be null");
         this.text = Objects.requireNonNull(text, "text must not be null");
 
@@ -38,14 +43,9 @@ public final class GraphicsTextAnimator {
             throw new IllegalArgumentException("frameWidth must be > 0");
         }
 
-        if (frameHeight <= 0) {
-            throw new IllegalArgumentException("frameHeight must be > 0");
-        }
-
         this.frameX = frameX;
         this.frameY = frameY;
         this.frameWidth = frameWidth;
-        this.frameHeight = frameHeight;
     }
 
     public void setText(String text) {
@@ -138,13 +138,6 @@ public final class GraphicsTextAnimator {
         return frameWidth;
     }
 
-    public int getFrameHeight() {
-        return frameHeight;
-    }
-
-    /**
-     * Blocking call. Runs on the current thread.
-     */
     public void scroll() {
         if (!running.compareAndSet(false, true)) {
             throw new IllegalStateException("GraphicsTextAnimator is already running");
@@ -162,10 +155,7 @@ public final class GraphicsTextAnimator {
             }
         }
     }
-
-    /**
-     * Non-blocking call. Runs on a background thread.
-     */
+    
     public void start() {
         if (!running.compareAndSet(false, true)) {
             throw new IllegalStateException("GraphicsTextAnimator is already running");
@@ -211,22 +201,25 @@ public final class GraphicsTextAnimator {
 
         int startX = frameX + frameWidth;
         int endX = frameX - textWidth;
+        int baselineY = frameY + font.getCellHeight();
 
         for (int x = startX; running.get() && x >= endX; x -= stepPixels) {
             clear(graphics);
 
             graphics.setColor(foreground);
-            graphics.renderText(x, frameY + frameHeight, text);
+            graphics.renderText(x, baselineY, text);
 
             sleep(delay);
         }
     }
 
     private int measureTextWidth(Graphics graphics) {
+        int baselineY = frameY + font.getCellHeight();
+
         clear(graphics);
 
         graphics.setColor(foreground);
-        int width = graphics.renderText(frameX + frameWidth, frameY + frameHeight, text);
+        int width = graphics.renderText(frameX + frameWidth, baselineY, text);
 
         clear(graphics);
 
@@ -239,7 +232,7 @@ public final class GraphicsTextAnimator {
 
     private void clear(Graphics graphics) {
         graphics.setColor(background);
-        graphics.fillRect(frameX, frameY, frameWidth, frameHeight);
+        graphics.fillRect(frameX, frameY, frameWidth, font.getCellHeight());
     }
 
     private void sleep(Duration duration) {
