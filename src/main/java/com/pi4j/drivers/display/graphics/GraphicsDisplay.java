@@ -13,34 +13,28 @@ public class GraphicsDisplay {
     private static final int MAX_TRANSFER_SIZE = 4000;
 
     /**
-     * This enum represents the display transformation, which can be a rotation in 90° steps or a refection along
-     * the x and y axis. It's named "Rotation" for historical reasons.
-     * <p>
-     * There are exactly 8 possible combinations of flipping (reflecting) and rotating an object in
-     * 90° steps, each represented by the corresponding enum entry. These unique operations form a mathematical group
-     * known as the dihedral group of order 8, denoted as D4, see https://en.wikipedia.org/wiki/Dihedral_group.
+     * This enum represents the display rotation in 90° steps. It's always applied before mirroring.
      */
      public enum Rotation {
-        ROTATE_0, ROTATE_90, ROTATE_180, ROTATE_270,
-        FLIP_HORIZONTAL, FLIP_VERTICAL, FLIP_PRIMARY_DIAGONAL, FLIP_SECONDARY_DIAGONAL;
+        ROTATE_0, ROTATE_90, ROTATE_180, ROTATE_270;
 
         public Rotation plus(Rotation other) {
             // Skip flipping for now
-            if (this.ordinal() > ROTATE_270.ordinal() ||  other.ordinal() > ROTATE_270.ordinal()) {
-                return this;
-            }
             Rotation[] values = Rotation.values();
-            return values[(ordinal() + other.ordinal()) % 4];
+            return values[(ordinal() + other.ordinal()) % values.length];
         }
 
         public Rotation minus(Rotation other) {
-            // Skip flipping for now
-            if (this.ordinal() > ROTATE_270.ordinal() ||  other.ordinal() > ROTATE_270.ordinal()) {
-                return this;
-            }
             Rotation[] values = Rotation.values();
-            return values[(values.length + ordinal() - other.ordinal()) % 4];
+            return values[(values.length + ordinal() - other.ordinal()) % values.length];
         }
+    }
+
+    /**
+     * This enum represents the display mirroring. It's always applied after rotation.
+     */
+    public enum Mirror {
+         NONE, X, Y, BOTH
     }
 
     // Directly accessed by Graphics
@@ -60,10 +54,14 @@ public class GraphicsDisplay {
     private final List<DriverEntry> drivers = new ArrayList<>();
 
     public GraphicsDisplay(GraphicsDisplayDriver driver) {
-        this(driver, Rotation.ROTATE_0);
+        this(driver, Rotation.ROTATE_0, Mirror.NONE);
     }
 
     public GraphicsDisplay(GraphicsDisplayDriver driver, Rotation rotation) {
+        this(driver, rotation, Mirror.NONE);
+    }
+
+    public GraphicsDisplay(GraphicsDisplayDriver driver, Rotation rotation, Mirror mirror) {
         rotation = rotation.minus(driver.getDisplayInfo().getImplicitRotation());
         if (rotation == Rotation.ROTATE_0 || rotation == Rotation.ROTATE_180) {
             displayWidth = driver.getDisplayInfo().getWidth();
@@ -73,7 +71,7 @@ public class GraphicsDisplay {
             displayHeight = driver.getDisplayInfo().getWidth();
         }
         displayBuffer = new int[displayWidth * displayHeight];
-        drivers.add(new DriverEntry(0, 0, driver, rotation));
+        drivers.add(new DriverEntry(0, 0, driver, rotation, mirror));
     }
 
     /**
@@ -86,14 +84,24 @@ public class GraphicsDisplay {
         displayBuffer = new int[displayWidth * displayHeight];
     }
 
+
     /**
      * Map the given display driver into the given position of this GraphicsDisplay. Useful for rendering
      * the same content to multiple physical displays or to have a "virtual" display span multiple physical
      * displays.
      */
     public void attachDriver(int x0, int y0, GraphicsDisplayDriver driver, Rotation rotation) {
+        attachDriver(x0, y0, driver, rotation, Mirror.NONE);
+    }
+
+    /**
+     * Map the given display driver into the given position of this GraphicsDisplay. Useful for rendering
+     * the same content to multiple physical displays or to have a "virtual" display span multiple physical
+     * displays.
+     */
+    public void attachDriver(int x0, int y0, GraphicsDisplayDriver driver, Rotation rotation, Mirror mirror) {
         synchronized (lock) {
-            drivers.add(new DriverEntry(x0, y0, driver, rotation.minus(driver.getDisplayInfo().getImplicitRotation())));
+            drivers.add(new DriverEntry(x0, y0, driver, rotation.minus(driver.getDisplayInfo().getImplicitRotation()), mirror));
         }
     }
 
@@ -268,6 +276,19 @@ public class GraphicsDisplay {
         }
     }
 
+    enum ScanDirection {
+        LEFT_TO_RIGHT, RIGHT_TO_LEFT, TOP_DOWN, BOTTOM_UP;
+
+        ScanDirection flip() {
+            return switch (this) {
+                case LEFT_TO_RIGHT -> RIGHT_TO_LEFT;
+                case RIGHT_TO_LEFT -> LEFT_TO_RIGHT;
+                case TOP_DOWN -> BOTTOM_UP;
+                case BOTTOM_UP -> TOP_DOWN;
+            };
+        }
+    }
+
     /** Keeps track of the screen area and rotation managed by a driver */
     class DriverEntry {
         private final int x0;
@@ -275,12 +296,14 @@ public class GraphicsDisplay {
         private final GraphicsDisplayDriver driver;
         private final Rotation rotation;
         private final byte[] transferBuffer ;
+        private final Mirror mirror;
 
-        private DriverEntry(int x0, int y0, GraphicsDisplayDriver driver, Rotation rotation) {
+        private DriverEntry(int x0, int y0, GraphicsDisplayDriver driver, Rotation rotation, Mirror mirror) {
             this.x0 = x0;
             this.y0 = y0;
             this.driver = driver;
             this.rotation = rotation;
+            this.mirror = mirror;
             int bitsPerRow = driver.getDisplayInfo().getWidth() * driver.getDisplayInfo().getPixelFormat().getBitCount();
             // We limit the transfer size to 4000 bytes, but at least a full row of pixels
             this.transferBuffer = new byte[Math.min(
@@ -289,80 +312,108 @@ public class GraphicsDisplay {
         }
 
         private void transferBuffer(int xMin, int yMin, int xMax, int yMax) {
-            switch (rotation) {
-                case ROTATE_0 ->
-                        transferBuffer(
-                                pixelAddress(xMin, yMin),
-                                1,
-                                displayWidth,
-                                xMin - x0,
-                                yMin - y0,
-                                xMax - x0,
-                                yMax - y0);
-                case ROTATE_90 ->
-                        transferBuffer(
-                                pixelAddress(xMin, yMax - 1),
-                                -displayWidth,
-                                1,
-                                displayHeight - yMax - y0,
-                                xMin - x0,
-                                displayHeight - yMin - y0,
-                                xMax - x0);
-                case ROTATE_180 ->
-                        transferBuffer(
-                                pixelAddress(xMax - 1, yMax - 1),
-                                -1,
-                                -displayWidth,
-                                displayWidth - xMax - x0,
-                                displayHeight - yMax - y0,
-                                displayWidth - xMin - x0,
-                                displayHeight - yMin - y0);
-                case ROTATE_270 ->
-                        transferBuffer(
-                                pixelAddress(xMax - 1, yMin),
-                                displayWidth,
-                                -1,
-                                yMin - y0,
-                                displayWidth - xMax - x0,
-                                yMax - y0,
-                                displayWidth - xMin - x0);
-                case FLIP_HORIZONTAL ->
-                    transferBuffer(
-                            pixelAddress(xMax - 1, yMin),
-                            -1,
-                            displayWidth,
-                            displayWidth - xMax - x0,
-                            yMin - y0,
-                            displayWidth - xMin - x0,
-                            yMax - y0);
-                case FLIP_VERTICAL ->
-                        transferBuffer(
-                                pixelAddress(xMin, yMax -1),
-                                1,
-                                -displayWidth,
-                                xMin - x0,
-                                displayHeight - yMax - y0,
-                                xMax - x0,
-                                displayHeight - yMin - y0);
-                case FLIP_PRIMARY_DIAGONAL ->
-                        transferBuffer(
-                                pixelAddress(xMin, yMin),
-                                displayWidth,
-                                1,
-                                yMin - y0,
-                                xMin - x0,
-                                yMax - y0,
-                                xMax - x0);
-                case FLIP_SECONDARY_DIAGONAL ->
-                        transferBuffer(
-                                pixelAddress(xMax - 1, yMax - 1),
-                                -displayWidth,
-                                -1,
-                                displayWidth - xMax - x0,
-                                displayHeight - yMax - y0,
-                                displayWidth - xMin - x0,
-                                displayHeight - yMin - y0);
+            ScanDirection columnScanDirection;
+            ScanDirection rowScanDirection = switch (rotation) {
+                case ROTATE_0 -> {
+                    columnScanDirection = ScanDirection.LEFT_TO_RIGHT;
+                    yield ScanDirection.TOP_DOWN;
+                }
+                case ROTATE_90 -> {
+                    columnScanDirection = ScanDirection.BOTTOM_UP;
+                    yield ScanDirection.LEFT_TO_RIGHT;
+                }
+                case ROTATE_180 -> {
+                    columnScanDirection = ScanDirection.RIGHT_TO_LEFT;
+                    yield ScanDirection.BOTTOM_UP;
+                }
+                case ROTATE_270 -> {
+                    columnScanDirection = ScanDirection.TOP_DOWN;
+                    yield ScanDirection.RIGHT_TO_LEFT;
+                }
+            };
+            switch (mirror) {
+                case X ->
+                    columnScanDirection = columnScanDirection.flip();
+                case Y ->
+                    rowScanDirection = rowScanDirection.flip();
+                case BOTH -> {
+                    columnScanDirection = columnScanDirection.flip();
+                    rowScanDirection = rowScanDirection.flip();
+                }
             }
+
+            // Translate the column scan directions into coordinate ranges and strides for transfer.
+            // The compiler can't figure out that all will be set due to direction interdependencies,
+            // so we have to initialize the values.
+            int sourceX = 0;
+            int sourceY = 0;
+            int transferXMin = 0;
+            int transferXMax = 0;
+            int transferYMin = 0;
+            int transferYMax = 0;
+            int sourceStrideX = 0;
+            int sourceStrideY = 0;
+
+            switch (columnScanDirection) {
+                case LEFT_TO_RIGHT -> {
+                    sourceX = xMin;
+                    transferXMin = xMin - x0;
+                    transferXMax = xMax - x0;
+                    sourceStrideX = 1;
+                }
+                case RIGHT_TO_LEFT -> {
+                    sourceX = xMax - 1;
+                    transferXMin = displayWidth - xMax - x0;
+                    transferXMax = displayWidth - xMin - x0;
+                    sourceStrideX = -1;
+                }
+                case TOP_DOWN -> {
+                    sourceY = yMin;
+                    transferXMin = yMin - y0;
+                    transferXMax = yMax - y0;
+                    sourceStrideX = displayWidth;
+                }
+                case BOTTOM_UP -> {
+                    sourceY = yMax - 1;
+                    transferXMin = displayHeight - yMax - y0;
+                    transferXMax = displayHeight - yMin - y0;
+                    sourceStrideX = -displayWidth;
+                }
+            }
+            switch (rowScanDirection) {
+                case TOP_DOWN -> {
+                    sourceY = yMin;
+                    transferYMin = yMin - y0;
+                    transferYMax = yMax - y0;
+                    sourceStrideY = displayWidth;
+                }
+                case BOTTOM_UP -> {
+                    sourceY = yMax - 1;
+                    transferYMin = displayHeight - yMax - y0;
+                    transferYMax = displayHeight - yMin - y0;
+                    sourceStrideY = -displayWidth;
+                }
+                case LEFT_TO_RIGHT -> {
+                    sourceX = xMin;
+                    transferYMin = yMin - y0;
+                    transferYMax = yMax - y0;
+                    sourceStrideY = 1;
+                }
+                case RIGHT_TO_LEFT -> {
+                    sourceX = xMax - 1;
+                    transferYMin = displayWidth - xMax - x0;
+                    transferYMax = displayWidth - xMin - x0;
+                    sourceStrideY = -1;
+                }
+            }
+            transferBuffer(
+                    pixelAddress(sourceX, sourceY),
+                    sourceStrideX,
+                    sourceStrideY,
+                    transferXMin,
+                    transferYMin,
+                    transferXMax,
+                    transferYMax);
         }
 
         /** Transfers the given display buffer area to the display driver */
