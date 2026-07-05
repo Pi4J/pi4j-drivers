@@ -7,6 +7,7 @@ import com.pi4j.drivers.display.graphics.GraphicsDisplayDriver;
 import com.pi4j.drivers.display.graphics.crowpi2matrix.CrowPi2I2cLedMatrixDriver;
 import com.pi4j.drivers.input.GameController;
 import com.pi4j.drivers.input.KeyPad;
+import com.pi4j.drivers.io.ad.mcp300x.Mcp3008Driver;
 import com.pi4j.drivers.io.ad.mcp300x.Mcp300xDriver;
 import com.pi4j.drivers.sensor.Sensor;
 import com.pi4j.drivers.sensor.geospatial.hcsr04.Hcsr04Driver;
@@ -110,7 +111,7 @@ public class CrowPi2 implements Closeable {
     private Mcp300xDriver getMcp3008() {
         if (mcp3008 == null) {
             Spi spi = pi4j.create(SpiConfigBuilder.newInstance(pi4j).bus(0).channel(1));
-            mcp3008 = new Mcp300xDriver(spi);
+            mcp3008 = new Mcp3008Driver(spi);
         }
         return mcp3008;
     }
