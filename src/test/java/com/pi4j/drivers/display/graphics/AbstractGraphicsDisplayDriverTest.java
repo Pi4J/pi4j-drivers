@@ -120,6 +120,21 @@ public abstract class AbstractGraphicsDisplayDriverTest {
     }
 
     @Test
+    public void testBitmapFont180_flipX_100() throws InterruptedException {
+        renderBitmapFont(GraphicsDisplay.Rotation.ROTATE_180, GraphicsDisplay.Mirror.X, 100);
+    }
+
+    @Test
+    public void testBitmapFont180_flipY_100() throws InterruptedException {
+        renderBitmapFont(GraphicsDisplay.Rotation.ROTATE_180, GraphicsDisplay.Mirror.Y, 100);
+    }
+
+    @Test
+    public void testBitmapFont180_flipBoth_100() throws InterruptedException {
+        renderBitmapFont(GraphicsDisplay.Rotation.ROTATE_180, GraphicsDisplay.Mirror.BOTH, 100);
+    }
+
+    @Test
     public void testBitmapFont270() throws InterruptedException {
         renderBitmapFont(GraphicsDisplay.Rotation.ROTATE_270, 100);
     }
@@ -130,7 +145,11 @@ public abstract class AbstractGraphicsDisplayDriverTest {
     }
 
     private void renderBitmapFont(GraphicsDisplay.Rotation rotation, int transferDelay) throws InterruptedException {
-        GraphicsDisplay display = new GraphicsDisplay(createDriver(pi4j), rotation);
+        renderBitmapFont(rotation, GraphicsDisplay.Mirror.NONE, transferDelay);
+    }
+
+    private void renderBitmapFont(GraphicsDisplay.Rotation rotation, GraphicsDisplay.Mirror mirror, int transferDelay) throws InterruptedException {
+        GraphicsDisplay display = new GraphicsDisplay(createDriver(pi4j), rotation, mirror);
         display.setTransferDelayMillis(transferDelay);
         int width = display.getWidth();
         int height = display.getHeight();
