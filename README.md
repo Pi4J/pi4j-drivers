@@ -44,7 +44,7 @@ As this is library is still in early stage, you can only get a SNAPSHOT-version.
 
 ## CONTRIBUTING
 
-Please refer to [CONTRIBUTING.md](CONTRIBUTING.md).
+Please refer to [CONTRIBUTING.md](CONTRIBUTING.md) and [CONTRIBUTING_REPO.md](CONTRIBUTING_REPO.md).
 
 ## BUILD DEPENDENCIES & INSTRUCTIONS
 
