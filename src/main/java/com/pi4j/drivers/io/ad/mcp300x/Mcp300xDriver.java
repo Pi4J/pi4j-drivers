@@ -22,14 +22,5 @@ public abstract class Mcp300xDriver {
         return readChannel(index, true);
     }
 
-  /*  private int readChannel(int index, boolean differential) {
-        buffer[0] = 1;
-        buffer[1] = (byte) (differential ? 0 : (1 << 7) | (index << 4));
-
-        spi.transfer(buffer, buffer);
-
-        return ((buffer[1] & 0x07) << 8) | (buffer[2] & 0xff);
-    }
-*/
     protected abstract int readChannel(int index, boolean differential);
 }
