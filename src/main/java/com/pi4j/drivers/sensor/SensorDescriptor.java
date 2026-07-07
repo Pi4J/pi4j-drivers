@@ -5,6 +5,7 @@ import com.pi4j.io.i2c.I2C;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Function;
 
 /**
@@ -138,6 +139,9 @@ public class SensorDescriptor {
         /** CO2 in ppm */
         CO2(MeasurementUnit.PARTS_PER_MILLION),
 
+        /** Current in ampere */
+        CURRENT(MeasurementUnit.AMPERE),
+
         /** A distance in meter */
         DISTANCE(MeasurementUnit.METER),
 
@@ -166,10 +170,20 @@ public class SensorDescriptor {
          */
         PRESSURE(MeasurementUnit.PASCAL),
 
+        RESISTANCE(MeasurementUnit.OHM),
+
         /** Temperature in degree Celsius */
-        TEMPERATURE(MeasurementUnit.DEGREE_CELSIUS);
+        TEMPERATURE(MeasurementUnit.DEGREE_CELSIUS),
+
+        /** Voltage in volt */
+        VOLTAGE(MeasurementUnit.VOLT);
 
         public final MeasurementUnit measurementUnit;
+
+        @Override
+        public String toString() {
+            return name().toLowerCase(Locale.ROOT).replace('_', ' ');
+        }
 
         Kind(MeasurementUnit measurementUnit) {
             this.measurementUnit = measurementUnit;
@@ -177,20 +191,30 @@ public class SensorDescriptor {
     }
 
     public enum MeasurementUnit {
+        AMPERE("A"),
         DEGREE_CELSIUS("°C"),
+        GAUSS("Gs"),
+        LUX("lx"),
         METER("m"),
         METER_PER_SECOND("m/s"),
         METER_PER_SECOND_SQUARED("m/s²"),
-        GAUSS("Gs"),
-        LUX("lx"),
+        OHM("Ω"),
         PARTS_PER_MILLION("ppm"),
         PASCAL("Pa"),
-        PERCENT("%");
+        PERCENT("%"),
+        VOLT("V");
 
-        public final String name;
+        /** The symbol for this unit. */
+        public final String symbol;
 
-        MeasurementUnit(String name) {
-            this.name = name;
+        MeasurementUnit(String symbol) {
+            this.symbol = symbol;
+        }
+
+        /** Returns the symbol for this unit. */
+        @Override
+        public String toString() {
+            return symbol;
         }
     }
 }
