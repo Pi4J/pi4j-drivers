@@ -9,7 +9,7 @@ import java.util.*;
  * functionality, please obtain a Graphics object using getGraphics. The purpose of this separation
  * is to support multiple states (clipping, color) simultaneously.
  */
-public class GraphicsDisplay {
+public class GraphicsDisplay implements AutoCloseable {
     private static final int MAX_TRANSFER_SIZE = 4000;
 
     /**
@@ -134,12 +134,51 @@ public class GraphicsDisplay {
         return new Graphics(this);
     }
 
-    /** Returns the width of this dispaly in pixel. */
+    /** Returns a copy of all pixels in the display buffer in row-major order. */
+    public int[] getPixels() {
+        synchronized (lock) {
+            return Arrays.copyOf(displayBuffer, displayBuffer.length);
+        }
+    }
+
+    /** Flips the display buffer horizontally (mirror left-right) and pushes to hardware. */
+    public void flipH() {
+        synchronized (lock) {
+            for (int y = 0; y < displayHeight; y++) {
+                for (int x = 0; x < displayWidth / 2; x++) {
+                    int left = y * displayWidth + x;
+                    int right = y * displayWidth + (displayWidth - 1 - x);
+                    int tmp = displayBuffer[left];
+                    displayBuffer[left] = displayBuffer[right];
+                    displayBuffer[right] = tmp;
+                }
+            }
+            markModified(0, 0, displayWidth, displayHeight);
+        }
+    }
+
+    /** Flips the display buffer vertically (mirror top-bottom) and pushes to hardware. */
+    public void flipV() {
+        synchronized (lock) {
+            for (int y = 0; y < displayHeight / 2; y++) {
+                int top = y * displayWidth;
+                int bottom = (displayHeight - 1 - y) * displayWidth;
+                for (int x = 0; x < displayWidth; x++) {
+                    int tmp = displayBuffer[top + x];
+                    displayBuffer[top + x] = displayBuffer[bottom + x];
+                    displayBuffer[bottom + x] = tmp;
+                }
+            }
+            markModified(0, 0, displayWidth, displayHeight);
+        }
+    }
+
+    /** Returns the width of this display in pixel. */
     public int getWidth() {
         return displayWidth;
     }
 
-    /** Returns the height of this dispaly in pixel. */
+    /** Returns the height of this display in pixel. */
     public int getHeight() {
         return displayHeight;
     }
@@ -210,7 +249,7 @@ public class GraphicsDisplay {
         if (!processAlpha) {
             if (scaleX == 1) {
                 System.arraycopy(rgbData, offset, displayBuffer, dst, scaledWidth);
-            } {
+            } else {
                 for (int i = 0; i < scaledWidth; i++) {
                     displayBuffer[dst + i] = rgbData[offset + (i + remainder) / scaleX];
                 }
@@ -427,7 +466,7 @@ public class GraphicsDisplay {
 
             // Restrict coordinates to the display size.
             if (xMin < 0) {
-                sourceAddress -= xMax * sourceStrideX;
+                sourceAddress -= xMin * sourceStrideX;
                 xMin = 0;
             }
             if (yMin < 0) {

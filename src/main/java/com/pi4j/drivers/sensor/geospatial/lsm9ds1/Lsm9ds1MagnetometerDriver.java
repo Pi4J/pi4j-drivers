@@ -38,6 +38,7 @@ public class Lsm9ds1MagnetometerDriver implements Sensor {
     private final ByteBuffer buffer = ByteBuffer.allocate(6).order(ByteOrder.LITTLE_ENDIAN);
 
     private Range range = Range.GAUSS_4;
+    private boolean enabled = true;
 
     public Lsm9ds1MagnetometerDriver(I2CRegisterDataReaderWriter registerAccess) {
         this.registerAccess = registerAccess;
@@ -69,6 +70,9 @@ public class Lsm9ds1MagnetometerDriver implements Sensor {
 
     @Override
     public void readMeasurement(double[] values) {
+        if (!enabled) {
+            throw new IllegalStateException("Magnetometer is disabled");
+        }
         // Request single measurement
         setRegisterBits(Register.CTRL_REG3_M, 1, 0, 1);
 
@@ -101,9 +105,27 @@ public class Lsm9ds1MagnetometerDriver implements Sensor {
         return result;
     }
 
+    /** Returns heading toward magnetic North in degrees (0–360). */
+    public double readHeading() {
+        double[] mag = readMagneticField();
+        double heading = Math.toDegrees(Math.atan2(mag[1], mag[0]));
+        if (heading < 0) heading += 360;
+        return heading;
+    }
+
     public void setRange(Range range) {
         setRegisterBits(Register.CTRL_REG2_M, 6, 5, range.ordinal());
         this.range = range;
+    }
+
+    // MD[1:0] = 0b11 → power-down; 0b00 → continuous conversion
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+        setRegisterBits(Register.CTRL_REG3_M, 1, 0, enabled ? 0b00 : 0b11);
+    }
+
+    public boolean isEnabled() {
+        return enabled;
     }
 
     // Private

@@ -8,6 +8,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class GraphicsTextAnimator {
 
+    public enum ScrollDirection { LEFT_TO_RIGHT, RIGHT_TO_LEFT }
+
     private final GraphicsDisplay display;
     private final AtomicBoolean running = new AtomicBoolean(false);
 
@@ -22,8 +24,9 @@ public final class GraphicsTextAnimator {
     private boolean clearOnStop = false;
     private int stepPixels = 1;
     private String text;
+    private ScrollDirection scrollDirection = ScrollDirection.RIGHT_TO_LEFT;
 
-    private Thread worker;
+    private volatile Thread worker;
 
     public GraphicsTextAnimator(GraphicsDisplay display, String text) {
         this(display, text, 0, 0, display.getWidth());
@@ -126,6 +129,14 @@ public final class GraphicsTextAnimator {
         return stepPixels;
     }
 
+    public void setScrollDirection(ScrollDirection scrollDirection) {
+        this.scrollDirection = Objects.requireNonNull(scrollDirection, "scrollDirection must not be null");
+    }
+
+    public ScrollDirection getScrollDirection() {
+        return scrollDirection;
+    }
+
     public int getFrameX() {
         return frameX;
     }
@@ -138,24 +149,34 @@ public final class GraphicsTextAnimator {
         return frameWidth;
     }
 
-    public void scroll() {
+    public void scrollText() {
         if (!running.compareAndSet(false, true)) {
             throw new IllegalStateException("GraphicsTextAnimator is already running");
         }
-
         try {
-            do {
-                scrollOnce();
-            } while (running.get());
+            scrollOnce();
         } finally {
             running.set(false);
-
             if (clearOnStop) {
                 clear();
             }
         }
     }
-    
+
+    public void scroll() {
+        if (!running.compareAndSet(false, true)) {
+            throw new IllegalStateException("GraphicsTextAnimator is already running");
+        }
+        try {
+            runLoop();
+        } finally {
+            running.set(false);
+            if (clearOnStop) {
+                clear();
+            }
+        }
+    }
+
     public void start() {
         if (!running.compareAndSet(false, true)) {
             throw new IllegalStateException("GraphicsTextAnimator is already running");
@@ -163,13 +184,10 @@ public final class GraphicsTextAnimator {
 
         worker = new Thread(() -> {
             try {
-                do {
-                    scrollOnce();
-                } while (running.get());
+                runLoop();
             } finally {
                 running.set(false);
                 worker = null;
-
                 if (clearOnStop) {
                     clear();
                 }
@@ -178,6 +196,12 @@ public final class GraphicsTextAnimator {
 
         worker.setDaemon(true);
         worker.start();
+    }
+
+    private void runLoop() {
+        do {
+            scrollOnce();
+        } while (running.get());
     }
 
     public void stop() {
@@ -198,32 +222,33 @@ public final class GraphicsTextAnimator {
         graphics.setFont(font);
 
         int textWidth = measureTextWidth(graphics);
-
-        int startX = frameX + frameWidth;
-        int endX = frameX - textWidth;
         int textBaseline = frameY + font.getCellHeight();
 
-        for (int x = startX; running.get() && x >= endX; x -= stepPixels) {
-            clear(graphics);
-
-            graphics.setColor(foreground);
-            graphics.renderText(x, textBaseline, text);
-
-            sleep(delay);
+        if (scrollDirection == ScrollDirection.RIGHT_TO_LEFT) {
+            int startX = frameX + frameWidth;
+            int endX = frameX - textWidth;
+            for (int x = startX; running.get() && x >= endX; x -= stepPixels) {
+                clear(graphics);
+                graphics.setColor(foreground);
+                graphics.renderText(x, textBaseline, text);
+                sleep(delay);
+            }
+        } else {
+            int startX = frameX - textWidth;
+            int endX = frameX + frameWidth;
+            for (int x = startX; running.get() && x <= endX; x += stepPixels) {
+                clear(graphics);
+                graphics.setColor(foreground);
+                graphics.renderText(x, textBaseline, text);
+                sleep(delay);
+            }
         }
     }
 
     private int measureTextWidth(Graphics graphics) {
         int textBaseline = frameY + font.getCellHeight();
-
-        clear(graphics);
-
         graphics.setColor(foreground);
-        int width = graphics.renderText(frameX + frameWidth, textBaseline, text);
-
-        clear(graphics);
-
-        return width;
+        return graphics.renderText(frameX + frameWidth, textBaseline, text);
     }
 
     private void clear() {

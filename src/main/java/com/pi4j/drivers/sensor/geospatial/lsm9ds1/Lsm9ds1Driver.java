@@ -124,6 +124,20 @@ public class Lsm9ds1Driver implements Sensor {
         };
     }
 
+    /** Returns [pitch, roll, yaw] in degrees derived from accelerometer data. */
+    public double[] readOrientationDegrees() {
+        double[] a = readAccelerometer();
+        double pitch = Math.toDegrees(Math.atan2(a[1], a[2]));
+        double roll  = Math.toDegrees(Math.atan2(-a[0], Math.sqrt(a[1] * a[1] + a[2] * a[2])));
+        return new double[]{pitch, roll, 0.0};
+    }
+
+    /** Returns [pitch, roll, yaw] in radians derived from accelerometer data. */
+    public double[] readOrientationRadians() {
+        double[] deg = readOrientationDegrees();
+        return new double[]{Math.toRadians(deg[0]), Math.toRadians(deg[1]), Math.toRadians(deg[2])};
+    }
+
     public void setAccelerometerEnabled(boolean accelerometerEnabled) {
         if (this.accelerometerEnabled != accelerometerEnabled) {
             this.accelerometerEnabled = accelerometerEnabled;
