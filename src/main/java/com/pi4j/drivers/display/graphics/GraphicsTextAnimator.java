@@ -4,17 +4,19 @@ import com.pi4j.drivers.display.BitmapFont;
 
 import java.time.Duration;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Timer;
+import java.util.TimerTask;
 
+/**
+ * A class for rendering a scrolling message. Useful for showing longer texts on small displays.
+ */
 public final class GraphicsTextAnimator {
-
-    private final GraphicsDisplay display;
-    private final AtomicBoolean running = new AtomicBoolean(false);
 
     private final int frameX;
     private final int frameY;
     private final int frameWidth;
-    private final Object lock;
+    private final Object lock = new Object();
+    private final Timer timer = new Timer();
 
     private BitmapFont font = BitmapFont.get5x8Font(BitmapFont.Option.PROPORTIONAL);
     private int foreground = Argb32.WHITE;
@@ -23,14 +25,24 @@ public final class GraphicsTextAnimator {
     private boolean clearOnStop = false;
     private int stepPixels = 1;
     private String text;
-    private timerTask scrollTask;
+    private TimerTask scrollTask;
     private Graphics graphics;
     private int offset;
 
+    /**
+     * Creates a scrolling message at the top of the display, spanning the whole display width. Note that the
+     * constructor doesn't display anything (enabling detailed configuration); use start() or the methods for manual
+     * scrolling to actually display text.
+     */
     public GraphicsTextAnimator(GraphicsDisplay display, String text) {
         this(display, text, 0, 0, display.getWidth());
     }
 
+    /**
+     * Creates a scrolling message in the given frame coordinates. The frame height will be determined by
+     * the font height. Note that the constructor doesn't display anything (enabling detailed configuration);
+     * use start() or the methods for manual scrolling to actually display text.
+     */
     public GraphicsTextAnimator(
         GraphicsDisplay display,
         String text,
@@ -38,7 +50,7 @@ public final class GraphicsTextAnimator {
         int frameY,
         int frameWidth
     ) {
-        this.display = Objects.requireNonNull(display, "display must not be null");
+        this.graphics = Objects.requireNonNull(display, "display must not be null").getGraphics();
         this.text = Objects.requireNonNull(text, "text must not be null");
 
         if (frameWidth <= 0) {
@@ -48,7 +60,6 @@ public final class GraphicsTextAnimator {
         this.frameX = frameX;
         this.frameY = frameY;
         this.frameWidth = frameWidth;
-        this.graphics = display.getGraphics();
     }
 
     public void setText(String text) {
@@ -91,16 +102,25 @@ public final class GraphicsTextAnimator {
         return background;
     }
 
+    /** Sets the delay between scrolling steps. */
     public void setDelay(Duration delay) {
-        Objects.requireNonNull(delay, "delay must not be null");
+        synchronized (lock) {
+            Objects.requireNonNull(delay, "delay must not be null");
 
-        if (delay.isNegative()) {
-            throw new IllegalArgumentException("delay must not be negative");
+            if (delay.isNegative()) {
+                throw new IllegalArgumentException("delay must not be negative");
+            }
+
+            this.delay = delay;
+
+            if (isRunning()) {
+                stop();
+                start();
+            }
         }
-
-        this.delay = delay;
     }
 
+    /** Sets the delay between scrolling steps in milliseconds. */
     public void setDelayMillis(long delayMillis) {
         setDelay(Duration.ofMillis(delayMillis));
     }
@@ -141,26 +161,74 @@ public final class GraphicsTextAnimator {
         return frameWidth;
     }
 
-    /** Clears the frame and renders the text once */
-    public void render() {
-       
-    }
+    /** Clears the frame and renders the text just once. */
+    public int render() {
+        synchronized (lock) {
+            clear();
 
-    public void start() {
-
-    }
-
-    public void stop() {
-        running.set(false);
-
-        Thread currentWorker = worker;
-        if (currentWorker != null) {
-            currentWorker.interrupt();
+            // This uses clipping and the color from the last call
+            graphics.setClip(frameX, frameY, frameWidth, font.getCellHeight());
+            graphics.setColor(foreground);
+            return graphics.renderText(frameX + offset, frameY + font.getCellHeight(), text);
         }
     }
 
-    public boolean isRunning() {
-        return running.get();
+    /** Clears the frame. */
+    public void clear() {
+        synchronized (lock) {
+            graphics.setColor(background);
+            graphics.fillRect(frameX, frameY, frameWidth, font.getCellHeight());
+        }
     }
 
+    /** Clears the frame, renders the text and advances the scroll position by the configured amount of pixels. */
+    public void scroll() {
+        synchronized (lock) {
+            int textWidth = render();
+            offset -= stepPixels;
+            if (offset + textWidth < 0) {
+                offset = frameWidth;
+            }
+        }
+    }
+
+    /**
+     * Starts rendering the text asynchronously in the background. Use the stop() method to stop scrolling.
+     * Will throw an IllegalStateException when scrolling was started already.
+     */
+    public void start() {
+        synchronized (lock) {
+            if (scrollTask != null) {
+                throw new IllegalStateException("Already started.");
+            }
+            scrollTask = new TimerTask() {
+                @Override
+                public void run() {
+                        scroll();
+                }
+            };
+            long delayMs = delay.toMillis();
+            timer.schedule(scrollTask, delayMs, delayMs);
+        }
+    }
+
+    /** Stops background scrolling. This is safe to call multiple times. */
+    public void stop() {
+        synchronized (lock) {
+            if (scrollTask != null) {
+                scrollTask.cancel();
+                scrollTask = null;
+            }
+            if (clearOnStop) {
+                clear();
+            }
+        }
+    }
+
+    /** Returns true if scrolling is currently active; false otherwise. */
+    public boolean isRunning() {
+        synchronized (lock) {
+            return scrollTask != null;
+        }
+    }
 }
