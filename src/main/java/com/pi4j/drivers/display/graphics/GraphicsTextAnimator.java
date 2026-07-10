@@ -14,6 +14,7 @@ public final class GraphicsTextAnimator {
     private final int frameX;
     private final int frameY;
     private final int frameWidth;
+    private final Object lock;
 
     private BitmapFont font = BitmapFont.get5x8Font(BitmapFont.Option.PROPORTIONAL);
     private int foreground = Argb32.WHITE;
@@ -22,8 +23,9 @@ public final class GraphicsTextAnimator {
     private boolean clearOnStop = false;
     private int stepPixels = 1;
     private String text;
-
-    private Thread worker;
+    private timerTask scrollTask;
+    private Graphics graphics;
+    private int offset;
 
     public GraphicsTextAnimator(GraphicsDisplay display, String text) {
         this(display, text, 0, 0, display.getWidth());
@@ -46,6 +48,7 @@ public final class GraphicsTextAnimator {
         this.frameX = frameX;
         this.frameY = frameY;
         this.frameWidth = frameWidth;
+        this.graphics = display.getGraphics();
     }
 
     public void setText(String text) {
@@ -138,46 +141,13 @@ public final class GraphicsTextAnimator {
         return frameWidth;
     }
 
-    public void scroll() {
-        if (!running.compareAndSet(false, true)) {
-            throw new IllegalStateException("GraphicsTextAnimator is already running");
-        }
-
-        try {
-            do {
-                scrollOnce();
-            } while (running.get());
-        } finally {
-            running.set(false);
-
-            if (clearOnStop) {
-                clear();
-            }
-        }
+    /** Clears the frame and renders the text once */
+    public void render() {
+       
     }
-    
+
     public void start() {
-        if (!running.compareAndSet(false, true)) {
-            throw new IllegalStateException("GraphicsTextAnimator is already running");
-        }
 
-        worker = new Thread(() -> {
-            try {
-                do {
-                    scrollOnce();
-                } while (running.get());
-            } finally {
-                running.set(false);
-                worker = null;
-
-                if (clearOnStop) {
-                    clear();
-                }
-            }
-        }, "pi4j-graphics-text-animator");
-
-        worker.setDaemon(true);
-        worker.start();
     }
 
     public void stop() {
@@ -193,54 +163,4 @@ public final class GraphicsTextAnimator {
         return running.get();
     }
 
-    private void scrollOnce() {
-        Graphics graphics = display.getGraphics();
-        graphics.setFont(font);
-
-        int textWidth = measureTextWidth(graphics);
-
-        int startX = frameX + frameWidth;
-        int endX = frameX - textWidth;
-        int textBaseline = frameY + font.getCellHeight();
-
-        for (int x = startX; running.get() && x >= endX; x -= stepPixels) {
-            clear(graphics);
-
-            graphics.setColor(foreground);
-            graphics.renderText(x, textBaseline, text);
-
-            sleep(delay);
-        }
-    }
-
-    private int measureTextWidth(Graphics graphics) {
-        int textBaseline = frameY + font.getCellHeight();
-
-        clear(graphics);
-
-        graphics.setColor(foreground);
-        int width = graphics.renderText(frameX + frameWidth, textBaseline, text);
-
-        clear(graphics);
-
-        return width;
-    }
-
-    private void clear() {
-        clear(display.getGraphics());
-    }
-
-    private void clear(Graphics graphics) {
-        graphics.setColor(background);
-        graphics.fillRect(frameX, frameY, frameWidth, font.getCellHeight());
-    }
-
-    private void sleep(Duration duration) {
-        try {
-            Thread.sleep(duration.toMillis());
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            running.set(false);
-        }
-    }
 }
