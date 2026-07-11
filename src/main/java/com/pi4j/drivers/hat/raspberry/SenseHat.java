@@ -1,13 +1,10 @@
 package com.pi4j.drivers.hat.raspberry;
 
 import com.pi4j.context.Context;
-import com.pi4j.drivers.display.graphics.GraphicsDisplay;
-import com.pi4j.drivers.display.graphics.GraphicsDisplayDriver;
+import com.pi4j.drivers.display.graphics.*;
 import com.pi4j.drivers.display.graphics.GraphicsDisplay.Rotation;
 import com.pi4j.drivers.display.graphics.framebuffer.FramebufferDriver;
 import com.pi4j.drivers.display.BitmapFont;
-import com.pi4j.drivers.display.graphics.Argb32;
-import com.pi4j.drivers.display.graphics.Graphics;
 import com.pi4j.drivers.input.GameController;
 import com.pi4j.drivers.input.linux.LinuxInputDriver;
 import com.pi4j.drivers.sensor.Sensor;
@@ -34,6 +31,7 @@ public class SenseHat {
     private Tcs3400Driver tcs3400Driver;
     private Lsm9ds1Driver lsm9ds1Driver;
     private Lsm9ds1MagnetometerDriver lsm9ds1MagnetometerDriver;
+    private GraphicsTextAnimator textAnimator;
 
     private final ListenableOnOffRead.Impl up = new ListenableOnOffRead.Impl();
     private final ListenableOnOffRead.Impl down = new ListenableOnOffRead.Impl();
@@ -169,6 +167,18 @@ public class SenseHat {
         return display;
     }
 
+    /**
+     * Returns the text animator used for showMessage.
+     * Can be used to configure the scrolling message display in detail.
+     */
+    public GraphicsTextAnimator getTextAnimator() {
+        if (textAnimator == null) {
+            textAnimator = new GraphicsTextAnimator(getDisplay(), "");
+        }
+        return textAnimator;
+    }
+
+
     private void handleEvent(LinuxInputDriver.Event event) {
         if (event.getType() != LinuxInputDriver.EV_KEY) {
             return;
@@ -301,5 +311,31 @@ public class SenseHat {
             throw new IllegalArgumentException("x and y must be between 0 and 7");
         }
     }
-     
+
+    /**
+     * Shows the given scrolling message using a text animator. The message will keep scrolling in the background
+     * while the program continues execution. Use an empty string (or getTextAnimator.stop()) to stop the message.
+     */
+    public void showMessage(String message) {
+        showMessage(message, Argb32.WHITE);
+    }
+
+    /**
+     * Shows the given scrolling message in the given color using a text animator. The message will keep scrolling in
+     * the background while the program continues execution. Use an empty string (or getTextAnimator.stop()) to stop
+     * the message.
+     */
+    public void showMessage(String message, int color) {
+        GraphicsTextAnimator textAnimator = getTextAnimator();
+        if (message == null || message.isEmpty()) {
+            textAnimator.setText("");
+            textAnimator.stop();
+            return;
+        }
+        textAnimator.setText(message);
+        textAnimator.setForeground(color);
+        if (!textAnimator.isRunning()) {
+            textAnimator.start();
+        }
+    }
 }
