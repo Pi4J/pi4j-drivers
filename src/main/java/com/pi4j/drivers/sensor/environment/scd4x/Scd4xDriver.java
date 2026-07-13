@@ -36,7 +36,7 @@ public class Scd4xDriver implements Sensor {
     private final I2C i2c;
     private final ByteBuffer ioBuf = ByteBuffer.allocate(9);
     private final Delay delay = new Delay();
-    
+
     private Mode mode = Mode.IDLE;
 
     /**
