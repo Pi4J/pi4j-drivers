@@ -3,6 +3,7 @@ package com.pi4j.drivers.sensor.environment.scd4x;
 import com.pi4j.drivers.sensor.Sensor;
 import com.pi4j.drivers.sensor.SensorDescriptor;
 import com.pi4j.io.i2c.I2C;
+import com.pi4j.util.Delay;
 
 import java.nio.ByteBuffer;
 import java.time.Instant;
@@ -22,12 +23,20 @@ public class Scd4xDriver implements Sensor {
             .addValue(SensorDescriptor.Kind.TEMPERATURE)
             .addValue(SensorDescriptor.Kind.PRESSURE)
             .addValue(SensorDescriptor.Kind.CO2)
+            .addI2cAddress(I2C_ADDRESS)
+            .setI2cSensorDetector(i2c -> {
+                try {
+                    return new Scd4xDriver(i2c);
+                } catch (Exception e) {
+                    return null;
+                }
+            })
             .build();
 
     private final I2C i2c;
     private final ByteBuffer ioBuf = ByteBuffer.allocate(9);
-
-    private Instant busyUntil = Instant.now();
+    private final Delay delay = new Delay();
+    
     private Mode mode = Mode.IDLE;
 
     /**
@@ -80,7 +89,7 @@ public class Scd4xDriver implements Sensor {
         if (wasIdle) {
             startPeriodicMeasurement();
         }
-        materializeDelay();
+        delay.materialize();
 
         int expectedInterval = (mode == Mode.LOW_POWER_PERIODIC_MEASUREMENT ? 30_000 : 5_000);
         // Multiply with 1.5 to allow some tolerance.
@@ -266,7 +275,7 @@ public class Scd4xDriver implements Sensor {
      */
     public long getSerialNumber() {
         sendConfigurationCommand(CommandCodes.GET_SERIAL_NUMBER, 1);
-        materializeDelay();
+        delay.materialize();
         i2c.read(ioBuf.array(), 0, 3 * 3);
         return (((long) getWord(0)) << 32)
                 | ((long) getWord(3) << 16)
@@ -384,7 +393,7 @@ public class Scd4xDriver implements Sensor {
      * does not denote when a measurement will be available
      */
     public Instant getBusyUntil() {
-        return busyUntil;
+        return delay.getBusyUntil();
     }
 
     /**
@@ -446,7 +455,7 @@ public class Scd4xDriver implements Sensor {
      * (from the timeMs parameter) in busyUntil.
      */
     private void sendCommand(int cmdCode, int timeMs, int... args) {
-        materializeDelay();
+        delay.materialize();
 
         ioBuf.putShort((short) cmdCode);
 
@@ -460,41 +469,16 @@ public class Scd4xDriver implements Sensor {
         i2c.write(ioBuf.array(), ioBuf.position());
         ioBuf.clear();
 
-        setDelayMs(1);
-    }
-
-    /**
-     * Sets a delay in ms that will be applied before the next instruction is sent to the chip, counting from now.
-     * The corresponding instant can be queried via getBusyUntil().
-     */
-    private void setDelayMs(int delayMs) {
-        Instant target = Instant.now().plusMillis(delayMs);
-        if (target.isAfter(busyUntil)) {
-            busyUntil = target;
-        }
+        delay.setMillis(1);
     }
 
     private int readValue() {
-        materializeDelay();
+        delay.materialize();
         // .array() as Pi4j does sketchy stuff when handing in byte buffers directly
         i2c.read(ioBuf.array(), 3);
         return getWord(0);
     }
 
-    private void materializeDelay() {
-        while (true) {
-            long remaining = Instant.now().until(busyUntil, ChronoUnit.MILLIS);
-            if (remaining < 0) {
-                break;
-            }
-            try {
-                Thread.sleep(remaining);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new RuntimeException(e);
-            }
-        }
-    }
 
     @Override
     public void close() {
