@@ -7,7 +7,6 @@ import com.pi4j.util.Delay;
 
 import java.nio.ByteBuffer;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 
 /**
  * Pi4J-based driver for SCD4X CO₂ (+ temperature and humidity) sensors.
