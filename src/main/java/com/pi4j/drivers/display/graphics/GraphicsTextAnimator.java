@@ -16,7 +16,7 @@ public final class GraphicsTextAnimator {
     private final int frameY;
     private final int frameWidth;
     private final Object lock = new Object();
-    private final Timer timer = new Timer();
+    private final Timer timer = new Timer(/* daemon= */ true);
 
     private BitmapFont font = BitmapFont.get5x8Font(BitmapFont.Option.PROPORTIONAL);
     private int foreground = Argb32.WHITE;
