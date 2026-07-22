@@ -38,9 +38,9 @@ public class Uln2003Driver {
      */
     public void move(int steps, Duration delay) {
         int absSteps = Math.abs(steps);
+        int[] sequence = steps < 0 ? REVERSE : SEQUENCE;
         for (int i = 0; i < absSteps; i++) {
-            for (int pattern : steps < 0 ? REVERSE : SEQUENCE) {
-                System.out.println("" + (pattern&8) + (pattern&4) + (pattern&2) + (pattern&1));
+            for (int pattern : sequence) {
                 pin1.setState((pattern & 8) != 0);
                 pin2.setState((pattern & 4) != 0);
                 pin3.setState((pattern & 2) != 0);
