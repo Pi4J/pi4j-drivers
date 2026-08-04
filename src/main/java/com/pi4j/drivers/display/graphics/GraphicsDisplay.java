@@ -10,7 +10,7 @@ import java.util.*;
  * is to support multiple states (clipping, color) simultaneously.
  */
 public class GraphicsDisplay {
-    private static final int MAX_TRANSFER_SIZE = 4000;
+    static final int DEFAULT_MAX_TRANSFER_SIZE = 4000;
 
     /**
      * This enum represents the display rotation in 90° steps. It's always applied before mirroring.
@@ -41,7 +41,8 @@ public class GraphicsDisplay {
     final Object lock = new Object();
     final int[] displayBuffer;
 
-    private final Timer timer = new Timer();
+    // TODO: Replace with executors
+    private final Timer timer = new Timer(true);
 
     private int modifiedXMax = Integer.MIN_VALUE;
     private int modifiedXMin = Integer.MAX_VALUE;
@@ -102,6 +103,7 @@ public class GraphicsDisplay {
     public void attachDriver(int x0, int y0, GraphicsDisplayDriver driver, Rotation rotation, Mirror mirror) {
         synchronized (lock) {
             drivers.add(new DriverEntry(x0, y0, driver, rotation.minus(driver.getDisplayInfo().getImplicitRotation()), mirror));
+            markModified(0, 0, displayWidth, displayHeight);
         }
     }
 
@@ -193,14 +195,29 @@ public class GraphicsDisplay {
             if (transferDelayMillis == 0) {
                 flush();
             } else if (pendingUpdate == null && transferDelayMillis > 0) {
-                pendingUpdate = new TimerTask() {
-                    @Override
-                    public void run() {
+                scheduleUpdate();
+            }
+        }
+    }
+
+    void scheduleUpdate() {
+        synchronized (lock) {
+            pendingUpdate = new TimerTask() {
+                @Override
+                public void run() {
+                    synchronized (lock) {
+                        for (DriverEntry entry : drivers) {
+                            if (entry.driver.isBusy()) {
+                                scheduleUpdate();
+                                return;
+                            }
+                        }
                         pendingUpdate = null;
                         flush();
-                    }};
-                timer.schedule(pendingUpdate, transferDelayMillis);
-            }
+                    }
+                }
+            };
+            timer.schedule(pendingUpdate, transferDelayMillis);
         }
     }
 
@@ -307,7 +324,7 @@ public class GraphicsDisplay {
             int bitsPerRow = driver.getDisplayInfo().getWidth() * driver.getDisplayInfo().getPixelFormat().getBitCount();
             // We limit the transfer size to 4000 bytes, but at least a full row of pixels
             this.transferBuffer = new byte[Math.min(
-                    Math.max(MAX_TRANSFER_SIZE, (bitsPerRow + 7) / 8),
+                    Math.max(driver.getTransferLimit(), (bitsPerRow + 7) / 8),
                     (bitsPerRow * driver.getDisplayInfo().getHeight() + 7) / 8)];
         }
 
