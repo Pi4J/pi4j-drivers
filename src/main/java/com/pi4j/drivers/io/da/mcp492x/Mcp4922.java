@@ -32,8 +32,8 @@ public class Mcp4922 {
     }
 
     public void writeTwelvePerVoltage(double vout, double vref, boolean AB, boolean buffered, boolean ga2x, boolean shdn) {
-        int gain = (ga2x) ? 2 : 1;
-        int twelveBit = Math.toIntExact(Math.round(vout * 4096 / gain * vref));
+        int gain = (ga2x) ? 1 : 2;
+        int twelveBit = (int) ((vout * 4096) / (gain * vref));
         writeTwelve(twelveBit, AB, buffered, ga2x, shdn);
     }
 

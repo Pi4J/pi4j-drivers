@@ -15,7 +15,7 @@ public abstract class Mcp472xDriver {
 
 
     public boolean setOutputVoltEEPROM(float voltage) {
-        int twelveBit = (int) ((voltage/this.vref) * 4095);
+        int twelveBit = (int) ((voltage/this.vref) * 4096);
         return  this.setOutputEEPROM(twelveBit);
     }
 
@@ -37,8 +37,7 @@ public abstract class Mcp472xDriver {
     }
 
     public boolean setOutputVoltFast(float voltage) {
-        boolean rval = false;
-        int twelveBit = (int) ((voltage/this.vref) * 4095);
+        int twelveBit = (int) ((voltage/this.vref) * 4096);
         return  this.setOutputFast(twelveBit);
     }
 
