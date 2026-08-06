@@ -14,11 +14,9 @@ public abstract class Mcp472xDriver {
     }
 
 
-    public boolean setOutputVoltEEPROM(float twelveBitData) {
-        boolean rval = false;
-        int twelveBit = (int) Math.round((twelveBitData * 4096) / this.vref) - 1;
-        rval = this.setOutputEEPROM(twelveBit);
-        return (rval);
+    public boolean setOutputVoltEEPROM(float voltage) {
+        int twelveBit = (int) ((voltage/this.vref) * 4095);
+        return  this.setOutputEEPROM(twelveBit);
     }
 
     public boolean setOutputEEPROM(int twelveBitData) {
@@ -38,11 +36,10 @@ public abstract class Mcp472xDriver {
         return (rval);
     }
 
-    public boolean setOutputVoltFast(float twelveBitData) {
+    public boolean setOutputVoltFast(float voltage) {
         boolean rval = false;
-        int twelveBit = (int) Math.round((twelveBitData * 4096) / this.vref) - 1;
-        rval = this.setOutputFast(twelveBit);
-        return (rval);
+        int twelveBit = (int) ((voltage/this.vref) * 4095);
+        return  this.setOutputFast(twelveBit);
     }
 
     public boolean setOutputFast(int twelveBitData) {

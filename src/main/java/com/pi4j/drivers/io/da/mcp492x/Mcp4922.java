@@ -22,7 +22,7 @@ public class Mcp4922 {
         byte[] spiData = new byte[2];
         twelveBit = ((AB) ? (twelveBit | ABMask) : (twelveBit & ~ABMask));
         twelveBit = ((buffered) ? (twelveBit | bufferedMask) : (twelveBit & ~bufferedMask));
-        twelveBit = ((ga2x) ? (twelveBit | ga2xMask) : (twelveBit & ~ga2xMask))  ;
+        twelveBit = ((ga2x) ? (twelveBit | ga2xMask) : (twelveBit & ~ga2xMask));
         twelveBit = ((shdn) ? (twelveBit | shdnMask) : (twelveBit & ~shdnMask));
 
         spiData[0] = (byte) (spiData[0] | (byte) ((twelveBit & 0xFF00) >> 8));
@@ -31,4 +31,10 @@ public class Mcp4922 {
 
     }
 
-   }
+    public void writeTwelvePerVoltage(double vout, double vref, boolean AB, boolean buffered, boolean ga2x, boolean shdn) {
+        int gain = (ga2x) ? 2 : 1;
+        int twelveBit = Math.toIntExact(Math.round(vout * 4096 / gain * vref));
+        writeTwelve(twelveBit, AB, buffered, ga2x, shdn);
+    }
+
+}
