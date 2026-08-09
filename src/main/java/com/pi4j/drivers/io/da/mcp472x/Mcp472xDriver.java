@@ -3,6 +3,9 @@ package com.pi4j.drivers.io.da.mcp472x;
 
 import com.pi4j.util.Delay;
 
+/**
+ *  Parent class to family of MCP472x DAC chips
+ */
 
 public abstract class Mcp472xDriver {
 
@@ -14,11 +17,28 @@ public abstract class Mcp472xDriver {
     }
 
 
+    /**
+     *   Set DAC eeprom to the 12 bit value
+     *
+     * @param voltage    float value of the desired VOUT. Method calculates the DAC
+     *                   value and sets the DAC register
+     * @return
+     */
     public boolean setOutputVoltEEPROM(float voltage) {
         int twelveBit = (int) ((voltage/this.vref) * 4096);
         return  this.setOutputEEPROM(twelveBit);
     }
 
+
+    /**
+     *   Set DAC eeprom to the 12 bit value
+     *
+     *                            12 bits
+     *   C2 C1 C0 RDY POR PD1 PD0 D11 D10 D9 D8 D7 D6 D5 D4 D3 D2 D1 D0
+     *
+     * @param twelveBitData
+     * @return true with success else false
+     */
     public boolean setOutputEEPROM(int twelveBitData) {
         boolean rval = false;
         int registerData = twelveBitData;
@@ -36,11 +56,27 @@ public abstract class Mcp472xDriver {
         return (rval);
     }
 
+
+    /**
+     *
+     * @param voltage    float value of the desired VOUT. Method calculates the DAC
+     *                   value and sets the DAC register
+     * @return
+     */
     public boolean setOutputVoltFast(float voltage) {
         int twelveBit = (int) ((voltage/this.vref) * 4096);
         return  this.setOutputFast(twelveBit);
     }
 
+    /**
+     *   Set DAC register to the 12 bit value
+     *
+     *                            12 bits
+     *   C2 C1 C0 RDY POR PD1 PD0 D11 D10 D9 D8 D7 D6 D5 D4 D3 D2 D1 D0
+     *
+     * @param twelveBitData
+     * @return true with success else false
+     */
     public boolean setOutputFast(int twelveBitData) {
         boolean rval = false;
         int registerData = twelveBitData;
@@ -60,6 +96,10 @@ public abstract class Mcp472xDriver {
     }
 
 
+    /**
+     *
+     * @return  true if chip idle, else false
+     */
     boolean chipIdle() {
         int[] data = this.readBuffer(Constants._MCP4725_CHIP_READ_SIZE);
         return (data[0] & Constants._MCP4725_READ_CMD_IS_COMPLT) != 0;
@@ -75,7 +115,6 @@ public abstract class Mcp472xDriver {
     }
 
 
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     int[] readBuffer(int readLen) {
         byte[] readData = new byte[readLen];
         int rc = readChip(readData);
@@ -87,9 +126,19 @@ public abstract class Mcp472xDriver {
     }
 
 
-
+    /**
+     *   Subclass implements code capable to using the chip 'bus' for communication
+     * @param readData
+     * @return  number bytes read
+     */
     abstract int readChip(byte[] readData);
 
+    /**
+     *   Subclass implements code capable to using the chip 'bus' for communication
+     *
+     * @param chipData
+     * @return  number bytes written
+     */
     abstract int writeToChip(byte[] chipData);
 
 
