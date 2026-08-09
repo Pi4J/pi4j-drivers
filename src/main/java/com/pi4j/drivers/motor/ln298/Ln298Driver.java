@@ -16,6 +16,9 @@ public class Ln298Driver {
      * Creates a LN298 driver instance that controls the 3 input pins for a single motor, translating the desired
      * speed in the range -100 (full speed backwards) to 100 (full speed forward) to the right state of the three
      * given pins.
+     * <p>
+     * The speedPwm can be left null if the corresponding ENA or ENB pin is bridged (might be useful for testing
+     * purposes). In this case, the speed effectively will be 0 for 0, 100 for positive and -100 for negative values.
      *
      * @param forwardPin The DigitalOutput controlling the pin enabling forward motion; IN1 for motor A and IN3 for motor B.
      * @param backwardsPin The DigitalOutput controlling the pin enabling backwards motion; IN2 for motor A and IN4 for motor B.
@@ -38,17 +41,23 @@ public class Ln298Driver {
         if (speed == 0) {
             forwardPin.setState(false);
             backwardsPin.setState(false);
-            speedPwm.setState(false);
+            if (speedPwm != null) {
+                speedPwm.off();
+            }
         } else if (speed > 0) {
             forwardPin.setState(true);
             backwardsPin.setState(false);
-            // TODO: Remove rounding when we link to Pi4j 5.0
-            speedPwm.setDutyCycle((int) Math.round(speed));
+            if (speedPwm != null) {
+                // TODO: Remove rounding when we link to Pi4j 5.0
+                speedPwm.on((int) Math.round(speed));
+            }
         } else {
             forwardPin.setState(false);
             backwardsPin.setState(true);
-            // TODO: Remove rounding when we link to Pi4j 5.0
-            speedPwm.setDutyCycle(-(int) Math.round(speed));
+            if (speedPwm != null) {
+                // TODO: Remove rounding when we link to Pi4j 5.0
+                speedPwm.on(-(int) Math.round(speed));
+            }
         }
     }
 
