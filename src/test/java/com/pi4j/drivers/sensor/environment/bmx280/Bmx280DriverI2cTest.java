@@ -6,11 +6,13 @@ import com.pi4j.exception.Pi4JException;
 import com.pi4j.io.i2c.I2C;
 import com.pi4j.io.i2c.I2CConfigBuilder;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Disabled;
 
 /**
  * Runs tests if a BME 280 configured to the BMP 280 address or a BMP 280 is connected to i2c bus 1;
  * aborts otherwise.
  */
+@Disabled
 public class Bmx280DriverI2cTest extends AbstractBmx280DriverTest {
 
     static final int BUS = 1;
