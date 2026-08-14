@@ -37,7 +37,7 @@ public class Mcp4921 extends Mcp4922 {
      * @param shdn      true chip is operational
      */
     public void writeTwelvePerVoltage(double vout, double vref, boolean buffered, boolean ga2x, boolean shdn) {
-        int twelveBit = Math.toIntExact(Math.round(vout * 4095 / vref));
+        int twelveBit = (int) ( (vout * 4095) / vref);
         writeTwelve(twelveBit, buffered, ga2x, shdn);
 
     }
