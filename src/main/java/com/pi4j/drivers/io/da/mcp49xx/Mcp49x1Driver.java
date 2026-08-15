@@ -52,7 +52,7 @@ public class Mcp49x1Driver implements DigitalAnalogConverter {
     @Override
     public void setVoltage(int channel, double value) {
         int gainFactor = (flags & Constants.GAIN_2X_MASK) != 0 ? 1 : 2;
-        setDigitalValue(channel, (int) (value * maxValue / referenceVoltage / gainFactor));
+        setDigitalValue(channel, (int) (value * maxValue / (gainFactor * referenceVoltage)));
     }
 
     /** Writes the n-bit (depending on the chip) digital value and all pending settings directly. */
@@ -60,7 +60,7 @@ public class Mcp49x1Driver implements DigitalAnalogConverter {
         if (value < 0 || value > maxValue) {
             throw new IllegalArgumentException("Digitized value out of range (0.." + maxValue + "): " + value);
         }
-        writeWord(flags | value);
+        writeWord(Constants.SHUTDOWN_MASK | flags | value);
     }
 
     // Private helpers -------------------------------------------------------------------------------------------------

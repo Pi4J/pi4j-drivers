@@ -53,7 +53,7 @@ abstract class Mcp49x2Driver implements DigitalAnalogConverter {
     /** Powers down the givne channel (0 or 1). The channel is automatically re-enabled when a voltage is set. */
     public void shutdown(int channel) {
         checkChannelRange(channel);
-        writeWord(Constants.SHUTDOWN_MASK | (channel * Constants.AB_MASK));
+        writeWord(channel * Constants.AB_MASK);
     }
 
     /** Calculates the digital output value based on the reference voltage and gain and writes it to the chip */
@@ -69,10 +69,11 @@ abstract class Mcp49x2Driver implements DigitalAnalogConverter {
      * For lower resolution chips, the loweR bits are ignored.
      */
     public void setDigitalValue(int channel, int value) {
+        checkChannelRange(channel);
         if (value < 0 || value > Constants.MAX_VALUE) {
             throw new IllegalArgumentException("Digitized value out of range (0.." + Constants.MAX_VALUE + "): " + value);
         }
-        writeWord(flags[channel] | value);
+        writeWord( Constants.SHUTDOWN_MASK | (channel * Constants.AB_MASK) | flags[channel] | value);
     }
 
     // Private helpers -------------------------------------------------------------------------------------------------
