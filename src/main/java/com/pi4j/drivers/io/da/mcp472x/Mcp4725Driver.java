@@ -7,7 +7,7 @@ import com.pi4j.util.Delay;
 /**
  *  Driver for MCP4725 DAC.
  *  <p>
- *  This chip can preserve written values in an internal EERPROM. This feature is controlled via setEepromEnabled()
+ *  This chip can preserve written values in an internal EEPROM. This feature is controlled via setEepromEnabled()
  *  and off by default. Note that writes through the EEPROM are slower.
  *
  *  @see <a href="https://https://www.alldatasheet.com/datasheet-pdf/pdf/1692417/MICROCHIP/MCP4725.html">MCP4725</a>
@@ -18,7 +18,8 @@ public class Mcp4725Driver implements DigitalAnalogConverter {
     private final I2C i2c ;
     private final double vref;
     private final Delay delay = new Delay();
-    private final byte[] ioBuffer = new byte[Constants.MCP4725_SET_EEPROM_SIZE];
+    private final byte[] ioBuffer = new byte[Math.max(Constants.MCP4725_SET_FAST_SIZE,
+            Math.max(Constants.MCP4725_SET_EEPROM_SIZE, Constants.MCP4725_CHIP_READ_SIZE))];
 
     private boolean eepromEnabled;
     private boolean lastWriteWasToEeprom;
