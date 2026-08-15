@@ -4,35 +4,35 @@ package com.pi4j.drivers.io.da.mcp472x;
  * package-private 
  */
 class Constants {
-    static final int _MCP4725_DEFAULT_ADDRESS = 0x62;
+    static final int MCP4725_DEFAULT_ADDRESS = 0x62;
 
-    static final int _MCP4725_SET_EEPROM_SIZE = 0x06;
-    static final int _MCP4725_SET_FAST_SIZE = 0x04;
-    static final int _MCP4725_CHIP_READ_SIZE = 0x05;
+    static final int MCP4725_SET_EEPROM_SIZE = 0x06;
+    static final int MCP4725_SET_FAST_SIZE = 0x04;
+    static final int MCP4725_CHIP_READ_SIZE = 0x05;
 
-    static final byte _MCP4725_WRITE_CMD_FAST = 0b00000000;
-    static final byte _MCP4725_WRITE_CMD_DAC = 0b01000000;
-    static final byte _MCP4725_WRITE_CMD_DAC_EEPROM = 0b01100000;
+    static final byte MCP4725_WRITE_CMD_FAST = 0b00000000;
+    static final byte MCP4725_WRITE_CMD_DAC = 0b01000000;
+    static final byte MCP4725_WRITE_CMD_DAC_EEPROM = 0b01100000;
 
-    static final byte _MCP4725_PD_MODE_NORMAL = 0b00000000;
-    static final byte _MCP4725_PD_MODE_INOPT = 0b00000110;
+    static final byte MCP4725_PD_MODE_NORMAL = 0b00000000;
+    static final byte MCP4725_PD_MODE_INOPT = 0b00000110;
 
-    static final byte _MCP4725_DAC_PD0_MODE_MASK = 0b00000010;
-    static final byte _MCP4725_DAC_PD1_MODE_MASK = 0b00000100;
+    static final byte MCP4725_DAC_PD0_MODE_MASK = 0b00000010;
+    static final byte MCP4725_DAC_PD1_MODE_MASK = 0b00000100;
 
-    static final int _MCP4725_EEPROM_PD1_MODE_MASK = 0b10000000;
-    static final byte _MCP4725_EEPROM_PD0_MODE_MASK = 0b01000000;
+    static final int MCP4725_EEPROM_PD1_MODE_MASK = 0b10000000;
+    static final byte MCP4725_EEPROM_PD0_MODE_MASK = 0b01000000;
 
     // Indicate EEPROM write/update status
-    static final byte _MCP4725_READ_CMD_RDY_BSY_MSK = (byte) 0b10000000;
-    static final byte _MCP4725_READ_CMD_IS_COMPLT = (byte) 0b10000000;
-    static final byte _MCP4725_READ_CMD_IS_NOT_COMPLT = (byte) 0b00000000;
+    static final byte MCP4725_READ_CMD_RDY_BSY_MSK = (byte) 0b10000000;
+    static final byte MCP4725_READ_CMD_IS_COMPLT = (byte) 0b10000000;
+    static final byte MCP4725_READ_CMD_IS_NOT_COMPLT = (byte) 0b00000000;
 
     // POR device load EEPROM
-    static final byte _MCP4725_GEN_CALL_RESET_CMD = (byte) 0b00000110;
+    static final byte MCP4725_GEN_CALL_RESET_CMD = (byte) 0b00000110;
 
     // POR device   PD1 and PD0 set to 0 for normal operation
-    static final byte _MCP4725_GEN_CALL_WAKEUP_CMD = (byte) 0b00001001;
+    static final byte MCP4725_GEN_CALL_WAKEUP_CMD = (byte) 0b00001001;
 
 
     // Write
