@@ -35,8 +35,9 @@ abstract class Mcp49x2Driver implements DigitalAnalogConverter {
     }
 
     /**
-     * Sets 2x gain for the given channel according to the enable parameter. Note that this will only take
-     * effect when then next voltage is written.
+     * Sets 2x gain according to the enable parameter. Note that this will only take
+     * effect when then next voltage is written. Note that enabling 2x gain expands the range of the voltages
+     * available -- it doesn't double the output voltage compared to the voltage requested in setVoltage.
      */
     public void set2xGain(int channel, boolean enable) {
         setFlag(channel, Constants.GAIN_2X_MASK, !enable);
@@ -66,7 +67,7 @@ abstract class Mcp49x2Driver implements DigitalAnalogConverter {
 
     /**
      * Writes the 12-bit digital value (0..4095) and all pending settings directly.
-     * For lower resolution chips, the loweR bits are ignored.
+     * For lower resolution chips, the lower bits are ignored.
      */
     public void setDigitalValue(int channel, int value) {
         checkChannelRange(channel);
