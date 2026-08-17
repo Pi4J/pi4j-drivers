@@ -14,7 +14,7 @@ Drivers 1.x releases are generally compatible with Pi4J Version 4.x
 
 ## Using this Library
 
-As this is library is still in early stage, you can only get a SNAPSHOT-version. To be able to use it in your project, you'll need to add both the dependency, and allow SNAPSHOTs:
+Releases are published to [Maven central](https://central.sonatype.com/artifact/com.pi4j/pi4j-drivers). Snapshot builds are available via Maven Central Snapshots.
 
 ```xml
 <dependencies>
