@@ -3,6 +3,7 @@ package com.pi4j.drivers.io.da.mcp49xx;
 import com.pi4j.drivers.io.da.DigitalAnalogConverter;
 import com.pi4j.io.spi.Spi;
 
+
 /**
  *  Driver class for MCP49x2 two channel DAC chips with external reference voltages.
  *
@@ -12,7 +13,7 @@ import com.pi4j.io.spi.Spi;
  *  @see <a href="https://www.mouser.com/datasheet/2/268/22250A-14454.pdf">MCP4922 Datasheet</a>
  */
 
-abstract class Mcp49x2Driver implements DigitalAnalogConverter {
+ public class Mcp49x2Driver implements DigitalAnalogConverter {
     private final Spi spi;
     private final int[] flags = new int[2];
     private final byte[] spiData = new byte[2];
@@ -50,7 +51,7 @@ abstract class Mcp49x2Driver implements DigitalAnalogConverter {
         setFlag(channel, Constants.BUFFERED_MASK, enable);
     }
 
-    /** Powers down the givne channel (0 or 1). The channel is automatically re-enabled when a voltage is set. */
+    /** Powers down the given channel (0 or 1). The channel is automatically re-enabled when a voltage is set. */
     public void shutdown(int channel) {
         checkChannelRange(channel);
         writeWord(channel * Constants.AB_MASK);
