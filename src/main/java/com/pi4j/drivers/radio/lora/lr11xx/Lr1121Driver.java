@@ -5,12 +5,14 @@ import java.time.Duration;
 import java.util.Optional;
 
 import com.pi4j.context.Context;
+import com.pi4j.io.ListenableOnOffRead;
+import com.pi4j.io.OnOffRead;
+import com.pi4j.io.OnOffWrite;
 import com.pi4j.io.gpio.digital.DigitalInput;
 import com.pi4j.io.gpio.digital.DigitalInputConfigBuilder;
 import com.pi4j.io.gpio.digital.DigitalOutput;
 import com.pi4j.io.gpio.digital.DigitalOutputConfigBuilder;
 import com.pi4j.io.gpio.digital.DigitalState;
-import com.pi4j.io.gpio.digital.PullResistance;
 import com.pi4j.io.spi.Spi;
 import com.pi4j.io.spi.SpiChipSelect;
 import com.pi4j.io.spi.SpiConfigBuilder;
@@ -99,7 +101,15 @@ public class Lr1121Driver implements Closeable {
 
     private final Lr11xxIo io;
 
-    /** Remembered from configure(), because the amplifier belongs to the board. */
+    /**
+     * Remembered from {@link #configure(BoardConfig)}, because the amplifier belongs
+     * to the board rather than to the power asked for.
+     *
+     * <p>Until then it is the Core1121's. That default only matters to a radio
+     * transmitting without ever having been configured — one whose oscillator and
+     * antenna switch have not been set up either, so the amplifier is the least of
+     * what is wrong with it.
+     */
     private BoardConfig board = BoardConfig.core1121();
 
     /**
@@ -117,9 +127,7 @@ public class Lr1121Driver implements Closeable {
      * The ordinary way in: name the wiring, get a radio.
      *
      * <p>This asks for the things only the person who wired the board can know, and
-     * sets everything that is the chip's business rather than theirs. All of it is
-     * required, because a constructor that cannot be called without the pin numbers
-     * is a better guarantee than any amount of checking afterwards.
+     * sets everything that is the chip's business rather than theirs.
      *
      * <pre>{@code
      * try (Lr1121Driver radio = new Lr1121Driver(pi4j, 0, SpiChipSelect.CS_0, 22, 24, 23)) {
@@ -127,7 +135,7 @@ public class Lr1121Driver implements Closeable {
      * }
      * }</pre>
      *
-     * <p>What it sets for you, and why none of it belongs to the caller:
+     * <p>What it sets for you:
      *
      * <ul>
      * <li><b>SPI mode 0.</b> The chip clocks on the rising edge with the clock
@@ -143,6 +151,9 @@ public class Lr1121Driver implements Closeable {
      * silently, and looks exactly like a missing antenna.</li>
      * <li><b>No pull resistor.</b> Both lines are driven by the chip.</li>
      * </ul>
+     *
+     * <p>The bus and the lines are registered under ids that carry the wiring —
+     * {@code lr11xx-busy-24} and so on — so several radios can share one context.
      *
      * @param pi4j the caller's context. The radio creates its bus and lines from it
      *        and closes them again on {@link #close()}, and does not touch the
@@ -169,35 +180,36 @@ public class Lr1121Driver implements Closeable {
                         int resetPin, int busyPin, int interruptPin, int baud) {
         this(new Pi4jLr11xxIo(
                 pi4j.create(SpiConfigBuilder.newInstance(pi4j)
-                        .id("lr11xx-spi")
+                        .id("lr11xx-spi-" + spiBus + "-" + chipSelect.getChipSelect())
                         .bus(spiBus)
                         .chipSelect(chipSelect)
                         .mode(SpiMode.MODE_0)
                         .baud(baud)
                         .build()),
                 pi4j.create(DigitalOutputConfigBuilder.newInstance(pi4j)
-                        .id("lr11xx-reset")
+                        .id("lr11xx-reset-" + resetPin)
                         .bcm(resetPin)
                         .initial(DigitalState.HIGH)
                         .shutdown(DigitalState.HIGH)
                         .build()),
-                input(pi4j, "lr11xx-busy", busyPin),
-                input(pi4j, "lr11xx-irq", interruptPin),
+                pi4j.create(DigitalInputConfigBuilder.newInstance(pi4j)
+                        .id("lr11xx-busy-" + busyPin)
+                        .bcm(busyPin)
+                        .debounce(0L)
+                        .build()),
+                pi4j.create(DigitalInputConfigBuilder.newInstance(pi4j)
+                        .id("lr11xx-irq-" + interruptPin)
+                        .bcm(interruptPin)
+                        .debounce(0L)
+                        .build()),
                 true));
     }
 
-    private static DigitalInput input(Context pi4j, String id, int bcm) {
-        return pi4j.create(DigitalInputConfigBuilder.newInstance(pi4j)
-                .id(id)
-                .bcm(bcm)
-                .pull(PullResistance.OFF)
-                .debounce(0L)
-                .build());
-    }
-
     /**
-     * The ordinary way in: the SPI bus the radio is on, and the three lines that
-     * are not part of it.
+     * The same radio on lines the caller already has: a {@link DigitalOutput} and
+     * {@link DigitalInput}s built as below, or an I/O expander's pins from
+     * {@link com.pi4j.drivers.io.expander.OutputExpander#getOutput} and
+     * {@link com.pi4j.drivers.io.expander.InputExpander#getInput}.
      *
      * <p>Chip select is <b>not</b> among them. The radio's NSS pin goes to the SPI
      * controller's own chip select — CE0 on a Raspberry Pi — and the kernel drives
@@ -207,11 +219,12 @@ public class Lr1121Driver implements Closeable {
      * comes up at zero holds the radio in reset, after which it answers nothing and
      * every symptom points at the wiring.
      *
-     * <p>The two inputs <b>must</b> be created with {@code .debounce(0L)}, and this
-     * constructor refuses them otherwise. Pi4J debounces by ten milliseconds unless
-     * told not to, and passes that to the kernel — which then reports no edge at all
-     * for a pulse shorter than the window. This radio's pulses are far shorter, so
-     * the default costs every reception and looks exactly like a missing antenna.
+     * <p>A {@link DigitalInput} <b>must</b> be created with {@code .debounce(0L)},
+     * and this constructor refuses one that is not. Pi4J debounces by ten
+     * milliseconds unless told not to, and passes that to the kernel — which then
+     * reports no edge at all for a pulse shorter than the window. This radio's
+     * pulses are far shorter, so the default costs every reception and looks exactly
+     * like a missing antenna.
      *
      * <pre>{@code
      * Spi spi = pi4j.create(SpiConfigBuilder.newInstance(pi4j)
@@ -231,11 +244,13 @@ public class Lr1121Driver implements Closeable {
      * @param spi the bus, in mode 0. 10 MHz is what the vendor's demo uses; 2 MHz
      *        is a better choice over jumper wires, where a marginal bus corrupts
      *        the odd byte into a plausible-looking value rather than failing
-     * @param reset the radio's NRST pin, active low
+     * @param reset the radio's NRST pin, active low: off holds the radio in reset,
+     *        on runs it
      * @param busy the radio's BUSY pin
-     * @param interrupt the radio's DIO9 pin
+     * @param interrupt the radio's DIO9 pin, whose rising edge the driver waits on
      */
-    public Lr1121Driver(Spi spi, DigitalOutput reset, DigitalInput busy, DigitalInput interrupt) {
+    public Lr1121Driver(Spi spi, OnOffWrite<?> reset, OnOffRead<?> busy,
+                        ListenableOnOffRead<?> interrupt) {
         this(new Pi4jLr11xxIo(spi, reset, busy, interrupt));
     }
 
@@ -260,7 +275,14 @@ public class Lr1121Driver implements Closeable {
                 ((answer[2] & 0xFF) << 8) | (answer[3] & 0xFF));
     }
 
-    /** Hardware revision, device type, and firmware version. */
+    /**
+     * Hardware revision, device type, and firmware version.
+     *
+     * @param hardware the silicon revision
+     * @param useCase which chip this is, such as {@link #LR1121} — or
+     *        {@link #BOOTLOADER} before the firmware has taken over
+     * @param firmware the firmware version, as the chip reports it
+     */
     public record Version(int hardware, int useCase, int firmware) {
 
         /** What an LR1121 calls itself. An LR1110 is 0x01, an LR1120 is 0x02. */
@@ -295,6 +317,9 @@ public class Lr1121Driver implements Closeable {
      * <p>The order matters and is not obvious. The oscillator has to be configured
      * before calibrating, because the calibration measures against it — calibrate
      * first and the radio is trimmed for a clock it is not going to use.
+     *
+     * @param board how the chip was wired, which the driver also keeps: the power
+     *        amplifier every later {@link #transmit} uses belongs to the board
      */
     public void configure(BoardConfig board) {
         this.board = board;
@@ -324,6 +349,10 @@ public class Lr1121Driver implements Closeable {
     /**
      * The modulation and the channel. Both ends of a link must call this with the
      * same values; there is nothing in LoRa that would notice if they did not.
+     *
+     * @param frequencyHz the carrier, which also decides the band the image
+     *        rejection is calibrated for
+     * @param settings the modulation
      */
     public void configureLora(long frequencyHz, LoraSettings settings) {
         command(SET_PACKET_TYPE, PACKET_TYPE_LORA);
@@ -389,9 +418,12 @@ public class Lr1121Driver implements Closeable {
     /**
      * Sends a packet and waits for the radio to say it has gone.
      *
+     * @param payload up to 255 bytes, which is what a LoRa packet holds
+     * @param settings the modulation, which the receiver has to match exactly
      * @param powerDbm the output power. The high power path reaches 22 dBm; what
      *        is legal depends on where you are, and in EU868 it is 14 dBm ERP on
      *        most channels
+     * @param timeout how long to wait for the radio to report the packet as sent
      */
     public void transmit(byte[] payload, LoraSettings settings, int powerDbm, Duration timeout) {
         if (payload.length > 255) {
@@ -700,6 +732,15 @@ public class Lr1121Driver implements Closeable {
      * @param rfSwitchTx their levels while transmitting
      * @param rfSwitchTxHp the same for the high power path
      * @param rfSwitchTxHf the same for the high frequency (2.4 GHz) path
+     * @param amplifier which power amplifier the board's antenna is wired to, one of
+     *        the {@code PA_} constants. A property of the board, not of the power
+     *        asked for: the outputs the module leaves unconnected go nowhere at any
+     *        power
+     * @param amplifierSupply what feeds it, {@link #PA_SUPPLY_REGULATOR} or
+     *        {@link #PA_SUPPLY_BATTERY}
+     * @param amplifierDutyCycle the amplifier's duty cycle, as the vendor's table
+     *        for the board gives it
+     * @param amplifierSize the amplifier's size, from the same table
      */
     public record BoardConfig(int tcxoVoltage, int tcxoStartupTicks,
                               int rfSwitchEnable, int rfSwitchStandby, int rfSwitchRx,

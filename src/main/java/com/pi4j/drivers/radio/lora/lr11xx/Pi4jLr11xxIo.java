@@ -3,15 +3,24 @@ package com.pi4j.drivers.radio.lora.lr11xx;
 import java.time.Duration;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
+import com.pi4j.io.IO;
+import com.pi4j.io.ListenableOnOffRead;
+import com.pi4j.io.OnOffRead;
+import com.pi4j.io.OnOffWrite;
 import com.pi4j.io.gpio.digital.DigitalInput;
-import com.pi4j.io.gpio.digital.DigitalOutput;
-import com.pi4j.io.gpio.digital.DigitalStateChangeListener;
 import com.pi4j.io.spi.Spi;
 
 /**
  * {@link Lr11xxIo} over Pi4J: SPI for the bytes, three digital lines for reset,
  * busy and the interrupt.
+ *
+ * <p>The three lines are held as {@link OnOffRead} / {@link OnOffWrite} rather than
+ * as {@code DigitalInput} and {@code DigitalOutput}, which is what a Raspberry Pi's
+ * own GPIO and an I/O expander have in common. Nothing here needs more than that:
+ * the reset line is driven, the busy line is read, and the interrupt line is
+ * listened to.
  *
  * <p>Package private on purpose. It is what {@link Lr1121Driver} builds when it is
  * handed Pi4J objects, and there is nothing here a caller needs to name.
@@ -25,16 +34,17 @@ class Pi4jLr11xxIo implements Lr11xxIo {
     private static final int BUSY_POLL_MICROS = 200;
 
     private final Spi spi;
-    private final DigitalOutput reset;
-    private final DigitalInput busy;
-    private final DigitalInput interrupt;
+    private final OnOffWrite<?> reset;
+    private final OnOffRead<?> busy;
+    private final ListenableOnOffRead<?> interrupt;
 
     /**
      * Whether the bus and the lines are ours to close.
      *
-     * <p>They are when {@code Lr1121Driver.on(pi4j)} created them, and they are not
-     * when a caller built them and handed them over: that caller may well have
-     * plans for the pins after the radio is done with them.
+     * <p>They are when the {@link Lr1121Driver} constructor that takes a Pi4J
+     * context created them, and they are not when a caller built them and handed
+     * them over: that caller may well have plans for the pins after the radio is
+     * done with them.
      */
     private final boolean ownsIo;
 
@@ -50,34 +60,35 @@ class Pi4jLr11xxIo implements Lr11xxIo {
      */
     private final Semaphore edges = new Semaphore(0);
 
-    private final DigitalStateChangeListener edgeListener = event -> {
+    private final Consumer<Boolean> edgeListener = on -> {
         /*
            Pi4J has no rising-edge-only request, so both edges arrive here and the
            falling one is dropped. The radio raises the interrupt line to signal and
            lowers it when the interrupt is cleared, so counting both would report
            twice as many receptions as there were.
         */
-        if (event.state().isHigh()) {
+        if (on) {
             edges.release();
         }
     };
 
-    Pi4jLr11xxIo(Spi spi, DigitalOutput reset, DigitalInput busy, DigitalInput interrupt) {
+    Pi4jLr11xxIo(Spi spi, OnOffWrite<?> reset, OnOffRead<?> busy,
+                 ListenableOnOffRead<?> interrupt) {
         this(spi, reset, busy, interrupt, false);
     }
 
-    Pi4jLr11xxIo(Spi spi, DigitalOutput reset, DigitalInput busy, DigitalInput interrupt,
-                 boolean ownsIo) {
+    Pi4jLr11xxIo(Spi spi, OnOffWrite<?> reset, OnOffRead<?> busy,
+                 ListenableOnOffRead<?> interrupt, boolean ownsIo) {
         this.ownsIo = ownsIo;
         this.spi = spi;
         this.reset = reset;
         this.busy = busy;
         this.interrupt = interrupt;
 
-        requireUndebounced("busy", busy.config().debounce());
-        requireUndebounced("interrupt", interrupt.config().debounce());
+        requireUndebounced("busy", busy);
+        requireUndebounced("interrupt", interrupt);
 
-        interrupt.addListener(edgeListener);
+        interrupt.addConsumer(edgeListener);
     }
 
     /**
@@ -103,7 +114,18 @@ class Pi4jLr11xxIo implements Lr11xxIo {
      * fix the input — the caller built it — and a radio that never receives is a
      * worse outcome than a constructor that will not run. Neither of these lines
      * comes from anything that bounces; they are chip outputs.
+     *
+     * <p>Only a Pi4J {@code DigitalInput} carries a debounce setting. A line that
+     * arrives as something else — an expander pin, a test double — has no kernel
+     * window to get wrong, so there is nothing to refuse.
      */
+    private static void requireUndebounced(String which, OnOffRead<?> line) {
+        if (line instanceof DigitalInput input) {
+            requireUndebounced(which, input.config().debounce());
+        }
+    }
+
+    /** The check itself, on the value, so it can be tested without a GPIO line. */
     static void requireUndebounced(String which, Long debounce) {
         if (debounce != null && debounce != 0L) {
             throw new IllegalArgumentException(("The %s line is debounced by %d us, which for an"
@@ -132,7 +154,7 @@ class Pi4jLr11xxIo implements Lr11xxIo {
     @Override
     public void awaitReady(Duration timeout) {
         long deadline = System.nanoTime() + timeout.toNanos();
-        while (busy.state().isHigh()) {
+        while (busy.isOn()) {
             if (System.nanoTime() > deadline) {
                 throw new IllegalStateException(
                         "The radio has been busy for " + timeout + ": either the busy wire is not"
@@ -142,11 +164,15 @@ class Pi4jLr11xxIo implements Lr11xxIo {
         }
     }
 
+    /**
+     * Pulses NRST, which is active low: the line's off state holds the radio in
+     * reset and its on state runs it.
+     */
     @Override
     public void reset() {
-        this.reset.low();
+        this.reset.off();
         sleep(RESET_PULSE);
-        this.reset.high();
+        this.reset.on();
         sleep(RESET_RECOVERY);
 
         /*
@@ -179,13 +205,24 @@ class Pi4jLr11xxIo implements Lr11xxIo {
 
     @Override
     public void close() {
-        interrupt.removeListener(edgeListener);
+        interrupt.removeConsumer(edgeListener);
 
         if (ownsIo) {
-            interrupt.close();
-            busy.close();
-            reset.close();
+            closeLine(interrupt);
+            closeLine(busy);
+            closeLine(reset);
             spi.close();
+        }
+    }
+
+    /**
+     * Closes a line the driver created itself. The lines are held as on/off
+     * interfaces, which say nothing about closing — but anything Pi4J handed out is
+     * an {@link IO}, and that does.
+     */
+    private static void closeLine(Object line) {
+        if (line instanceof IO<?, ?, ?> io) {
+            io.close();
         }
     }
 

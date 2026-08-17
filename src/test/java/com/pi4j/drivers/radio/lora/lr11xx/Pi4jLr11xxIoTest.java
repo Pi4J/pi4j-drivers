@@ -1,21 +1,27 @@
 package com.pi4j.drivers.radio.lora.lr11xx;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Duration;
+
+import com.pi4j.io.ListenableOnOffRead;
 import com.pi4j.io.gpio.digital.DigitalInput;
 
 import org.junit.jupiter.api.Test;
 
 /**
- * The one part of the Pi4J binding that can be checked without a radio, and the
- * part most likely to save somebody an evening.
+ * What the Pi4J binding does around the bytes, checked without a radio: the
+ * debounce refusal, the lines taken as plain on/off interfaces, and what a reset
+ * leaves behind.
  *
- * <p>A debounced input is not a slower driver, it is a driver that receives
- * nothing: Pi4J passes the value to the kernel, which then reports no event at all
- * for a pulse shorter than the window. This radio's pulses are far shorter than the
- * ten milliseconds Pi4J defaults to.
+ * <p>The debounce refusal is the part most likely to save somebody an evening. A
+ * debounced input is not a slower driver, it is a driver that receives nothing:
+ * Pi4J passes the value to the kernel, which then reports no event at all for a
+ * pulse shorter than the window. This radio's pulses are far shorter than the ten
+ * milliseconds Pi4J defaults to.
  */
 class Pi4jLr11xxIoTest {
 
@@ -60,5 +66,55 @@ class Pi4jLr11xxIoTest {
     @Test
     void anAbsentValueIsNotADebounce() {
         assertDoesNotThrow(() -> Pi4jLr11xxIo.requireUndebounced("interrupt", null));
+    }
+
+    /**
+     * The three lines are on/off interfaces rather than GPIO objects so that an I/O
+     * expander's pins can carry them. This is that case: plain on/off lines, no
+     * {@code DigitalInput} anywhere, and the driver still waits on the interrupt and
+     * still polls busy.
+     *
+     * <p>The SPI bus is null on purpose — nothing checked here moves a byte, and a
+     * fake bus would only be a place for a mistake to hide.
+     */
+    @Test
+    void linesThatAreNotGpioObjectsStillWork() {
+        ListenableOnOffRead.Impl busy = new ListenableOnOffRead.Impl(false);
+        ListenableOnOffRead.Impl interrupt = new ListenableOnOffRead.Impl(false);
+
+        try (Pi4jLr11xxIo io = new Pi4jLr11xxIo(null, new ListenableOnOffRead.Impl(true),
+                busy, interrupt)) {
+            assertDoesNotThrow(() -> io.awaitReady(Duration.ofMillis(50)),
+                    "a line that is off is a radio that is ready");
+
+            assertFalse(io.awaitInterrupt(Duration.ofMillis(20)),
+                    "nothing has happened, so the wait has to time out");
+
+            interrupt.setState(true);
+            assertTrue(io.awaitInterrupt(Duration.ofMillis(20)),
+                    "the edge the line just raised is what the driver waits for");
+        }
+    }
+
+    /**
+     * Reset is active low, and the line is left switched on — which for a directly
+     * wired NRST is high, and for an inverted one is whatever the caller declared on
+     * to be. A radio left in reset answers nothing.
+     */
+    @Test
+    void resetLeavesTheLineOn() {
+        ListenableOnOffRead.Impl reset = new ListenableOnOffRead.Impl(true);
+        ListenableOnOffRead.Impl interrupt = new ListenableOnOffRead.Impl(false);
+
+        try (Pi4jLr11xxIo io = new Pi4jLr11xxIo(null, reset,
+                new ListenableOnOffRead.Impl(false), interrupt)) {
+            interrupt.setState(true);
+
+            io.reset();
+
+            assertTrue(reset.isOn(), "the radio has to be let out of reset again");
+            assertFalse(io.awaitInterrupt(Duration.ofMillis(20)),
+                    "the edge from before the reset would read as a packet of nothing");
+        }
     }
 }

@@ -75,16 +75,16 @@ class Lr1121DriverTest {
     // Bringing the radio up
     // ------------------------------------------------------------------
 
+    /** An LR1121 that has finished booting, which configure() waits for. */
+    private void radioHasBooted() {
+        transport.willAnswer(0x22, 0x03, 0x01, 0x01);
+    }
+
     /**
      * The board's own values reach the chip unchanged. These are the numbers that
      * cannot be derived from anything — they describe how the module was wired —
      * so the test states them literally, as the vendor's demo does.
      */
-    /** An LR1121 that has finished booting, which configure() now waits for. */
-    private void radioHasBooted() {
-        transport.willAnswer(0x22, 0x03, 0x01, 0x01);
-    }
-
     @Test
     void theBoardConfigurationIsSentAsTheVendorSendsIt() {
         radioHasBooted();
