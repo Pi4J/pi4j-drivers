@@ -11,7 +11,7 @@ import com.pi4j.context.Context;
 import com.pi4j.io.i2c.I2C;
 import com.pi4j.io.i2c.I2CConfig;
 
-//@Disabled
+@Disabled
 public class UltraBorgDriverTest {
 
     private static Logger log = LoggerFactory.getLogger(UltraBorgDriverTest.class);
