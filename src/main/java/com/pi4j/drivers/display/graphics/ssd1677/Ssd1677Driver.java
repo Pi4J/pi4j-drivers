@@ -58,7 +58,7 @@ public abstract class Ssd1677Driver implements GraphicsDisplayDriver {
     @Override
     public void close() {
         sendCommand(Command.DEEP_SLEEP_MODE, 0x03); //enter deep sleep
-        delay.setMillis(100);
+        delay.setMillis(100).materialize();
     }
 
     @Override
