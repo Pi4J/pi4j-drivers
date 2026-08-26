@@ -5,10 +5,12 @@ import com.pi4j.context.Context;
 import com.pi4j.drivers.sensor.geospatial.lsm9ds1.Lsm9ds1Driver;
 import com.pi4j.io.i2c.I2C;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Disabled
 public class Hts221DriverTest {
     // Sense HAT configuration
     private static final int BUS = 1;

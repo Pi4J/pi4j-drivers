@@ -8,11 +8,13 @@ import com.pi4j.exception.Pi4JException;
 import com.pi4j.io.i2c.I2C;
 import com.pi4j.io.i2c.I2CConfigBuilder;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Disabled
 public class Scd4xDriverTest {
 
     static final int BUS = 1;

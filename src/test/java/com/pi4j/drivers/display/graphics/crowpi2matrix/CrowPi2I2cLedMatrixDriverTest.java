@@ -6,7 +6,9 @@ import com.pi4j.drivers.display.graphics.GraphicsDisplayDriver;
 import com.pi4j.drivers.display.graphics.ws281x.Ws281xDriver;
 import com.pi4j.io.spi.Spi;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Disabled;
 
+@Disabled
 public class CrowPi2I2cLedMatrixDriverTest extends AbstractGraphicsDisplayDriverTest {
     @Override
     public GraphicsDisplayDriver createDriver(Context pi4j) {

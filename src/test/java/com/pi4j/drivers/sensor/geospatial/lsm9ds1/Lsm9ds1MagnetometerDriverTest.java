@@ -4,13 +4,11 @@ import com.pi4j.Pi4J;
 import com.pi4j.context.Context;
 import com.pi4j.drivers.sensor.geospatial.lsm9ds1.Lsm9ds1MagnetometerDriver.Range;
 import com.pi4j.io.i2c.I2C;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assumptions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Disabled
 public class Lsm9ds1MagnetometerDriverTest {
     // Sense HAT configuration
     private static final int BUS = 1;

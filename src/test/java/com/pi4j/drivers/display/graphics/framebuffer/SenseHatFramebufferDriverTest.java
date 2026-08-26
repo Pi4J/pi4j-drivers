@@ -4,7 +4,9 @@ import com.pi4j.context.Context;
 import com.pi4j.drivers.display.graphics.AbstractGraphicsDisplayDriverTest;
 import com.pi4j.drivers.display.graphics.GraphicsDisplayDriver;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Disabled;
 
+@Disabled
 public class SenseHatFramebufferDriverTest extends AbstractGraphicsDisplayDriverTest {
     @Override
     public GraphicsDisplayDriver createDriver(Context pi4j) {

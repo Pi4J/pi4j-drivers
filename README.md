@@ -5,15 +5,16 @@
 GitHub Actions: 
 ![Maven build](https://github.com/pi4j/pi4j-drivers/workflows/Build/badge.svg)
 
-**THIS IS THE VERY START OF A NEW PROJECT. NO USABLE CODE IS YET AVAILABLE.**
-
 This project contains driver implementations for various electronic components, using Pi4J V4+. Full description will be available on the Pi4J website at [Documentation > Using the Drivers Library](https://pi4j.com/documentation/drivers).
 
-For the current coverage state and plans, please refer to https://docs.google.com/document/d/1Gyeaq6xCbvmE-ZH675zyYz2Jhhc-76IA5tvJtxvjmbE/edit?usp=sharing
+## Pi4J core compatibility
+
+Drivers 1.x releases are generally compatible with Pi4J Version 4.x
+
 
 ## Using this Library
 
-As this is library is still in early stage, you can only get a SNAPSHOT-version. To be able to use it in your project, you'll need to add both the dependency, and allow SNAPSHOTs:
+Releases are published to [Maven central](https://central.sonatype.com/artifact/com.pi4j/pi4j-drivers). Snapshot builds are available via Maven Central Snapshots.
 
 ```xml
 <dependencies>
