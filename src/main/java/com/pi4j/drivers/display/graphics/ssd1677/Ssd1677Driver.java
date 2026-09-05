@@ -1,9 +1,6 @@
 package com.pi4j.drivers.display.graphics.ssd1677;
 
-import com.pi4j.drivers.display.graphics.GraphicsDisplay;
-import com.pi4j.drivers.display.graphics.GraphicsDisplayDescriptor;
-import com.pi4j.drivers.display.graphics.GraphicsDisplayDriver;
-import com.pi4j.drivers.display.graphics.PixelFormat;
+import com.pi4j.drivers.display.graphics.*;
 import com.pi4j.io.gpio.digital.DigitalInput;
 import com.pi4j.io.gpio.digital.DigitalOutput;
 import com.pi4j.io.spi.Spi;
@@ -58,7 +55,7 @@ public abstract class Ssd1677Driver implements GraphicsDisplayDriver {
     @Override
     public void close() {
         sendCommand(Command.DEEP_SLEEP_MODE, 0x03); //enter deep sleep
-        delay.setMillis(100);
+        delay.setMillis(100).materialize();
     }
 
     @Override
@@ -84,6 +81,12 @@ public abstract class Ssd1677Driver implements GraphicsDisplayDriver {
             setPixelsMonochrome(x, y, width, height, data);
         }
     }
+
+    void setPartialUpdatePolicy(PartialUpdatePolicy partialUpdatePolicy) {
+        this.partialUpdatePolicy = partialUpdatePolicy;
+    }
+
+    // Helpers -------------------------------------------------------------------------------------------------
 
     public void setPixelsMonochrome(int x, int y, int width, int height, byte[] data) {
         if (updateShadowMemory != null) {
@@ -166,8 +169,6 @@ public abstract class Ssd1677Driver implements GraphicsDisplayDriver {
     }
 
 
-        // Helpers -------------------------------------------------------------------------------------------------
-
     protected void reset() {
         rst.setState(1);
         delay.setMillis(100).materialize();
@@ -242,7 +243,4 @@ public abstract class Ssd1677Driver implements GraphicsDisplayDriver {
         sendCommand(Command.SET_RAM_X_ADDRESS, xStart & 0xFF, (xStart >> 8) & 0x03);
         sendCommand(Command.SET_RAM_Y_ADDRESS, yStart & 0xff, (yStart >> 8) & 0x03);
     }
-
-
-
 }

@@ -71,14 +71,12 @@ public enum PixelFormat {
      *
      * @param value
      *            The value to write.
-     * @param count
-     *            The number of bits (up to 24).
      * @param buffer
      *            The buffer to write the bits to
      * @param bitOffset
      *            The bit offset in the buffer
      */
-    private void writeBits(int value, int count, byte[] buffer, int bitOffset) {
+    private void writeBits(int value, byte[] buffer, int bitOffset) {
         int byteOffset = bitOffset / 8;
 
         // We need to special-case RGB_565_LE here anyway (the expected bytes are gggBbbbb, RrrrrGgg),
@@ -99,9 +97,9 @@ public enum PixelFormat {
             }
             default -> {
                 bitOffset %= 8;
-                int mask = ((1 << count) - 1) << (32 - count - bitOffset);
+                int mask = ((1 << bitCount) - 1) << (32 - bitCount - bitOffset);
 
-                value <<= (32 - count - bitOffset);
+                value <<= (32 - bitCount - bitOffset);
                 while (mask != 0) {
                     buffer[byteOffset] = (byte) ((buffer[byteOffset] & ~(mask >> 24)) | (value >> 24));
                     byteOffset++;
@@ -134,9 +132,8 @@ public enum PixelFormat {
      * number of bits written.
      */
     int writeRgb(int rgb, byte[] buffer, int bitOffset) {
-        int count = redBitCount + greenBitCount + blueBitCount;
-        writeBits(fromRgb(rgb), count, buffer, bitOffset);
-        return count;
+        writeBits(fromRgb(rgb), buffer, bitOffset);
+        return bitCount;
     }
 
     /**
@@ -180,7 +177,8 @@ public enum PixelFormat {
      int writeRgb(int[] srcRgb, int srcOffset, int srcStride, byte[] dst, int dstBitOffset, int pixelCount) {
         int bitsWritten = 0;
         for (int i = 0; i < pixelCount; i++) {
-            bitsWritten += writeRgb(srcRgb[srcOffset], dst, dstBitOffset + bitsWritten);
+            writeRgb(srcRgb[srcOffset], dst, dstBitOffset + bitsWritten);
+            bitsWritten += bitCount;
             srcOffset += srcStride;
         }
         return bitsWritten;
@@ -192,9 +190,8 @@ public enum PixelFormat {
     int fillRgb(byte[] dst, int dstBitOffset, int pixelCount, int rgb) {
         int bitsWritten = 0;
         int nativeColor = fromRgb(rgb);
-        int bitCount = getBitCount();
         for (int i = 0; i < pixelCount; i++) {
-            writeBits(nativeColor, bitCount, dst, dstBitOffset + bitsWritten);
+            writeBits(nativeColor, dst, dstBitOffset + bitsWritten);
             bitsWritten += bitCount;
         }
         return bitsWritten;

@@ -102,7 +102,13 @@ public class GraphicsDisplay {
      */
     public void attachDriver(int x0, int y0, GraphicsDisplayDriver driver, Rotation rotation, Mirror mirror) {
         synchronized (lock) {
-            drivers.add(new DriverEntry(x0, y0, driver, rotation.minus(driver.getDisplayInfo().getImplicitRotation()), mirror));
+            DriverEntry entry = new DriverEntry(x0, y0, driver, rotation.minus(driver.getDisplayInfo().getImplicitRotation()), mirror);
+            if (entry.driver.getDisplayInfo().getXGranularity() != 1 &&
+                    (x0 < 0 || y0 < 0 || x0 + entry.getSourceWidth() > displayWidth || y0 + entry.getSourceHeight() > displayHeight)) {
+                throw new IllegalArgumentException(
+                        "Drivers requiring a position granularity cannot be placed (partially) outside the display");
+            }
+            drivers.add(entry);
             markModified(0, 0, displayWidth, displayHeight);
         }
     }
@@ -325,8 +331,21 @@ public class GraphicsDisplay {
             // We limit the transfer size to 4000 bytes, but at least a full row of pixels
             this.transferBuffer = new byte[Math.min(
                     Math.max(driver.getTransferLimit(), (bitsPerRow + 7) / 8),
-                    (bitsPerRow * driver.getDisplayInfo().getHeight() + 7) / 8)];
+                    ((bitsPerRow + 7) / 8 * driver.getDisplayInfo().getHeight()))];
         }
+
+        int getSourceWidth() {
+            return rotation == Rotation.ROTATE_90 || rotation == Rotation.ROTATE_270
+                    ? driver.getDisplayInfo().getHeight()
+                    : driver.getDisplayInfo().getWidth();
+        }
+
+        int getSourceHeight() {
+            return rotation == Rotation.ROTATE_90 || rotation == Rotation.ROTATE_270
+                    ? driver.getDisplayInfo().getWidth()
+                    : driver.getDisplayInfo().getHeight();
+        }
+
 
         private void transferBuffer(int xMin, int yMin, int xMax, int yMax) {
             ScanDirection columnScanDirection;
@@ -362,97 +381,124 @@ public class GraphicsDisplay {
             // Translate the column scan directions into coordinate ranges and strides for transfer.
             // The compiler can't figure out that all will be set due to direction interdependencies,
             // so we have to initialize the values.
-            int sourceX = 0;
-            int sourceY = 0;
-            int transferXMin = 0;
-            int transferXMax = 0;
-            int transferYMin = 0;
-            int transferYMax = 0;
+
+            // Transfer starting point in the source buffer
+            int sourceX0 = 0;
+            int sourceY0 = 0;
+
+            // Movement in the source buffer when processing a target row
             int sourceStrideX = 0;
+            // Movement in the source buffer when going to the next target row
             int sourceStrideY = 0;
+
+            // Destination in driver coordinates.
+            int destinationXMin = 0;
+            int destinationXMax = 0;
+            int destinationYMin = 0;
+            int destinationYMax = 0;
+
+            // Illustration for the destination calculation for the "reverse" directions:
+            //
+            //  0
+            //  |<------ Full screen buffer (displayWidth) ----------->|
+            //  |                                                      |
+            //  |      x0                                              |
+            //  |      |<------- driver screen ------->|               |
+            //  |      |      (getSourceWidth())       |               |
+            //  |      |                               |               |
+            //  |      |   xMin              xMax      |               |
+            //  |      |    |<- refresh area ->|       |               |
+            //  |------+----+------------------+-------+---------------|
+            //  |      |    |                  |       |               |
+            //  |      |    |                  |<------| x0 + getSourceWidth() - xMax
+            //  |      |    |                  |       |               |
+            //  |      |    |<-------------------------| x0 + getSourceWidth() - xMin
+            //
+            //
+            // Note that the two switches set sourceX0 or sourceY0, depending on the rotation.
 
             switch (columnScanDirection) {
                 case LEFT_TO_RIGHT -> {
-                    sourceX = xMin;
-                    transferXMin = xMin - x0;
-                    transferXMax = xMax - x0;
+                    sourceX0 = xMin;
                     sourceStrideX = 1;
+                    destinationXMin = xMin - x0;
+                    destinationXMax = xMax - x0;
                 }
                 case RIGHT_TO_LEFT -> {
-                    sourceX = xMax - 1;
-                    transferXMin = displayWidth - xMax - x0;
-                    transferXMax = displayWidth - xMin - x0;
+                    sourceX0 = xMax - 1;
                     sourceStrideX = -1;
+                    destinationXMin = x0 + getSourceWidth() - xMax;
+                    destinationXMax = x0 + getSourceWidth() - xMin;
                 }
                 case TOP_DOWN -> {
-                    sourceY = yMin;
-                    transferXMin = yMin - y0;
-                    transferXMax = yMax - y0;
+                    sourceY0 = yMin;
                     sourceStrideX = displayWidth;
+                    destinationXMin = yMin - y0;
+                    destinationXMax = yMax - y0;
                 }
                 case BOTTOM_UP -> {
-                    sourceY = yMax - 1;
-                    transferXMin = displayHeight - yMax - y0;
-                    transferXMax = displayHeight - yMin - y0;
+                    sourceY0 = yMax - 1;
                     sourceStrideX = -displayWidth;
+                    destinationXMin = y0 + getSourceHeight() - yMax;
+                    destinationXMax = y0 + getSourceHeight() - yMin;
                 }
             }
             switch (rowScanDirection) {
                 case TOP_DOWN -> {
-                    sourceY = yMin;
-                    transferYMin = yMin - y0;
-                    transferYMax = yMax - y0;
+                    sourceY0 = yMin;
                     sourceStrideY = displayWidth;
+                    destinationYMin = yMin - y0;
+                    destinationYMax = yMax - y0;
                 }
                 case BOTTOM_UP -> {
-                    sourceY = yMax - 1;
-                    transferYMin = displayHeight - yMax - y0;
-                    transferYMax = displayHeight - yMin - y0;
+                    sourceY0 = yMax - 1;
                     sourceStrideY = -displayWidth;
+                    destinationYMin = y0 + getSourceHeight() - yMax;
+                    destinationYMax = y0 + getSourceHeight() - yMin;
                 }
                 case LEFT_TO_RIGHT -> {
-                    sourceX = xMin;
-                    transferYMin = yMin - y0;
-                    transferYMax = yMax - y0;
+                    sourceX0 = xMin;
                     sourceStrideY = 1;
+                    destinationYMin = xMin - x0;
+                    destinationYMax = xMax - x0;
                 }
                 case RIGHT_TO_LEFT -> {
-                    sourceX = xMax - 1;
-                    transferYMin = displayWidth - xMax - x0;
-                    transferYMax = displayWidth - xMin - x0;
+                    sourceX0 = xMax - 1;
                     sourceStrideY = -1;
+                    destinationYMin = x0 + getSourceWidth() - xMax;
+                    destinationYMax = x0 + getSourceWidth() - xMin;
                 }
             }
             transferBuffer(
-                    pixelAddress(sourceX, sourceY),
+                    pixelAddress(sourceX0, sourceY0),
                     sourceStrideX,
                     sourceStrideY,
-                    transferXMin,
-                    transferYMin,
-                    transferXMax,
-                    transferYMax);
+                    destinationXMin,
+                    destinationYMin,
+                    destinationXMax,
+                    destinationYMax);
         }
 
         /** Transfers the given display buffer area to the display driver */
         private void transferBuffer(int sourceAddress, int sourceStrideX, int sourceStrideY, int xMin, int yMin, int xMax, int yMax) {
             GraphicsDisplayDescriptor displayInfo = driver.getDisplayInfo();
 
-            // Bail out if the changed area is outside the area governed by this device.
-            if (xMax <= 0 || yMax <= 0 || xMin >= displayInfo.getWidth() || yMin >= displayInfo.getHeight()) {
-                return;
-            }
-
             // Restrict coordinates to the display size.
             if (xMin < 0) {
-                sourceAddress -= xMax * sourceStrideX;
+                sourceAddress -= xMin * sourceStrideX;
                 xMin = 0;
             }
             if (yMin < 0) {
                 sourceAddress -= yMin * sourceStrideY;
                 yMin = 0;
             }
-            xMax = Math.min(displayInfo.getWidth(), xMax);
-            yMax = Math.min(displayInfo.getHeight(), yMax);
+
+            // Bail out if the changed area is outside the area governed by this device.
+            if (xMax <= 0 || yMax <= 0
+                    || xMin >= displayInfo.getWidth() || yMin >= displayInfo.getHeight()
+                    || xMax <= xMin || yMax <= yMin) {
+                return;
+            }
 
             // Make sure to match device x-alignment constraints.
             int xGranularity = driver.getDisplayInfo().getXGranularity();
@@ -461,13 +507,22 @@ public class GraphicsDisplay {
                 sourceAddress -= remainder * sourceStrideX;
                 xMin -= remainder;
             }
+
             xMax = ((xMax + xGranularity - 1) / xGranularity) * xGranularity;
+            xMax = Math.min(displayInfo.getWidth(), xMax);
+            yMax = Math.min(displayInfo.getHeight(), yMax);
 
             int width = xMax - xMin;
             int height = yMax - yMin;
 
+            // Yes, there are displays where the width doesn't match the granularity... ლ(ಠ益ಠლ)
+            remainder = width % xGranularity;
+            if (remainder != 0) {
+                remainder = xGranularity - remainder;
+            }
+
             PixelFormat pixelFormat = driver.getDisplayInfo().getPixelFormat();
-            int bitsPerRow = width * pixelFormat.getBitCount();
+            int bitsPerRow = (width + remainder) * pixelFormat.getBitCount();
             int bitOffset = 0;
 
             synchronized (lock) { // display / transfer buffer access
@@ -479,10 +534,15 @@ public class GraphicsDisplay {
                             transferBuffer,
                             bitOffset,
                             width);
+
+                    bitOffset += remainder * pixelFormat.getBitCount();
                     sourceAddress += sourceStrideY;
+
                     // Transfer if the last row is reached or the next row would overflow the buffer.
                     if (i == height - 1 || bitOffset + bitsPerRow > transferBuffer.length * 8) {
                         int rows = bitOffset / bitsPerRow;
+                        // We send `width` here (instead of `width + remainder`) as this then can still be adjusted
+                        // in the driver as needed -- otherwise the information would be lost.
                         driver.setPixels(xMin, yMin + i + 1 - rows, width, rows, transferBuffer);
                         bitOffset = 0;
                     }
