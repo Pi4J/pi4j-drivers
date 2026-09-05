@@ -35,12 +35,14 @@ class Constants {
     // POR device   PD1 and PD0 set to 0 for normal operation
     static final byte MCP4725_GEN_CALL_WAKEUP_CMD = (byte) 0b00001001;
 
-
+    /////////////////////////////////////////////////////////
     // MCP4728
+    /////////////////////////////////////////////////////////
     static final int MCP4728_DEFAULT_ADDRESS = 0x60;
 
     static final int MCP4728_DAC_EEPROM_DATA_SZ   = 24;
 
+    static final byte MCP4728_BSY_RDY_MSK = (byte) 0b10000000;
 
     static final int MCP4728_SET_EEPROM_SIZE    = 0x03;
     static final int MCP4728_SET_FAST_SIZE      = 0x06;
