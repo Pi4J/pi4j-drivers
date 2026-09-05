@@ -151,21 +151,6 @@ String[] chanlData = {"Chnl A REG   ", "Chnl A EEPROM","Chnl B REG   ","Chnl B E
     "Chnl C EEPROM","Chnl D REG   ","Chnl D EEPROM"};
 
 
-    enum chnl {
-        A_CHNL_REG("Chnl A EEPROM"),
-        A_CHNL_EEPROM("Chnl A Regs"),
-        B_CHNL_REG("Chnl B Regs"),
-        B_CHNL_EEPROM("Chnl B EEPROM"),
-        C_CHNL_REG("Chnl C Regs"),
-        C_CHNL_EEPROM("Chnl C EEPROM"),
-        D_CHNL_REG("Chnl D Regs"),
-        D_CHNL_EEPROM("Chnl D EEPROM");
-
-        chnl(String s) {
-        }
-    }
-
-    ;
 
 
     @Override
