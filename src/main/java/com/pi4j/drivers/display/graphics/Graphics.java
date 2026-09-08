@@ -248,6 +248,22 @@ public class Graphics {
         }
     }
 
+    public int getColor() {
+        return color;
+    }
+
+    public BitmapFont getFont() {
+        return font;
+    }
+
+    public int getTextScaleX() {
+        return textScaleX;
+    }
+
+    public int getTextScaleY() {
+        return textScaleY;
+    }
+
     public void setClip(int x, int y, int width, int height) {
         clipXMin = Math.max(0, x);
         clipYMin = Math.max(0, y);

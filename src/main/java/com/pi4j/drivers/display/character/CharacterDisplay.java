@@ -22,6 +22,10 @@ public interface CharacterDisplay {
      */
     void writeAt(float x, int y, String text, EnumSet<Attribute> attributes);
 
+    void setCursorEnabled(boolean enabled);
+
+    void setCursorPosition(int x, int y);
+
     enum Attribute {
         INVERSE
     }

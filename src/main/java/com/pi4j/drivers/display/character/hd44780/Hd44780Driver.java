@@ -237,6 +237,7 @@ public class Hd44780Driver implements CharacterDisplay {
         connection.setBacklight(backlightEnabled);
     }
 
+    @Override
     public void setCursorEnabled(boolean enabled) {
         this.cursorEnabled = enabled;
         updateDisplayControl();
@@ -312,6 +313,7 @@ public class Hd44780Driver implements CharacterDisplay {
 
 
     /** Sets the cursor to the given column/row (x/y) position. */
+    @Override
     public void setCursorPosition(int x, int y) {
         if (y >= height || y < 0) {
             throw new IllegalArgumentException("Row " + y + " out of range 0.." + (height - 1));
