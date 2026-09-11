@@ -27,6 +27,8 @@ public class Mcp4725Driver implements DigitalAnalogConverter {
     public Mcp4725Driver(I2C i2cHw, double vref) {
         this.i2c = i2cHw;
         this.vref = vref;
+        this.eepromEnabled = false;
+        this.lastWriteWasToEeprom = false;
     }
 
     /**
@@ -56,13 +58,29 @@ public class Mcp4725Driver implements DigitalAnalogConverter {
         setDigitalValue((int) ((value / this.vref) * 4095));
     }
 
+
+    /**
+     *
+     * @return byte array size 5,  DAC register EEPROM data.
+     * <p>
+     * For data description see datasheet "Read Command and Device Outputs".
+     */
+    public byte[] materializeAllRegs() {
+        byte[] dacRegs = new byte[Constants.MCP4725_CHIP_READ_SIZE];
+        i2c.read(dacRegs);
+        return dacRegs;
+    }
+
+
     @Override
     public int getChannelCount() {
         return 1;
     }
 
     /**
-     * Writes a 12 bit value to the chip. Blocks if the chip is busy.
+     * Writes a 12 bit value to the chip. Blocks if eepromEnabled is true.
+     *
+     * @param digitalValue  12 bit value to set in the channel
      */
     public void setDigitalValue(int digitalValue) {
         if (digitalValue < 0 || digitalValue > 4095) {
@@ -100,6 +118,29 @@ public class Mcp4725Driver implements DigitalAnalogConverter {
     public boolean chipIdle() {
         i2c.read(ioBuffer, 0, Constants.MCP4725_CHIP_READ_SIZE);
         return (ioBuffer[0] & Constants.MCP4725_READ_CMD_IS_COMPLT) != 0;
+    }
+
+    @Override
+    /**
+     * Create String that pretty prints the register values a binary and a label of Channel Reg  OR Channel EEPROM
+     */
+     public String toString() {
+        if (lastWriteWasToEeprom) {
+            while (!chipIdle()) {
+                delay.setMillis(1).materialize();
+            }
+        }
+        byte[] dacRegs = new byte[5];
+        i2c.read(dacRegs);
+        StringBuilder total = new StringBuilder("\n");
+        String firstByteReg = String.format("%8s",  Integer.toBinaryString(dacRegs[0] & 0xFF)).replace(' ', '0');
+        String secondByteReg = String.format("%8s", Integer.toBinaryString(dacRegs[1] & 0xFF)).replace(' ', '0');
+        String thirdByteReg = String.format("%8s",  Integer.toBinaryString(dacRegs[2] & 0xFF)).replace(' ', '0');
+        String fourthByteReg = String.format("%8s",  Integer.toBinaryString(dacRegs[3] & 0xFF)).replace(' ', '0');
+        String fifthByteReg = String.format("%8s",  Integer.toBinaryString(dacRegs[4] & 0xFF)).replace(' ', '0');
+        total.append("\n DAC    " + firstByteReg + " " + secondByteReg + " " + thirdByteReg + "\n\n");
+        total.append(" EEPROM " + fourthByteReg + " " + fifthByteReg +  "\n\n");
+        return total.toString();
     }
 
 
