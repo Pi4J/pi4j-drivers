@@ -52,17 +52,16 @@ public class Mcp4728Driver implements DigitalAnalogConverter {
     private final byte[] ioBuffer = new byte[Math.max(Constants.MCP4728_SET_FAST_SIZE,
             Math.max(Constants.MCP4728_SET_EEPROM_SIZE, Constants.MCP4728_CHIP_READ_SIZE))];
 
+    // init assignment not required but shown to restate the persistence of DAC registers
+    // is by default NOT enabled.
     // if true, volatile DAC fileds will be written to EEPROM
-    private boolean eepromEnabled;
-    // If true, previous DAC updates were written to the EEPROM, ensure they write completed
-    private boolean lastWriteWasToEeprom;
+    private boolean eepromEnabled = false;
+    private boolean lastWriteWasToEeprom = false;
 
 
     public Mcp4728Driver(I2C i2cHw, double vdd) {
         this.i2c = i2cHw;
         this.vdd = vdd;
-        this.eepromEnabled = false;
-        this.lastWriteWasToEeprom = false;
     }
 
     /**
@@ -146,7 +145,7 @@ public class Mcp4728Driver implements DigitalAnalogConverter {
      * Volatile contents of DAC registers persisted in the EEPROM
      * Note: will block until the EEPROM write completes
      */
-    public void persistSettings() {
+    void persistSettings() {
         if (lastWriteWasToEeprom) {
             while (!chipIdle()) {
                 delay.setMillis(1).materialize();
@@ -196,7 +195,7 @@ public class Mcp4728Driver implements DigitalAnalogConverter {
      * <p>
      * For data description see datasheet "Read Command and Device Outputs".
      */
-    public byte[] materializeAllRegs() {
+    byte[] materializeAllRegs() {
         byte[] dacRegs = new byte[24];
         i2c.read(dacRegs);
         return dacRegs;
@@ -251,7 +250,7 @@ public class Mcp4728Driver implements DigitalAnalogConverter {
     /**
      * Returns true if the chip is ready (idle), else false.
      */
-    public boolean chipIdle() {
+    boolean chipIdle() {
         byte[] allRegs = new byte[Constants.MCP4728_DAC_EEPROM_DATA_SZ];
         i2c.read(allRegs, 0, Constants.MCP4728_DAC_EEPROM_DATA_SZ);
         return (allRegs[0] & Constants.MCP4728_BSY_RDY_MSK) != 0;
@@ -263,7 +262,7 @@ public class Mcp4728Driver implements DigitalAnalogConverter {
 
     @Override
     /**
-     * Create String that pretty prints the register values a binary and a label of Channel Reg  OR Channel EEPROM
+     * Create String that pretty prints the register values as  binary and a label of Channel Reg  OR Channel EEPROM
      */
     public String toString() {
         if (lastWriteWasToEeprom) {
@@ -273,18 +272,18 @@ public class Mcp4728Driver implements DigitalAnalogConverter {
         }
         byte[] dacRegs = new byte[24];
         i2c.read(dacRegs);
-        StringBuilder total = new StringBuilder("\n");
+        StringBuilder total = new StringBuilder();
         for (int i = 0; i < 8; i++) {
             String firstByteReg = String.format("%8s",  Integer.toBinaryString(dacRegs[i +   (i*2)] & 0xFF)).replace(' ', '0');
             String secondByteReg = String.format("%8s", Integer.toBinaryString(dacRegs[i+1 + (i*2)] & 0xFF)).replace(' ', '0');
             String thirdByteReg = String.format("%8s",  Integer.toBinaryString(dacRegs[i+2 + (i*2)] & 0xFF)).replace(' ', '0');
-            total.append(chanlData[i] + " " + firstByteReg + " " + secondByteReg + " " + thirdByteReg + "\n\n");
+            total.append(chanlData[i] + " " + firstByteReg + " " + secondByteReg + " " + thirdByteReg + "   ");
         }
         return total.toString();
     }
 
-    String[] chanlData = {"Chnl A REG   ", "Chnl A EEPROM","Chnl B REG   ","Chnl B EEPROM","Chnl C REG   ",
-            "Chnl C EEPROM","Chnl D REG   ","Chnl D EEPROM"};
+    String[] chanlData = {"Chnl A REG", "Chnl A EEPROM","Chnl B REG","Chnl B EEPROM","Chnl C REG",
+            "Chnl C EEPROM","Chnl D REG","Chnl D EEPROM"};
 
 
 
