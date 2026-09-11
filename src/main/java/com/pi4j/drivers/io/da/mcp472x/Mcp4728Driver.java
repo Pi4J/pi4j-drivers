@@ -272,7 +272,7 @@ public class Mcp4728Driver implements DigitalAnalogConverter {
         }
         byte[] dacRegs = new byte[24];
         i2c.read(dacRegs);
-        StringBuilder total = new StringBuilder("");
+        StringBuilder total = new StringBuilder();
         for (int i = 0; i < 8; i++) {
             String firstByteReg = String.format("%8s",  Integer.toBinaryString(dacRegs[i +   (i*2)] & 0xFF)).replace(' ', '0');
             String secondByteReg = String.format("%8s", Integer.toBinaryString(dacRegs[i+1 + (i*2)] & 0xFF)).replace(' ', '0');
@@ -282,8 +282,8 @@ public class Mcp4728Driver implements DigitalAnalogConverter {
         return total.toString();
     }
 
-    String[] chanlData = {"Chnl A REG   ", "Chnl A EEPROM","Chnl B REG   ","Chnl B EEPROM","Chnl C REG   ",
-            "Chnl C EEPROM","Chnl D REG   ","Chnl D EEPROM"};
+    String[] chanlData = {"Chnl A REG", "Chnl A EEPROM","Chnl B REG","Chnl B EEPROM","Chnl C REG",
+            "Chnl C EEPROM","Chnl D REG","Chnl D EEPROM"};
 
 
 

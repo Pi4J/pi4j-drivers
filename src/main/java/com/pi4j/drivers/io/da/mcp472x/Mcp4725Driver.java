@@ -133,14 +133,14 @@ public class Mcp4725Driver implements DigitalAnalogConverter {
         }
         byte[] dacRegs = new byte[5];
         i2c.read(dacRegs);
-        StringBuilder total = new StringBuilder("");
+        StringBuilder total = new StringBuilder();
         String firstByteReg = String.format("%8s",  Integer.toBinaryString(dacRegs[0] & 0xFF)).replace(' ', '0');
         String secondByteReg = String.format("%8s", Integer.toBinaryString(dacRegs[1] & 0xFF)).replace(' ', '0');
         String thirdByteReg = String.format("%8s",  Integer.toBinaryString(dacRegs[2] & 0xFF)).replace(' ', '0');
         String fourthByteReg = String.format("%8s",  Integer.toBinaryString(dacRegs[3] & 0xFF)).replace(' ', '0');
         String fifthByteReg = String.format("%8s",  Integer.toBinaryString(dacRegs[4] & 0xFF)).replace(' ', '0');
-        total.append(" DAC    " + firstByteReg + " " + secondByteReg + " " + thirdByteReg + "  ");
-        total.append(" EEPROM " + fourthByteReg + " " + fifthByteReg +  "   ");
+        total.append(" DAC " + firstByteReg + " " + secondByteReg + " " + thirdByteReg );
+        total.append(" EEPROM " + fourthByteReg + " " + fifthByteReg );
         return total.toString();
     }
 
