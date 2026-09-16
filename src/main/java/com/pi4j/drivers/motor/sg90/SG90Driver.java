@@ -24,33 +24,17 @@ import com.pi4j.io.pwm.Pwm;
 
 
 public class SG90Driver {
-    static final private double DEFAULT_PW_180 = 2.5;
 
     Pwm pwm;
 
-    /* The servo spec should define the pulse width for 180 degree.
-    When creating the driver, the parm value oneEighty will be used in
-    calculating the appropriate percentage
-     */
-    double pw180 ;
 
-
-    /**
-     *  Default value for oneEighty will be used.
-     * @param pwm  Hardware PWM
-     */
-    public SG90Driver(Pwm pwm){
-        this(pwm, DEFAULT_PW_180);
-    }
     /**
      *
      * @param pwm  Hardware PWM
-     * @param oneEighty  servo 180 degree pulse width
      */
-    public SG90Driver(Pwm pwm, double oneEighty){
+    public SG90Driver(Pwm pwm){
         this.pwm = pwm;
-        this.pw180 = oneEighty;
-    }
+     }
 
     /**
      *  Move the servo output shaft to the position
@@ -68,6 +52,6 @@ public class SG90Driver {
      * @return duty cycle
      */
     double degreeToDutyCycle(double degree){
-        return (degree/180 * 10 ) + pw180;
+        return (degree/180 * 10 ) + 2.5;
     }
 }
