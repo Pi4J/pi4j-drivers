@@ -12,11 +12,11 @@ import com.pi4j.io.pwm.Pwm;
  *
  *  SG90 Duty Cycle Reference TableAssuming a standard 50Hz frequency (20ms total wave period),
  *  here is how the pulse width and duty cycle map to standard angles for the SG90 Servo Motor Guide:
- *  |  Angle (Degrees)  |  Pulse Width (Us)     |        Duty Cycle (%)     |
+ *  |  Angle (Degrees)  |  Pulse Width (us)     |        Duty Cycle (%)     |
  *  |-----------------------------------------------------------------------|
- *  |     0             |      0.5 ms           |         2.5 %             |
- *  |     45            |      1.0 ms           |         5.0 %             |
- *  |     90            |      1.5 ms           |         7.5 %             |
+ *  |     0             |      0.5 us           |         2.5 %             |
+ *  |     45            |      1.5 us           |         7.5 %             |
+ *  |     90            |      2.5 us           |         12.5 %            |
  *  |-----------------------------------------------------------------------|
  *
  *
