@@ -46,7 +46,7 @@
 
         <!-- DEPENDENCIES VERSIONS -->
         <slf4j.version>2.0.16</slf4j.version>
-        <pi4j.version>4.0.1</pi4j.version>
+        <pi4j.version>5.0.0-SNAPSHOT</pi4j.version>
 
         <!-- TEST DEPENDENCIES VERSIONS -->
         <junit.jupiter.version>5.12.1</junit.jupiter.version>
@@ -56,7 +56,7 @@
         <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
         <maven-javadoc-plugin.version>3.11.1</maven-javadoc-plugin.version>
         <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
-        <central-publishing-maven-plugin.version>0.8.0</central-publishing-maven-plugin.version>
+        <central-publishing-maven-plugin.version>0.9.0</central-publishing-maven-plugin.version>
         <jreleaser-maven-plugin.version>1.15.0</jreleaser-maven-plugin.version>
     </properties>
 
@@ -94,24 +94,24 @@
             <version>${pi4j.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
+        <!--dependency>
             <groupId>com.pi4j</groupId>
             <artifactId>pi4j-plugin-gpiod</artifactId>
             <version>${pi4j.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
+        </dependency-->
+        <!--dependency>
             <groupId>com.pi4j</groupId>
             <artifactId>pi4j-plugin-linuxfs</artifactId>
             <version>${pi4j.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
+        </dependency-->
+        <!--dependency>
             <groupId>com.pi4j</groupId>
             <artifactId>pi4j-plugin-pigpio</artifactId>
             <version>${pi4j.version}</version>
             <scope>test</scope>
-        </dependency>
+        </dependency-->
 
         <!-- Testing -->
         <dependency>
