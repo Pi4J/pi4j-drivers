@@ -46,7 +46,7 @@
 
         <!-- DEPENDENCIES VERSIONS -->
         <slf4j.version>2.0.16</slf4j.version>
-        <pi4j.version>4.0.1</pi4j.version>
+        <pi4j.version>5.0.0-SNAPSHOT</pi4j.version>
 
         <!-- TEST DEPENDENCIES VERSIONS -->
         <junit.jupiter.version>5.12.1</junit.jupiter.version>
@@ -56,10 +56,26 @@
         <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
         <maven-javadoc-plugin.version>3.11.1</maven-javadoc-plugin.version>
         <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
-        <central-publishing-maven-plugin.version>0.8.0</central-publishing-maven-plugin.version>
+        <central-publishing-maven-plugin.version>0.9.0</central-publishing-maven-plugin.version>
         <jreleaser-maven-plugin.version>1.15.0</jreleaser-maven-plugin.version>
     </properties>
-
+    <repositories>
+        <repository>
+            <id>oss-snapshots-repo</id>
+            <name>Sonatype OSS Maven Repository</name>
+            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+            <!--
+            Snapshot versions created before 09/2025:
+            <url>https://oss.sonatype.org/content/groups/public</url>
+            -->
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
     <dependencies>
         <!-- Logging -->
         <dependency>
@@ -82,36 +98,36 @@
         </dependency>
 
         <!-- Pi4J Plugins (Platform and I/O Provider), only included for testing -->
-        <dependency>
+        <!--dependency>
             <groupId>com.pi4j</groupId>
             <artifactId>pi4j-plugin-raspberrypi</artifactId>
             <version>${pi4j.version}</version>
             <scope>test</scope>
-        </dependency>
+        </dependency-->
         <dependency>
             <groupId>com.pi4j</groupId>
             <artifactId>pi4j-plugin-ffm</artifactId>
             <version>${pi4j.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
+        <!--dependency>
             <groupId>com.pi4j</groupId>
             <artifactId>pi4j-plugin-gpiod</artifactId>
             <version>${pi4j.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
+        </dependency-->
+        <!--dependency>
             <groupId>com.pi4j</groupId>
             <artifactId>pi4j-plugin-linuxfs</artifactId>
             <version>${pi4j.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
+        </dependency-->
+        <!--dependency>
             <groupId>com.pi4j</groupId>
             <artifactId>pi4j-plugin-pigpio</artifactId>
             <version>${pi4j.version}</version>
             <scope>test</scope>
-        </dependency>
+        </dependency-->
 
         <!-- Testing -->
         <dependency>
@@ -152,6 +168,7 @@
             <name>Sonatype Open Source Maven Snapshots Repository</name>
             <url>https://central.sonatype.com/repository/maven-snapshots/</url>
         </snapshotRepository>
+
     </distributionManagement>
 
     <profiles>
