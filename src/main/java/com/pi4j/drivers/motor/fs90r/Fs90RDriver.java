@@ -32,9 +32,9 @@ import com.pi4j.io.pwm.Pwm;
     public class Fs90RDriver {
 
     private final Pwm pwm;
-    private float pwZero = 1000;
-    private float pwOneEighty = 2000;
-    private float totalPwRange = pwOneEighty - pwZero ;
+    private Double pwZero = 1000.0;
+    private Double pwOneEighty = 2000.0;
+    private Double totalPwRange = pwOneEighty - pwZero ;
 
     private static final int PWM_FREQUENCY = 50;
 
@@ -56,7 +56,7 @@ import com.pi4j.io.pwm.Pwm;
          * @param pulseWidth0   value in microseconds for 0 degree position
          * @param pulseWidth180 value in microseconds for 180 degree position
          */
-    public Fs90RDriver(Pwm pwm, float pulseWidth0, float pulseWidth180 ) {
+    public Fs90RDriver(Pwm pwm, Double pulseWidth0, Double pulseWidth180 ) {
             this.pwm = pwm;
             this.pwZero = pulseWidth0;
             this.pwOneEighty = pulseWidth180;
@@ -65,11 +65,11 @@ import com.pi4j.io.pwm.Pwm;
             if(pwm == null){
                 throw new IllegalArgumentException("PWM is null");
             }
-            if (!Float.isFinite(pulseWidth0) || pulseWidth0 < 500 || pulseWidth0 > 1500){
-                throw new IllegalArgumentException("pulseWidth0 range 500 ... 1500 ");
+            if (!Double.isFinite(pulseWidth0) || pulseWidth0 < 500.0 || pulseWidth0 > 1500.0){
+                throw new IllegalArgumentException("pulseWidth0 range 500.0 ... 1500.0 ");
             }
-            if (!Float.isFinite(pulseWidth0) || pulseWidth180 < 1500 || pulseWidth180 > 2500){
-                throw new IllegalArgumentException("pulseWidth180 range 1500 ... 2500 ");
+            if (!Double.isFinite(pulseWidth180) || pulseWidth180 < 1500.0 || pulseWidth180 > 2500.0){
+                throw new IllegalArgumentException("pulseWidth180 range 1500.0 ... 2500.0 ");
             }
             if (pulseWidth0 >= pulseWidth180) {
                 throw new IllegalArgumentException("pulseWidth0 must be less than pulseWidth180");
@@ -82,10 +82,10 @@ import com.pi4j.io.pwm.Pwm;
      *  expressed in degrees
      * @param degree         0 ... 180
      */
-    public void setServoRotation(float degree){
+    public void setServoRotation(Double degree){
 
-        if (!Float.isFinite(degree) || degree < 0 || degree > 180) {
-            throw new IllegalArgumentException("degree must be finite and between 0 and 180");
+        if (!Double.isFinite(degree) || degree < 0.0 || degree > 180.0) {
+            throw new IllegalArgumentException("degree must be finite and between 0.0 and 180.0");
         }
         pwm.on(degreeToDutyCycle(degree), PWM_FREQUENCY);
     }
@@ -96,8 +96,8 @@ import com.pi4j.io.pwm.Pwm;
      *                 See table above.
      * @return duty cycle
      */
-    double degreeToDutyCycle(float degree){
-        float targetPulseWidth  = this.pwZero + (degree * (totalPwRange / 180));
-        return  (targetPulseWidth/ 20000)  * 100;
+    double degreeToDutyCycle(Double degree){
+        Double targetPulseWidth  = this.pwZero + (degree * (totalPwRange / 180.0));
+        return  (targetPulseWidth/ 20000.0)  * 100.0;
     }
 }
