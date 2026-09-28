@@ -34,6 +34,21 @@
         <tag>HEAD</tag>
     </scm>
 
+    <!-- NEEDED TO GET PI4J SNAPSHOT DEPENDENCIES -->
+    <repositories>
+        <repository>
+            <id>oss-snapshots-repo</id>
+            <name>Sonatype OSS Maven Repository</name>
+            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
     <!-- BUILD PROPERTIES -->
     <properties>
         <!-- PROJECT ENCODING PROPERTIES -->
@@ -100,35 +115,10 @@
         <!-- Pi4J Plugins (Platform and I/O Provider), only included for testing -->
         <!--dependency>
             <groupId>com.pi4j</groupId>
-            <artifactId>pi4j-plugin-raspberrypi</artifactId>
-            <version>${pi4j.version}</version>
-            <scope>test</scope>
-        </dependency-->
-        <dependency>
-            <groupId>com.pi4j</groupId>
             <artifactId>pi4j-plugin-ffm</artifactId>
             <version>${pi4j.version}</version>
             <scope>test</scope>
         </dependency>
-        <!--dependency>
-            <groupId>com.pi4j</groupId>
-            <artifactId>pi4j-plugin-gpiod</artifactId>
-            <version>${pi4j.version}</version>
-            <scope>test</scope>
-        </dependency-->
-        <!--dependency>
-            <groupId>com.pi4j</groupId>
-            <artifactId>pi4j-plugin-linuxfs</artifactId>
-            <version>${pi4j.version}</version>
-            <scope>test</scope>
-        </dependency-->
-        <!--dependency>
-            <groupId>com.pi4j</groupId>
-            <artifactId>pi4j-plugin-pigpio</artifactId>
-            <version>${pi4j.version}</version>
-            <scope>test</scope>
-        </dependency-->
-
         <!-- Testing -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
