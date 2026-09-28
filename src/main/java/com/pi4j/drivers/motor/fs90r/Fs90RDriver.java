@@ -65,11 +65,14 @@ import com.pi4j.io.pwm.Pwm;
             if(pwm == null){
                 throw new IllegalArgumentException("PWM is null");
             }
-            if (pulseWidth0 < 500 || pulseWidth0 > 1500){
+            if (!Float.isFinite(pulseWidth0) || pulseWidth0 < 500 || pulseWidth0 > 1500){
                 throw new IllegalArgumentException("pulseWidth0 range 500 ... 1500 ");
             }
-            if (pulseWidth180 < 1500 || pulseWidth180 > 2500){
+            if (!Float.isFinite(pulseWidth0) || pulseWidth180 < 1500 || pulseWidth180 > 2500){
                 throw new IllegalArgumentException("pulseWidth180 range 1500 ... 2500 ");
+            }
+            if (pulseWidth0 >= pulseWidth180) {
+                throw new IllegalArgumentException("pulseWidth0 must be less than pulseWidth180");
             }
         }
 
@@ -80,6 +83,10 @@ import com.pi4j.io.pwm.Pwm;
      * @param degree         0 ... 180
      */
     public void setServoRotation(float degree){
+
+        if (!Float.isFinite(degree) || degree < 0 || degree > 180) {
+            throw new IllegalArgumentException("degree must be finite and between 0 and 180");
+        }
         pwm.on(degreeToDutyCycle(degree), PWM_FREQUENCY);
     }
 
