@@ -30,9 +30,9 @@ import com.pi4j.io.pwm.Pwm;
 public class SG90Driver {
 
     private final Pwm pwm;
-    private float pwZero = 1000;
-    private float pwOneEighty = 2000;
-    private float totalPwRange = pwOneEighty - pwZero ;
+    private Double pwZero = 1000.0;
+    private Double pwOneEighty = 2000.0;
+    private Double totalPwRange = pwOneEighty - pwZero ;
 
     private static final int PWM_FREQUENCY = 50;
 
@@ -53,7 +53,7 @@ public class SG90Driver {
      * @param pulseWidth0   value in microseconds for 0 degree position
      * @param pulseWidth180 value in microseconds for 180 degree position
      */
-    public SG90Driver(Pwm pwm, float pulseWidth0, float pulseWidth180 ) {
+    public SG90Driver(Pwm pwm, Double pulseWidth0, Double pulseWidth180 ) {
         this.pwm = pwm;
         this.pwZero = pulseWidth0;
         this.pwOneEighty = pulseWidth180;
@@ -62,10 +62,10 @@ public class SG90Driver {
         if(pwm == null){
             throw new IllegalArgumentException("PWM is null");
         }
-        if (pulseWidth0 < 500 || pulseWidth0 > 1500){
+        if (pulseWidth0 < 500.0 || pulseWidth0 > 1500.0){
             throw new IllegalArgumentException("pulseWidth0 range 500 ... 1500 ");
         }
-        if (pulseWidth180 < 1500 || pulseWidth180 > 2500){
+        if (pulseWidth180 < 1500.0 || pulseWidth180 > 2500.0){
             throw new IllegalArgumentException("pulseWidth180 range 1500 ... 2500 ");
         }
     }
@@ -78,7 +78,7 @@ public class SG90Driver {
      *
      * @param degree 0 ... 180
      */
-    public void setServoAngle(float degree) {
+    public void setServoAngle(Double degree) {
         pwm.on(degreeToDutyCycle(degree), PWM_FREQUENCY);
     }
 
@@ -88,9 +88,9 @@ public class SG90Driver {
      *               See table above.
      * @return duty cycle
      */
-    float degreeToDutyCycle(float degree) {
-        float targetPulseWidth  = this.pwZero + (degree * (totalPwRange / 180));
-        return  (targetPulseWidth/ 20000)  * 100;
+    Double degreeToDutyCycle(Double degree) {
+        Double targetPulseWidth  = this.pwZero + (degree * (totalPwRange / 180.0));
+        return  (targetPulseWidth/ 20000.0)  * 100.0;
     }
 
 }
