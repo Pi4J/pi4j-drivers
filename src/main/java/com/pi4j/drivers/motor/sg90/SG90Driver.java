@@ -26,22 +26,29 @@ import com.pi4j.io.pwm.Pwm;
 *
 */
 
-
 public class SG90Driver {
 
-    private final Pwm pwm;
-    private float pwZero = 1000;
-    private float pwOneEighty = 2000;
-    private float totalPwRange = pwOneEighty - pwZero ;
+    class Constants {
+        static final double PW_ZERO_DEFAULT = 1000.0;
+        static final double PW_ONE_EIGHTY_DEFAULT = 2000.0;
+        static final int PWM_FREQUENCY = 50;
 
-    private static final int PWM_FREQUENCY = 50;
+    }
+
+    private final Pwm pwm;
+    private double pwZero;
+    private double pwOneEighty;
+    private double totalPwRange = pwOneEighty - pwZero ;
+
+
+
 
     /**
      *
      * @param pwm Hardware PWM
      */
     public SG90Driver(Pwm pwm) {
-        this.pwm = pwm;
+        this(pwm,Constants.PW_ZERO_DEFAULT, Constants.PW_ONE_EIGHTY_DEFAULT);
         if(pwm == null){
             throw new IllegalArgumentException("PWM is null");
         }
@@ -50,23 +57,23 @@ public class SG90Driver {
     /**
      *
      * @param pwm           pwm device
-     * @param pulseWidth0   value in microseconds for 0 degree position
-     * @param pulseWidth180 value in microseconds for 180 degree position
+     * @param pwZero   value in microseconds for 0 degree position
+     * @param pwOneEighty value in microseconds for 180 degree position
      */
-    public SG90Driver(Pwm pwm, float pulseWidth0, float pulseWidth180 ) {
+    public SG90Driver(Pwm pwm, double pwZero, double pwOneEighty ) {
         this.pwm = pwm;
-        this.pwZero = pulseWidth0;
-        this.pwOneEighty = pulseWidth180;
+        this.pwZero = pwZero;
+        this.pwOneEighty = pwOneEighty;
         this.totalPwRange =  this.pwOneEighty - this.pwZero ;
 
         if(pwm == null){
             throw new IllegalArgumentException("PWM is null");
         }
-        if (pulseWidth0 < 500 || pulseWidth0 > 1500){
-            throw new IllegalArgumentException("pulseWidth0 range 500 ... 1500 ");
+        if (!Double.isFinite(pwZero) || pwZero < 500.0 || pwZero > 1500.0){
+            throw new IllegalArgumentException("pWZero range 500 ... 1500 ");
         }
-        if (pulseWidth180 < 1500 || pulseWidth180 > 2500){
-            throw new IllegalArgumentException("pulseWidth180 range 1500 ... 2500 ");
+        if (!Double.isFinite(pwOneEighty) ||  pwOneEighty < 1500.0 || pwOneEighty > 2500.0){
+            throw new IllegalArgumentException("pwOneEighty range 1500 ... 2500 ");
         }
     }
 
@@ -78,8 +85,8 @@ public class SG90Driver {
      *
      * @param degree 0 ... 180
      */
-    public void setServoAngle(float degree) {
-        pwm.on(degreeToDutyCycle(degree), PWM_FREQUENCY);
+    public void setServoAngle(double degree) {
+        pwm.on(degreeToDutyCycle(degree), Constants.PWM_FREQUENCY);
     }
 
     /**
@@ -88,9 +95,9 @@ public class SG90Driver {
      *               See table above.
      * @return duty cycle
      */
-    float degreeToDutyCycle(float degree) {
-        float targetPulseWidth  = this.pwZero + (degree * (totalPwRange / 180));
-        return  (targetPulseWidth/ 20000)  * 100;
+    double degreeToDutyCycle(double degree) {
+        double targetPulseWidth  = this.pwZero + (degree * (totalPwRange / 180.0));
+        return  (targetPulseWidth/ 20000.0)  * 100.0;
     }
 
 }
