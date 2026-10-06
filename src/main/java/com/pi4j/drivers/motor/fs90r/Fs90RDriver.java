@@ -80,9 +80,9 @@ public class Fs90RDriver {
 
 
     /**
-     *  Set  the servo output shaft direction os rotation and RPM.
-     *  expressed in degrees
-     * @param degree         0 ... 180
+     * Sets the servo rotation command: 0 is maximum clockwise, 90 is neutral,
+     * and 180 is maximum counterclockwise.
+     * @param degree rotation command from 0 through 180
      */
     public void setServoRotation(double degree){
 
