@@ -29,15 +29,13 @@ import com.pi4j.io.pwm.Pwm;
 */
 
 
-class Constants {
-    static final double PW_ZERO_DEFAULT = 1000.0;
-    static final double PW_ONE_EIGHTY_DEFAULT = 2000.0;
-    static final int PWM_FREQUENCY = 50;
+public class Fs90RDriver {
 
-}
-
-
-    public class Fs90RDriver {
+    private static final class Constants {
+        static final double PW_ZERO_DEFAULT = 1000.0;
+        static final double PW_ONE_EIGHTY_DEFAULT = 2000.0;
+        static final int PWM_FREQUENCY = 50;
+    }
 
     private final Pwm pwm;
     private double pwZero ;
