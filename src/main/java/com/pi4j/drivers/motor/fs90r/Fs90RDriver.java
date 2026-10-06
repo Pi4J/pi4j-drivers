@@ -16,8 +16,8 @@ import com.pi4j.io.pwm.Pwm;
 *
 * The FS90 R 360 defines a specific PWM interface and exactly how the PWN signal
 * controls the servo. There are many different manufacturers of the FS90 servo.
-* The pulse width required for setting the servo at 0 degrees MAX Clockwise (CW) or 180 degrees
-* MAX Countrer ClockWise (CCW) varies by manufacturer. The driver by default uses the pulse width timing as
+* A command of 0 produces maximum clockwise (CW) rotation, while 180 produces maximum
+* counterclockwise (CCW) rotation; the exact pulse widths vary by manufacturer.
 * (low)1000 - (high)2000 microseconds. The user of this example application can change these defaults
 * when first invoking the program.
 *
