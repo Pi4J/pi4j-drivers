@@ -5,7 +5,7 @@ import com.pi4j.io.pwm.Pwm;
 
 /**
 * Driver for a FS90R servo motor.
-* The Fs90R defines a specific PWM interface and exactly how the PWN signal
+* The Fs90R defines a specific PWM interface and exactly how the PWM signal
 * controls the servo
 *
 * https://www.pololu.com/product/2820
