@@ -23,7 +23,7 @@ import com.pi4j.io.pwm.Pwm;
 *
 * If the servo does not rotate to the expected RPM,Example to rotate faster CW  reduce the -low
 *  argument, to rotate CCW faster increase the -high argument. The -low -high change should be balanced or 90 degree will not properly align.
-* Meaning if you reduce the -low by 200, you should increase the -high by 200, or visa-versa.
+* Meaning if you reduce the -low by 200, you should increase the -high by 200, or vice versa.
 *
 *
 */
