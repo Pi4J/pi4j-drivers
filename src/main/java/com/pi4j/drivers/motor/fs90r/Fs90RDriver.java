@@ -32,14 +32,14 @@ import com.pi4j.io.pwm.Pwm;
 public class Fs90RDriver {
 
     private static final class Constants {
-        static final double PW_ZERO_DEFAULT = 1000.0;
-        static final double PW_ONE_EIGHTY_DEFAULT = 2000.0;
+        static final double PW_MAX_CW = 1000.0;
+        static final double PW_MAX_CCW = 2000.0;
         static final int PWM_FREQUENCY = 50;
     }
 
     private final Pwm pwm;
-    private double pwZero ;
-    private double pwOneEighty ;
+    private double pwCwMax ;
+    private double pwCcwMax ;
     private double totalPwRange ;
 
 
@@ -49,32 +49,32 @@ public class Fs90RDriver {
      * @param pwm  Hardware PWM
      */
     public Fs90RDriver(Pwm pwm) {
-        this(pwm,Constants.PW_ZERO_DEFAULT, Constants.PW_ONE_EIGHTY_DEFAULT);
+        this(pwm,Constants.PW_MAX_CW, Constants.PW_MAX_CCW);
     }
 
         /**
          *
          * @param pwm           pwm device
-         * @param pwZero   value in microseconds for 0 degree position
-         * @param pwOneEighty value in microseconds for 180 degree position
+         * @param pwCwMax   value in microseconds for 0 degree position
+         * @param pwCcwMax value in microseconds for 180 degree position
          */
-    public Fs90RDriver(Pwm pwm, double pwZero, double pwOneEighty ) {
+    public Fs90RDriver(Pwm pwm, double pwCwMax, double pwCcwMax ) {
             this.pwm = pwm;
-            this.pwZero = pwZero;
-            this.pwOneEighty = pwOneEighty;
-            this.totalPwRange =  this.pwOneEighty - this.pwZero ;
+            this.pwCwMax = pwCwMax;
+            this.pwCcwMax = pwCcwMax;
+            this.totalPwRange =  this.pwCcwMax - this.pwCwMax ;
 
             if(pwm == null){
                 throw new IllegalArgumentException("PWM is null");
             }
-            if (!Double.isFinite(pwZero) || pwZero < 500.0 || pwZero > 1500.0){
-                throw new IllegalArgumentException("pwZero range 500.0 ... 1500.0 ");
+            if (!Double.isFinite(pwCwMax) || pwCwMax < 500.0 || pwCwMax > 1500.0){
+                throw new IllegalArgumentException("pwCwMax range 500.0 ... 1500.0 ");
             }
-            if (!Double.isFinite(pwOneEighty) || pwOneEighty < 1500.0 || pwOneEighty > 2500.0){
-                throw new IllegalArgumentException("pwOneEighty range 1500.0 ... 2500.0 ");
+            if (!Double.isFinite(pwCcwMax) || pwCcwMax < 1500.0 || pwCcwMax > 2500.0){
+                throw new IllegalArgumentException("pwCcwMax range 1500.0 ... 2500.0 ");
             }
-            if (pwZero >= pwOneEighty) {
-                throw new IllegalArgumentException("pwZero must be less than pwOneEighty");
+            if (pwCwMax >= pwCcwMax) {
+                throw new IllegalArgumentException("pwCwMax must be less than pwCcwMax");
             }
         }
 
@@ -99,7 +99,7 @@ public class Fs90RDriver {
      * @return duty cycle
      */
     double degreeToDutyCycle(double degree){
-        double targetPulseWidth  = this.pwZero + (degree * (totalPwRange / 180.0));
+        double targetPulseWidth  = this.pwCwMax + (degree * (totalPwRange / 180.0));
         return  (targetPulseWidth/ 20000.0)  * 100.0;
     }
 }
