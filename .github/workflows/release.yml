@@ -21,6 +21,9 @@ on:
       - 'pom.xml'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   # ── Step 1: decide whether this is a real release ──────────────────────────
   check-version:

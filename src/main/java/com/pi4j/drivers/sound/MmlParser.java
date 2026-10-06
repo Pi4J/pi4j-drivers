@@ -59,20 +59,20 @@ public class MmlParser {
             if (dotted) {
                 pos++;
             }
-            float frequency;
+            double frequency;
             switch (c) {
-                case 'c' -> frequency = 261.63f;
-                case 'C' -> frequency = 277.18f;
-                case 'd' -> frequency = 293.66f;
-                case 'D' -> frequency = 311.13f;
-                case 'e' -> frequency = 329.63f;
-                case 'f' -> frequency = 349.23f;
-                case 'F' -> frequency = 369.99f;
+                case 'c' -> frequency = 261.63;
+                case 'C' -> frequency = 277.18;
+                case 'd' -> frequency = 293.66;
+                case 'D' -> frequency = 311.13;
+                case 'e' -> frequency = 329.63;
+                case 'f' -> frequency = 349.23;
+                case 'F' -> frequency = 369.99;
                 case 'g' -> frequency = 392;
-                case 'G' -> frequency = 415.3f;
+                case 'G' -> frequency = 415.3;
                 case 'a' -> frequency = 440;
-                case 'A' -> frequency = 466.16f;
-                case 'b' -> frequency = 493.88f;
+                case 'A' -> frequency = 466.16;
+                case 'b' -> frequency = 493.88;
                 case 'p', 'r' -> frequency = 0;
                 case 'o' -> {
                     octave = n;
