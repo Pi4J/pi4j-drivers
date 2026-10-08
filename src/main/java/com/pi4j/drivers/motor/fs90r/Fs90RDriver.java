@@ -1,0 +1,105 @@
+package com.pi4j.drivers.motor.fs90r;
+
+
+import com.pi4j.io.pwm.Pwm;
+
+/**
+* Driver for a FS90R servo motor.
+* The Fs90R defines a specific PWM interface and exactly how the PWM signal
+* controls the servo
+*
+* https://www.pololu.com/product/2820
+*
+*
+*   These devices do not have a customary DataSheet.  Most servo devices provide limited specifications
+* for required pulse width, they just say 1 - 2 millisecond.
+*
+* The FS90 R 360 defines a specific PWM interface and exactly how the PWN signal
+* controls the servo. There are many different manufacturers of the FS90 servo.
+* A command of 0 produces maximum clockwise (CW) rotation, while 180 produces maximum
+* counterclockwise (CCW) rotation; the exact pulse widths vary by manufacturer.
+* (low)1000 - (high)2000 microseconds. The user of this example application can change these defaults
+* when first invoking the program.
+*
+* If the servo does not rotate to the expected RPM,Example to rotate faster CW  reduce the -low
+*  argument, to rotate CCW faster increase the -high argument. The -low -high change should be balanced or 90 degree will not properly align.
+* Meaning if you reduce the -low by 200, you should increase the -high by 200, or vice versa.
+*
+*
+*/
+
+
+public class Fs90RDriver {
+
+    private static final class Constants {
+        static final double PW_MAX_CW = 1000.0;
+        static final double PW_MAX_CCW = 2000.0;
+        static final int PWM_FREQUENCY = 50;
+    }
+
+    private final Pwm pwm;
+    private double pwCwMax ;
+    private double pwCcwMax ;
+    private double totalPwRange ;
+
+
+
+    /**
+     *
+     * @param pwm  Hardware PWM
+     */
+    public Fs90RDriver(Pwm pwm) {
+        this(pwm,Constants.PW_MAX_CW, Constants.PW_MAX_CCW);
+    }
+
+        /**
+         *
+         * @param pwm           pwm device
+         * @param pwCwMax   value in microseconds for 0 degree position
+         * @param pwCcwMax value in microseconds for 180 degree position
+         */
+    public Fs90RDriver(Pwm pwm, double pwCwMax, double pwCcwMax ) {
+            this.pwm = pwm;
+            this.pwCwMax = pwCwMax;
+            this.pwCcwMax = pwCcwMax;
+            this.totalPwRange =  this.pwCcwMax - this.pwCwMax ;
+
+            if(pwm == null){
+                throw new IllegalArgumentException("PWM is null");
+            }
+            if (!Double.isFinite(pwCwMax) || pwCwMax < 500.0 || pwCwMax > 1500.0){
+                throw new IllegalArgumentException("pwCwMax range 500.0 ... 1500.0 ");
+            }
+            if (!Double.isFinite(pwCcwMax) || pwCcwMax < 1500.0 || pwCcwMax > 2500.0){
+                throw new IllegalArgumentException("pwCcwMax range 1500.0 ... 2500.0 ");
+            }
+            if (pwCwMax >= pwCcwMax) {
+                throw new IllegalArgumentException("pwCwMax must be less than pwCcwMax");
+            }
+        }
+
+
+    /**
+     * Sets the servo rotation command: 0 is maximum clockwise, 90 is neutral,
+     * and 180 is maximum counterclockwise.
+     * @param degree rotation command from 0 through 180
+     */
+    public void setServoRotation(double degree){
+
+        if (!Double.isFinite(degree) || degree < 0.0 || degree > 180.0) {
+            throw new IllegalArgumentException("degree must be finite and between 0.0 and 180.0");
+        }
+        pwm.on(degreeToDutyCycle(degree), Constants.PWM_FREQUENCY);
+    }
+
+    /**
+     *
+     * @param degree   Desired location of the servo output shaft solved for required Duty Cycle.
+     *                 See table above.
+     * @return duty cycle
+     */
+    double degreeToDutyCycle(double degree){
+        double targetPulseWidth  = this.pwCwMax + (degree * (totalPwRange / 180.0));
+        return  (targetPulseWidth/ 20000.0)  * 100.0;
+    }
+}
