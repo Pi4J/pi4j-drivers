@@ -26,7 +26,7 @@ import com.pi4j.io.pwm.Pwm;
 *
 */
 
-public class SG90Driver {
+public class Sg90Driver {
 
     class Constants {
         static final double PW_ZERO_DEFAULT = 1000.0;
@@ -47,7 +47,7 @@ public class SG90Driver {
      *
      * @param pwm Hardware PWM
      */
-    public SG90Driver(Pwm pwm) {
+    public Sg90Driver(Pwm pwm) {
         this(pwm,Constants.PW_ZERO_DEFAULT, Constants.PW_ONE_EIGHTY_DEFAULT);
         if(pwm == null){
             throw new IllegalArgumentException("PWM is null");
@@ -60,7 +60,7 @@ public class SG90Driver {
      * @param pwZero   value in microseconds for 0 degree position
      * @param pwOneEighty value in microseconds for 180 degree position
      */
-    public SG90Driver(Pwm pwm, double pwZero, double pwOneEighty ) {
+    public Sg90Driver(Pwm pwm, double pwZero, double pwOneEighty ) {
         this.pwm = pwm;
         this.pwZero = pwZero;
         this.pwOneEighty = pwOneEighty;
