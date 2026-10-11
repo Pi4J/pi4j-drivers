@@ -29,7 +29,7 @@ import com.pi4j.io.pwm.Pwm;
 */
 
 
-public class Fs90RDriver {
+public class Fs90rDriver {
 
     private static final class Constants {
         static final double PW_MAX_CW = 1000.0;
@@ -48,7 +48,7 @@ public class Fs90RDriver {
      *
      * @param pwm  Hardware PWM
      */
-    public Fs90RDriver(Pwm pwm) {
+    public Fs90rDriver(Pwm pwm) {
         this(pwm,Constants.PW_MAX_CW, Constants.PW_MAX_CCW);
     }
 
@@ -58,7 +58,7 @@ public class Fs90RDriver {
          * @param pwCwMax   value in microseconds for 0 degree position
          * @param pwCcwMax value in microseconds for 180 degree position
          */
-    public Fs90RDriver(Pwm pwm, double pwCwMax, double pwCcwMax ) {
+    public Fs90rDriver(Pwm pwm, double pwCwMax, double pwCcwMax ) {
             this.pwm = pwm;
             this.pwCwMax = pwCwMax;
             this.pwCcwMax = pwCcwMax;
