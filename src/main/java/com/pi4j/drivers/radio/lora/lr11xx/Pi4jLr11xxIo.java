@@ -221,7 +221,7 @@ class Pi4jLr11xxIo implements Lr11xxIo {
      * an {@link IO}, and that does.
      */
     private static void closeLine(Object line) {
-        if (line instanceof IO<?, ?, ?> io) {
+        if (line instanceof IO io) {
             io.close();
         }
     }
