@@ -18,9 +18,9 @@ public class Scd4xDriver implements Sensor {
      * The I2C address of the device (needed for constructing an I2C instance)
      */
     public static final int I2C_ADDRESS = 0x62;
-    public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor.Builder("SCD24x")
+    public static final SensorDescriptor DESCRIPTOR = new SensorDescriptor.Builder("SCD4x")
             .addValue(SensorDescriptor.Kind.TEMPERATURE)
-            .addValue(SensorDescriptor.Kind.PRESSURE)
+            .addValue(SensorDescriptor.Kind.HUMIDITY)
             .addValue(SensorDescriptor.Kind.CO2)
             .addI2cAddress(I2C_ADDRESS)
             .setI2cSensorDetector(i2c -> {
