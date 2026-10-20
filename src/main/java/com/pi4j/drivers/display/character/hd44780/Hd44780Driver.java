@@ -31,7 +31,7 @@ public class Hd44780Driver implements CharacterDisplay {
      * and umlauts. Most notably, backslash and tilde are missing.
      */
     public static final Map<Integer, Integer> CHARACTER_ROM_A00 = generateCharacterMap(
-        "βß",
+        "βß°ﾟ",
             0x5c, "¥",
             126, "←→",
             0xa1, "｡｢｣､･ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝﾞﾟ",
