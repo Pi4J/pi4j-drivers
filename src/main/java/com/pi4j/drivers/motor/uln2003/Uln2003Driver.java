@@ -11,13 +11,13 @@ public class Uln2003Driver {
     private static final int[] REVERSE = {0b1001, 0b0001, 0b0011, 0b0010, 0b0110, 0b0100, 0b1100, 0b1000};
     private static final Duration DEFAULT_DELAY = Duration.ofMillis(5);
 
-    private final OnOffWrite<?> pin1;
-    private final OnOffWrite<?> pin2;
-    private final OnOffWrite<?> pin3;
-    private final OnOffWrite<?> pin4;
+    private final OnOffWrite pin1;
+    private final OnOffWrite pin2;
+    private final OnOffWrite pin3;
+    private final OnOffWrite pin4;
 
     /** Creates a new driver with the given digital output pins connected to in1..in4 */
-    public Uln2003Driver(OnOffWrite<?> pin1, OnOffWrite<?> pin2, OnOffWrite<?> pin3, OnOffWrite<?> pin4) {
+    public Uln2003Driver(OnOffWrite pin1, OnOffWrite pin2, OnOffWrite pin3, OnOffWrite pin4) {
         this.pin1 = pin1;
         this.pin2 = pin2;
         this.pin3 = pin3;

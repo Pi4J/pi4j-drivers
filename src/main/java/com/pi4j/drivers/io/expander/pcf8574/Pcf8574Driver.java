@@ -21,7 +21,7 @@ public class Pcf8574Driver extends AbstractIoExpander {
     }
 
     /** Creates a new PCF 8574 driver with all pins set to 1 (matching the default state) and configured for input. */
-    public static Pcf8574Driver createForInput(I2C i2c, ListenableOnOffRead<?> interruptPin) {
+    public static Pcf8574Driver createForInput(I2C i2c, ListenableOnOffRead interruptPin) {
         return new Pcf8574Driver(i2c, interruptPin, 0xff, 0xff);
     }
 
@@ -29,7 +29,7 @@ public class Pcf8574Driver extends AbstractIoExpander {
      * Creates a new PCF 8574 input driver. The interrupt pin will be used to trigger update
      * requests from the chip. If null, state changes can still be observed via the poll() method.
      */
-    public Pcf8574Driver(I2C i2c, ListenableOnOffRead<?> interruptPin, int inputPins, int initialOutputStates) {
+    public Pcf8574Driver(I2C i2c, ListenableOnOffRead interruptPin, int inputPins, int initialOutputStates) {
         super (8, interruptPin);
         this.i2c = i2c;
         this.outputStates = initialOutputStates;

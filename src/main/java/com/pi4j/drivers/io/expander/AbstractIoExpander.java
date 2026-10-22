@@ -16,9 +16,9 @@ import java.util.function.IntConsumer;
  */
 public abstract class AbstractIoExpander implements ConfigurableIoExpander, Closeable {
     private final int size;
-    private final ListenableOnOffRead<?> interruptPin;
+    private final ListenableOnOffRead interruptPin;
     private final ListenableOnOffRead.Impl[] onOffReadArray;
-    private final OnOffWrite<?>[] onOffWriteArray;
+    private final OnOffWrite[] onOffWriteArray;
     private final List<IntConsumer> inputStateListeners = new ArrayList<>();
 
     // Mask bits from triggering an output write.
@@ -29,7 +29,7 @@ public abstract class AbstractIoExpander implements ConfigurableIoExpander, Clos
     protected int inputStates;
     protected int outputStates;
 
-    protected AbstractIoExpander(int size, ListenableOnOffRead<?> interruptPin) {
+    protected AbstractIoExpander(int size, ListenableOnOffRead interruptPin) {
         this.size = size;
         this.interruptPin = interruptPin;
         this.onOffReadArray = new ListenableOnOffRead.Impl[size];
@@ -63,7 +63,7 @@ public abstract class AbstractIoExpander implements ConfigurableIoExpander, Clos
     }
 
     @Override
-    public final ListenableOnOffRead<ListenableOnOffRead.Impl> getInput(int index) {
+    public final ListenableOnOffRead getInput(int index) {
         return onOffReadArray[index];
     }
 
@@ -73,7 +73,7 @@ public abstract class AbstractIoExpander implements ConfigurableIoExpander, Clos
     }
 
     @Override
-    public OnOffWrite<?> getOutput(int index) {
+    public OnOffWrite getOutput(int index) {
         return onOffWriteArray[index];
     }
 
@@ -150,7 +150,7 @@ public abstract class AbstractIoExpander implements ConfigurableIoExpander, Clos
     // Inner helper class ----------------------------------------------------------------------------------------------
     //
 
-    private class OnOffWriteImpl implements OnOffWrite<OnOffWriteImpl> {
+    private class OnOffWriteImpl implements OnOffWrite {
         final int index;
 
         OnOffWriteImpl(int index) {
@@ -158,15 +158,13 @@ public abstract class AbstractIoExpander implements ConfigurableIoExpander, Clos
         }
 
         @Override
-        public OnOffWriteImpl on() {
+        public void on() {
             AbstractIoExpander.this.setOutputState(index, true);
-            return this;
         }
 
         @Override
-        public OnOffWriteImpl off()  {
+        public void off()  {
             AbstractIoExpander.this.setOutputState(index, false);
-            return this;
         }
     }
 }

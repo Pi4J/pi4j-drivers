@@ -43,11 +43,11 @@ public class Mcp23008Driver extends AbstractIoExpander {
      * If the interrupt pin is provided, it is used to trigger interrupts for the individual input pin
      * abstractions available on this driver via getInput(pin).
      */
-    public Mcp23008Driver(I2C i2c, ListenableOnOffRead<?> interruptPin) {
+    public Mcp23008Driver(I2C i2c, ListenableOnOffRead interruptPin) {
         this(i2c, 8, interruptPin);
     }
 
-    protected Mcp23008Driver(I2C i2c, int size, ListenableOnOffRead<?> interruptPin) {
+    protected Mcp23008Driver(I2C i2c, int size, ListenableOnOffRead interruptPin) {
         super(size, interruptPin);
         this.i2c = i2c;
         if (interruptPin != null) {

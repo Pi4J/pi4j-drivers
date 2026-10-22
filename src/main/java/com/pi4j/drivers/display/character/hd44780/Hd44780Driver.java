@@ -69,13 +69,13 @@ public class Hd44780Driver implements CharacterDisplay {
 
     /** Creates a HD 44680 Driver with a parallel 4-bit 7-pin connection. */
     public static Hd44780Driver with4BitConnection(
-            OnOffWrite<?> registerSelect,
-            OnOffWrite<?> enable,
-            OnOffWrite<?> backLight,
-            OnOffWrite<?> d4,
-            OnOffWrite<?> d5,
-            OnOffWrite<?> d6,
-            OnOffWrite<?> d7,
+            OnOffWrite registerSelect,
+            OnOffWrite enable,
+            OnOffWrite backLight,
+            OnOffWrite d4,
+            OnOffWrite d5,
+            OnOffWrite d6,
+            OnOffWrite d7,
             int width,
             int height) {
         return new Hd44780Driver(

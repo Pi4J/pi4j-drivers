@@ -8,15 +8,15 @@ import com.pi4j.io.OnOffWrite;
  */
 public class Parallel4BitConnection extends AbstractConnection {
 
-    private final OnOffWrite<?> registerSelect;
-    private final OnOffWrite<?> enable;
-    private final OnOffWrite<?> backLight;
-    private final OnOffWrite<?> d4;
-    private final OnOffWrite<?> d5;
-    private final OnOffWrite<?> d6;
-    private final OnOffWrite<?> d7;
+    private final OnOffWrite registerSelect;
+    private final OnOffWrite enable;
+    private final OnOffWrite backLight;
+    private final OnOffWrite d4;
+    private final OnOffWrite d5;
+    private final OnOffWrite d6;
+    private final OnOffWrite d7;
 
-    private static void setState(OnOffWrite<?> pin, boolean state) {
+    private static void setState(OnOffWrite pin, boolean state) {
         if (state) {
             pin.on();
         } else {
@@ -25,13 +25,13 @@ public class Parallel4BitConnection extends AbstractConnection {
     }
 
     public Parallel4BitConnection(
-            OnOffWrite<?> registerSelect,
-            OnOffWrite<?> enable,
-            OnOffWrite<?> backLight,
-            OnOffWrite<?> d4,
-            OnOffWrite<?> d5,
-            OnOffWrite<?> d6,
-            OnOffWrite<?> d7) {
+            OnOffWrite registerSelect,
+            OnOffWrite enable,
+            OnOffWrite backLight,
+            OnOffWrite d4,
+            OnOffWrite d5,
+            OnOffWrite d6,
+            OnOffWrite d7) {
         this.registerSelect = registerSelect;
         this.enable = enable;
         this.backLight = backLight;

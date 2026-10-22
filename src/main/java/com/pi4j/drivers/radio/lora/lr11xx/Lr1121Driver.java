@@ -249,8 +249,8 @@ public class Lr1121Driver implements Closeable {
      * @param busy the radio's BUSY pin
      * @param interrupt the radio's DIO9 pin, whose rising edge the driver waits on
      */
-    public Lr1121Driver(Spi spi, OnOffWrite<?> reset, OnOffRead<?> busy,
-                        ListenableOnOffRead<?> interrupt) {
+    public Lr1121Driver(Spi spi, OnOffWrite reset, OnOffRead busy,
+                        ListenableOnOffRead interrupt) {
         this(new Pi4jLr11xxIo(spi, reset, busy, interrupt));
     }
 

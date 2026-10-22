@@ -101,13 +101,13 @@ public class GameController implements Closeable {
      */
     public static class Builder {
         private final Context pi4j;
-        private final Map<Key, ListenableOnOffRead<?>> keyMap = new HashMap<>();
+        private final Map<Key, ListenableOnOffRead> keyMap = new HashMap<>();
 
         public Builder(Context pi4J) {
             this.pi4j = pi4J;
         }
 
-        public Builder addDigitalInput(Key key, ListenableOnOffRead<?> onOff) {
+        public Builder addDigitalInput(Key key, ListenableOnOffRead onOff) {
             keyMap.put(key, onOff);
             return this;
         }
@@ -134,10 +134,10 @@ public class GameController implements Closeable {
         }
     }
 
-    private final Map<Key, ListenableOnOffRead<?>> keyMap = new HashMap<>();
+    private final Map<Key, ListenableOnOffRead> keyMap = new HashMap<>();
 
     /** Creates a new Game Controller with the given keys */
-    public GameController(Map<Key, ListenableOnOffRead<?>> keyMap) {
+    public GameController(Map<Key, ListenableOnOffRead> keyMap) {
         this.keyMap.putAll(keyMap);
     }
 
@@ -147,7 +147,7 @@ public class GameController implements Closeable {
     }
 
     /** Returns a listenable on/off state encapsulation for the given key, or null if not available */
-    public ListenableOnOffRead<?> getKey(Key key) {
+    public ListenableOnOffRead getKey(Key key) {
         return keyMap.get(key);
     }
 
@@ -181,9 +181,9 @@ public class GameController implements Closeable {
      * Returns a listenable on/off state encapsulation for the first key in the arguments that is available on this
      * controller, or null if none is available.
      */
-    public ListenableOnOffRead<?> getKeyOrFallback(Key... keys) {
+    public ListenableOnOffRead getKeyOrFallback(Key... keys) {
         for (Key key: keys) {
-            ListenableOnOffRead<?> available = getKey(key);
+            ListenableOnOffRead available = getKey(key);
             if (available != null) {
                 return available;
             }
@@ -193,7 +193,7 @@ public class GameController implements Closeable {
 
     public void close() {
         Exception failure = null;
-        for (ListenableOnOffRead<?> input: keyMap.values()) {
+        for (ListenableOnOffRead input: keyMap.values()) {
             if (input instanceof Closeable) {
                 try {
                     ((Closeable) input).close();

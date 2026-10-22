@@ -26,7 +26,7 @@ public class Mcp23017Driver extends Mcp23008Driver {
      * If an interruptPin is provided, we enable change interrupts on all pins and set the pins to MIRROR mode.
      * For more details, please refer to the superclass documentation.
      */
-    public Mcp23017Driver(I2C i2c, ListenableOnOffRead<?> interruptPin) {
+    public Mcp23017Driver(I2C i2c, ListenableOnOffRead interruptPin) {
         super(i2c, 16, interruptPin);
         if (interruptPin != null) {
             // Enable mirror, so we see interrupts for all pins on one interrupt pin.
