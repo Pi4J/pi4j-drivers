@@ -13,7 +13,7 @@ public class Pcf8574InputDriver extends Pcf8574Driver {
      * Creates a new PCF 8574 input driver. The interrupt pin will be used to trigger update
      * requests from the chip. If null, state changes can still be observed via the poll() method.
      */
-    public Pcf8574InputDriver(I2C i2c, ListenableOnOffRead<?> interruptPin) {
+    public Pcf8574InputDriver(I2C i2c, ListenableOnOffRead interruptPin) {
         super (i2c, interruptPin, 0xff, 0xff);
     }
 }

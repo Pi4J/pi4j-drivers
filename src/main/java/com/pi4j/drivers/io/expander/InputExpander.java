@@ -13,7 +13,7 @@ public interface InputExpander {
     void addInputStateListener(IntConsumer listener);
 
     /** Returns a listenable OnOffRead object for the given pin. */
-    ListenableOnOffRead<ListenableOnOffRead.Impl> getInput(int index);
+    ListenableOnOffRead getInput(int index);
 
     /**
      * @deprecated Replaced with getInputStates();

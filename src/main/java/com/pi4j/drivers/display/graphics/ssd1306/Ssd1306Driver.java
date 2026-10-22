@@ -36,7 +36,7 @@ public class Ssd1306Driver implements GraphicsDisplayDriver {
     private final IODataWriter writer;
     private final GraphicsDisplayDescriptor displayInfo;
     private final byte[] page_buffer;
-    private final OnOffWrite<?> dc;
+    private final OnOffWrite dc;
     private final byte[] commandBuffer = new byte[8];
 
 
@@ -46,7 +46,7 @@ public class Ssd1306Driver implements GraphicsDisplayDriver {
     }
 
     /** Constructor for SPI with a dedicated dc pin. */
-    public Ssd1306Driver(IODataWriter writer, OnOffWrite<?> dc) {
+    public Ssd1306Driver(IODataWriter writer, OnOffWrite dc) {
         this.writer = writer;
         this.dc = dc;
         this.displayInfo = new GraphicsDisplayDescriptor(128, 64, PixelFormat.MONOCHROME, 8, GraphicsDisplay.Rotation.ROTATE_0);

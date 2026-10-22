@@ -30,8 +30,8 @@ public class Hcsr04Driver implements Sensor {
     private static final double SPEED_OF_SOUND = 342.25; // Speed of sound in meters per second at 18°C
 
 
-    private final OnOffWrite<?> triggerPin;
-    private final OnOffRead<?> echoPin;
+    private final OnOffWrite triggerPin;
+    private final OnOffRead echoPin;
 
     public Hcsr04Driver(DigitalOutput triggerPin, DigitalInput echoPin) {
         this.triggerPin = triggerPin;

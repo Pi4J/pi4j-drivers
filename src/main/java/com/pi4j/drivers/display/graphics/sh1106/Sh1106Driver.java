@@ -18,12 +18,12 @@ public class Sh1106Driver implements GraphicsDisplayDriver {
     private static final GraphicsDisplayDescriptor DISPLAY_INFO = new GraphicsDisplayDescriptor(
             64, 128, PixelFormat.MONOCHROME, 8, GraphicsDisplay.Rotation.ROTATE_90);
     private final Spi spi;
-    private final OnOffWrite<?> dc;
-    private final OnOffWrite<?> rst;
+    private final OnOffWrite dc;
+    private final OnOffWrite rst;
     private final byte[] cmdBuf = new byte[256];
     private final byte[] displayBuf = new byte[8 * 128];
 
-    public Sh1106Driver(Spi spi, OnOffWrite<?> dc, OnOffWrite rst) {
+    public Sh1106Driver(Spi spi, OnOffWrite dc, OnOffWrite rst) {
         this.spi = spi;
         this.dc = dc;
         this.rst = rst;

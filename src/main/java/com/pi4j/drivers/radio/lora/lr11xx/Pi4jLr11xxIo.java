@@ -34,9 +34,9 @@ class Pi4jLr11xxIo implements Lr11xxIo {
     private static final int BUSY_POLL_MICROS = 200;
 
     private final Spi spi;
-    private final OnOffWrite<?> reset;
-    private final OnOffRead<?> busy;
-    private final ListenableOnOffRead<?> interrupt;
+    private final OnOffWrite reset;
+    private final OnOffRead busy;
+    private final ListenableOnOffRead interrupt;
 
     /**
      * Whether the bus and the lines are ours to close.
@@ -72,13 +72,13 @@ class Pi4jLr11xxIo implements Lr11xxIo {
         }
     };
 
-    Pi4jLr11xxIo(Spi spi, OnOffWrite<?> reset, OnOffRead<?> busy,
-                 ListenableOnOffRead<?> interrupt) {
+    Pi4jLr11xxIo(Spi spi, OnOffWrite reset, OnOffRead busy,
+                 ListenableOnOffRead interrupt) {
         this(spi, reset, busy, interrupt, false);
     }
 
-    Pi4jLr11xxIo(Spi spi, OnOffWrite<?> reset, OnOffRead<?> busy,
-                 ListenableOnOffRead<?> interrupt, boolean ownsIo) {
+    Pi4jLr11xxIo(Spi spi, OnOffWrite reset, OnOffRead busy,
+                 ListenableOnOffRead interrupt, boolean ownsIo) {
         this.ownsIo = ownsIo;
         this.spi = spi;
         this.reset = reset;
@@ -119,7 +119,7 @@ class Pi4jLr11xxIo implements Lr11xxIo {
      * arrives as something else — an expander pin, a test double — has no kernel
      * window to get wrong, so there is nothing to refuse.
      */
-    private static void requireUndebounced(String which, OnOffRead<?> line) {
+    private static void requireUndebounced(String which, OnOffRead line) {
         if (line instanceof DigitalInput input) {
             requireUndebounced(which, input.config().debounce());
         }

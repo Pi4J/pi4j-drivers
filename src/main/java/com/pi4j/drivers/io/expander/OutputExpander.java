@@ -12,7 +12,7 @@ public interface OutputExpander {
      * Returns an OnOffWrite object (implementing the base interface of DigitalOutput) for the output pin with the
      * given index.
      */
-    OnOffWrite<?> getOutput(int index);
+    OnOffWrite getOutput(int index);
 
     /** Returns the number of pins on this chip. */
     int getSize();

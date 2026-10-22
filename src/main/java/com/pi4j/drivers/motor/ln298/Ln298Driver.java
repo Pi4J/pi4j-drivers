@@ -9,8 +9,8 @@ import com.pi4j.util.Delay;
  * To control both motors, please use two instances of this class.
  */
 public class Ln298Driver {
-    private final OnOffWrite<?> forwardPin;
-    private final OnOffWrite<?> backwardsPin;
+    private final OnOffWrite forwardPin;
+    private final OnOffWrite backwardsPin;
     private final Pwm speedPwm;
     private final Delay delay = new Delay();
 
@@ -33,7 +33,7 @@ public class Ln298Driver {
      * @param backwardsPin The DigitalOutput controlling the pin enabling backwards motion; IN2 for motor A and IN4 for motor B.
      * @param speedPwm The PWM output controlling the speed of the motor; connected to ENA for Motor A or ENB for motor B.
      */
-    public Ln298Driver(OnOffWrite<?> forwardPin, OnOffWrite<?> backwardsPin, Pwm speedPwm) {
+    public Ln298Driver(OnOffWrite forwardPin, OnOffWrite backwardsPin, Pwm speedPwm) {
         this.forwardPin = forwardPin;
         this.backwardsPin = backwardsPin;
         this.speedPwm = speedPwm;
