@@ -77,10 +77,10 @@ public class PiXtendDriver implements Closeable {
         }
 
         // Enable Pixtend SPI communication by enabling bwm pin 24
-        pin24DOut = pi4J.create(DigitalOutputConfig.newBuilder(pi4J).address(24).build());
+        pin24DOut = pi4J.create(DigitalOutputConfig.newBuilder(pi4J).bcm(24).build());
         pin24DOut.setState(true);
 
-        SpiConfig spiConfig = Spi.newConfigBuilder(pi4J).provider("linuxfs-spi")
+        SpiConfig spiConfig = Spi.newConfigBuilder(pi4J)
                 .mode(SpiMode.MODE_0)
                 .chipSelect(SpiChipSelect.CS_0)
                 .baud(700_000)
@@ -89,7 +89,7 @@ public class PiXtendDriver implements Closeable {
         spi = pi4J.create(spiConfig);
         spi.open();
 
-        SpiConfig dacSpiConfig = Spi.newConfigBuilder(pi4J).provider("linuxfs-spi")
+        SpiConfig dacSpiConfig = Spi.newConfigBuilder(pi4J)
                 .mode(SpiMode.MODE_0)
                 .chipSelect(SpiChipSelect.CS_1)
                 .baud(700_000)
