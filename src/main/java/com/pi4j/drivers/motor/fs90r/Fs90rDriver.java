@@ -34,9 +34,6 @@ public class Fs90rDriver {
     public static final double PW_MAX_CW = 1000.0;
     public static final double PW_MAX_CCW = 2000.0;
     public static final int PWM_FREQUENCY = 50;
-    public static final int DEFAULT_PWM_FREQUENCY = 50;
-    public static final int DEFAULT_CHANNEL_NUMBER = 2;
-    public static final int SERVO_NUMBER = 1;
 
     private final Pwm pwm;
     private double pwCwMax ;
