@@ -31,11 +31,12 @@ import com.pi4j.io.pwm.Pwm;
 
 public class Fs90rDriver {
 
-    private static final class Constants {
-        static final double PW_MAX_CW = 1000.0;
-        static final double PW_MAX_CCW = 2000.0;
-        static final int PWM_FREQUENCY = 50;
-    }
+    public static final double PW_MAX_CW = 1000.0;
+    public static final double PW_MAX_CCW = 2000.0;
+    public static final int PWM_FREQUENCY = 50;
+    public static final int DEFAULT_PWM_FREQUENCY = 50;
+    public static final int DEFAULT_CHANNEL_NUMBER = 2;
+    public static final int SERVO_NUMBER = 1;
 
     private final Pwm pwm;
     private double pwCwMax ;
@@ -49,7 +50,7 @@ public class Fs90rDriver {
      * @param pwm  Hardware PWM
      */
     public Fs90rDriver(Pwm pwm) {
-        this(pwm,Constants.PW_MAX_CW, Constants.PW_MAX_CCW);
+        this(pwm,PW_MAX_CW, PW_MAX_CCW);
     }
 
         /**
@@ -89,7 +90,7 @@ public class Fs90rDriver {
         if (!Double.isFinite(degree) || degree < 0.0 || degree > 180.0) {
             throw new IllegalArgumentException("degree must be finite and between 0.0 and 180.0");
         }
-        pwm.on(degreeToDutyCycle(degree), Constants.PWM_FREQUENCY);
+        pwm.on(degreeToDutyCycle(degree), PWM_FREQUENCY);
     }
 
     /**
