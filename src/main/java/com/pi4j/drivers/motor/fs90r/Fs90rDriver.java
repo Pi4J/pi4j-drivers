@@ -22,8 +22,8 @@ import com.pi4j.io.pwm.Pwm;
 * when first invoking the program.
 *
 * If the servo does not rotate to the expected RPM,Example to rotate faster CW  reduce the -low
-*  argument, to rotate CCW faster increase the -high argument. The -low -high change should be balanced or 90 degree will not properly align.
-* Meaning if you reduce the -low by 200, you should increase the -high by 200, or vice versa.
+*  argument, to rotate CCW faster increase the high argument. The low high change should be balanced or 90 degree will not properly align.
+* Meaning if you reduce the low by 200, you should increase the high by 200, or vice versa.
 *
 *
 */
@@ -35,10 +35,20 @@ public class Fs90rDriver {
     public static final double PW_MAX_CCW = 2000.0;
     public static final int PWM_FREQUENCY = 50;
 
+    public enum ServoDirection{
+        UNSET,
+        CW,
+        CCW
+    }
+
+    private ServoDirection direction;
+    private boolean rotating ;
     private final Pwm pwm;
     private double pwMin ;
     private double pwMax ;
     private double totalPwRange ;
+
+
 
     /**
      *
@@ -59,18 +69,18 @@ public class Fs90rDriver {
             this.pwMin = pwMin;
             this.pwMax = pwMax;
             this.totalPwRange =  this.pwMax - this.pwMin ;
-
+            this.direction = ServoDirection.UNSET;
             if(pwm == null){
                 throw new IllegalArgumentException("PWM is null");
             }
             if (!Double.isFinite(pwMin) || pwMin < 500.0 || pwMin > 1500.0){
-                throw new IllegalArgumentException("pwCwMax range 500.0 ... 1500.0 ");
+                throw new IllegalArgumentException("pwMin range 500.0 ... 1500.0 ");
             }
             if (!Double.isFinite(pwMax) || pwMax < 1500.0 || pwMax > 2500.0){
-                throw new IllegalArgumentException("pwCcwMax range 1500.0 ... 2500.0 ");
+                throw new IllegalArgumentException("pwMax range 1500.0 ... 2500.0 ");
             }
             if (pwMin >= pwMax) {
-                throw new IllegalArgumentException("pwCwMax must be less than pwCcwMax");
+                throw new IllegalArgumentException("pwMin must be less than pwMax");
             }
         }
 
@@ -86,6 +96,10 @@ public class Fs90rDriver {
     }
 
     /**
+     * Setting rotation by degree assumes the user understands the spec
+     * and does NOT test the servo being stopped nor that the degree range
+     * coincides with the present direction of rotation.
+     *
      * Sets the servo rotation command: 0 is maximum clockwise, 90 is neutral,
      * and 180 is maximum counterclockwise.
      * @param degree rotation command from 0 through 180
@@ -95,38 +109,62 @@ public class Fs90rDriver {
         if (!Double.isFinite(degree) || degree < 0.0 || degree > 180.0) {
             throw new IllegalArgumentException("degree must be finite and between 0.0 and 180.0");
         }
+        rotating = true;
+        if (degree < 90.0){
+                direction = ServoDirection.CW;
+            } else if (degree > 90.0){
+                direction = ServoDirection.CCW;
+            } else {
+                direction = ServoDirection.UNSET;
+            rotating = false;
+            }
         pwm.on(degreeToDutyCycle(degree), PWM_FREQUENCY);
+    }
+
+    /**
+     * Control direction of rotation
+     * Servo must be stopped before direction can be changed
+     *
+     * @param direction
+     */
+    public void setRotationDirection(ServoDirection direction){
+
+        if (rotating && direction != this.direction) {
+            throw new IllegalStateException("Cannot set new direction without stopping rotation");
+        }
+        this.direction = direction;
     }
 
     /**
      * Sets the servo rotation CCW percentage of max: 0% to 100% ,
-     * and 180 is maximum counterclockwise.
-     * Degree 90-- 180
      * @param percent rotation command from 0 through 100
      */
-    public void setServoRotationCCwByPercent(double percent){
+    public void setServoRotationByPercent(double percent){
 
         if (!Double.isFinite(percent) || percent < 0.0 || percent > 100.0) {
             throw new IllegalArgumentException("percentage must be finite and between 0.0% and 100.0%");
         }
-        double degree = 90.0 + (90.0 * percent/100) ;
-        pwm.on(degreeToDutyCycle(degree), PWM_FREQUENCY);
-    }
-
-    /**
-     * Sets the servo rotation CW percentage of max: 0% to 100% ,
-     * and 180 is maximum counterclockwise.
-     * Degree 0 -- 90
-     * @param percent rotation command from 0 through 100
-     */
-    public void setServoRotationCwByPercent(double percent){
-
-        if (!Double.isFinite(percent) || percent < 0.0 || percent > 100.0) {
-            throw new IllegalArgumentException("percentage must be finite and between 0.0% and 100.0%");
+        if (direction == ServoDirection.UNSET) {
+            throw new IllegalArgumentException("percent control not possible, rotation direction not set");
         }
-        double degree = 90.0 - (90.0 * percent/100) ;
+
+        double degree;
+
+        if (percent == 0.0) {
+            this.rotating = false;
+        } else {
+            this.rotating = true;
+        }
+
+        if (direction == ServoDirection.CCW) {
+            degree = 90.0 + (90.0 * percent / 100);
+        } else {
+            degree = 90.0 - (90.0 * percent/100) ;
+        }
+
         pwm.on(degreeToDutyCycle(degree), PWM_FREQUENCY);
     }
+
 
     /**
      *
