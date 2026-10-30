@@ -7,7 +7,7 @@ import com.pi4j.io.pwm.Pwm;
  * The Fs90R defines a specific PWM interface and exactly how the PWM signal
  * controls the servo
  * <p>
- * https://www.pololu.com/product/2820
+ *      <a href="https://www.pololu.com/product/2820"> Seervo Details</a>
  * <p>
  * <p>
  * These devices do not have a customary DataSheet.  Most servo devices provide limited specifications
@@ -15,13 +15,13 @@ import com.pi4j.io.pwm.Pwm;
  * <p>
  * The FS90 R 360 defines a specific PWM interface and exactly how the PWN signal
  * controls the servo. There are many different manufacturers of the FS90 servo.
- * A command of 0 produces maximum clockwise (CW) rotation, while 180 produces maximum
- * counterclockwise (CCW) rotation; the exact pulse widths vary by manufacturer.
- * (low)1000 - (high)2000 microseconds. The user of this example application can change these defaults
- * when first invoking the program.
+ * A minimal pulse width produces maximum clockwise (CW) rotation, while a maximum pulse width  produces maximum
+ * counterclockwise (CCW) rotation; the exact pulse widths vary by manufacturer. The application defaults
+ * (low)1000 - (high)2000 microseconds. The user of this example application can change these defaults via
+ * setPulseWidthMin() and setPulseWidthMax()
  * <p>
- * If the servo does not rotate to the expected RPM,Example to rotate faster CW  reduce the -low
- * argument, to rotate CCW faster increase the high argument. The low high change should be balanced or 90 degree will not properly align.
+ * If the servo does not rotate to the expected RPM,Example to rotate faster CW  reduce the low,
+ * to rotate CCW faster increase the high. The low high change should be balanced or 90 degree will not properly align.
  * Meaning if you reduce the low by 200, you should increase the high by 200, or vice versa.
  *
  *
@@ -29,120 +29,111 @@ import com.pi4j.io.pwm.Pwm;
 
 public class Fs90rDriver {
 
-    public static final double PW_MIN_CW = 1000.0;
-    public static final double PW_MAX_CCW = 2000.0;
     public static final int PWM_FREQUENCY = 50;
 
+    /* The servo direction of rotation initially is UNSET. This requires the application to
+    setDirection() before setSpeed() usage.   This ensure the direction is fully controlled by the application
+     */
     public enum ServoDirection {
         UNSET,
-        CW,
-        CCW
+        CLOCKWISE,
+        COUNTERCLOCKWISE
     }
 
+    private static final double PULSE_WIDTH_MIN_CLOCKWISE = 1000.0;
+    private static final double PULSE_WIDTH_MAX_COUNTERCLOCKWISE = 2000.0;
     private ServoDirection direction;
-    private boolean rotating;
+    private boolean isRotating;
     private final Pwm pwm;
-    private double pwMin;
-    private double pwMax;
-    private double totalPwRange;
+    /* these are the pulse width times for the extreme (MAX) speed clockwise and counterclockwise.
+    These values and their range are used in calculating the PulseWidth based upon percentage (@see setSpeed())
+     */
+    private double pulseWidthMin;
+    private double pulseWidthMax;
+    private double totalPulseWidthRange;
 
     /**
      *
      * @param pwm Hardware PWM
      */
     public Fs90rDriver(Pwm pwm) {
-        this(pwm, PW_MIN_CW, PW_MAX_CCW);
+        this(pwm, PULSE_WIDTH_MIN_CLOCKWISE, PULSE_WIDTH_MAX_COUNTERCLOCKWISE);
     }
 
     /**
      *
-     * @param pwm   pwm device
-     * @param pwMin value in microseconds for 0 degree position
-     * @param pwMax value in microseconds for 180 degree position
+     * @param pwm           pwm device
+     * @param pulseWidthMin value in microseconds for 0 degree max clockwise
+     * @param pulseWidthMax value in microseconds for 180 degree max counterclockwise
      */
-    public Fs90rDriver(Pwm pwm, double pwMin, double pwMax) {
+    public Fs90rDriver(Pwm pwm, double pulseWidthMin, double pulseWidthMax) {
         this.pwm = pwm;
-        this.pwMin = pwMin;
-        this.pwMax = pwMax;
-        this.totalPwRange = this.pwMax - this.pwMin;
+        this.pulseWidthMin = pulseWidthMin;
+        this.pulseWidthMax = pulseWidthMax;
+        this.totalPulseWidthRange = this.pulseWidthMax - this.pulseWidthMin;
         this.direction = ServoDirection.UNSET;
         if (pwm == null) {
             throw new IllegalArgumentException("PWM is null");
         }
-        if (!Double.isFinite(pwMin) || pwMin < 500.0 || pwMin > 1500.0) {
-            throw new IllegalArgumentException("pwMin range 500.0 ... 1500.0 ");
+        if (!Double.isFinite(pulseWidthMin) || pulseWidthMin < 500.0 || pulseWidthMin > 1500.0) {
+            throw new IllegalArgumentException("pulseWidthMin range 500.0 ... 1500.0 ");
         }
-        if (!Double.isFinite(pwMax) || pwMax < 1500.0 || pwMax > 2500.0) {
-            throw new IllegalArgumentException("pwMax range 1500.0 ... 2500.0 ");
+        if (!Double.isFinite(pulseWidthMax) || pulseWidthMax < 1500.0 || pulseWidthMax > 2500.0) {
+            throw new IllegalArgumentException("pulseWidthMax range 1500.0 ... 2500.0 ");
         }
-        if (pwMin >= pwMax) {
-            throw new IllegalArgumentException("pwMin must be less than pwMax");
+        if (pulseWidthMin >= pulseWidthMax) {
+            throw new IllegalArgumentException("pulseWidthMin must be less than pulseWidthMax");
         }
-    }
-
-    public void setPwMin(double pwMin) {
-        if (!Double.isFinite(pwMin) || pwMin < 500.0 || pwMin > 1500.0) {
-            throw new IllegalArgumentException("pwMin range 500.0 ... 1500.0 ");
-        }
-        this.pwMin = pwMin;
-        this.totalPwRange = this.pwMax - this.pwMin;
-    }
-
-    public void setPwMax(double pwMax) {
-        if (!Double.isFinite(pwMax) || pwMax < 1500.0 || pwMax > 2500.0) {
-            throw new IllegalArgumentException("pwMax range 1500.0 ... 2500.0 ");
-        }
-        this.pwMax = pwMax;
-        this.totalPwRange = this.pwMax - this.pwMin;
     }
 
     /**
-     * Setting rotation by degree assumes the user understands the spec
-     * and does NOT test the servo being stopped nor that the degree range
-     * coincides with the present direction of rotation.
-     * <p>
-     * Sets the servo rotation command: 0 is maximum clockwise, 90 is neutral,
-     * and 180 is maximum counterclockwise.
+     * Minimal duration pulse width to use.
      *
-     * @param degree rotation command from 0 through 180
+     * @param pulseWidthMin Greater than 500.0 less than 1500.0
      */
-    public void setServoRotationByDegree(double degree) {
-
-        if (!Double.isFinite(degree) || degree < 0.0 || degree > 180.0) {
-            throw new IllegalArgumentException("degree must be finite and between 0.0 and 180.0");
+    public void setPulseWidthMin(double pulseWidthMin) {
+        if (!Double.isFinite(pulseWidthMin) || pulseWidthMin < 500.0 || pulseWidthMin > 1500.0) {
+            throw new IllegalArgumentException("pulseWidthMin range 500.0 ... 1500.0 ");
         }
-        rotating = true;
-        if (degree < 90.0) {
-            direction = ServoDirection.CW;
-        } else if (degree > 90.0) {
-            direction = ServoDirection.CCW;
+        this.pulseWidthMin = pulseWidthMin;
+        this.totalPulseWidthRange = this.pulseWidthMax - this.pulseWidthMin;
+    }
+
+    /**
+     * Maximum duration pulse width to use.
+     *
+     * @param pulseWidthMax Greater than 1500.0 less than 2500.0
+     */
+    public void setPulseWidthMax(double pulseWidthMax) {
+        if (!Double.isFinite(pulseWidthMax) || pulseWidthMax < 1500.0 || pulseWidthMax > 2500.0) {
+            throw new IllegalArgumentException("pulseWidthMax range 1500.0 ... 2500.0 ");
+        }
+        this.pulseWidthMax = pulseWidthMax;
+        this.totalPulseWidthRange = this.pulseWidthMax - this.pulseWidthMin;
+    }
+
+    /**
+     * Control direction of rotation.  After this has been set the setSpeed()
+     * will use this value in rotating the servo clockwise or counterclockwise
+     *
+     * @param direction Servo must be stopped before direction can be changed
+     */
+    public void setDirection(ServoDirection direction) {
+
+        if (!isRotating || (direction == this.direction)) {
+            this.direction = direction;
         } else {
-            direction = ServoDirection.UNSET;
-            rotating = false;
-        }
-        pwm.on(degreeToDutyCycle(degree), PWM_FREQUENCY);
-    }
-
-    /**
-     * Control direction of rotation
-     * Servo must be stopped before direction can be changed
-     *
-     * @param direction
-     */
-    public void setRotationDirection(ServoDirection direction) {
-
-        if (rotating && direction != this.direction) {
             throw new IllegalStateException("Cannot set new direction without stopping rotation");
         }
-        this.direction = direction;
     }
 
     /**
-     * Sets the servo rotation CCW percentage of max: 0% to 100% ,
+     * Sets the servo rotation speed to this percentage of maximum. The servo direction, clockwise/counterclockwise,
+     * determined by the setDirection().
      *
-     * @param percent rotation command from 0 through 100
+     * @param percent rotation command from 0% through 100%.  setDirection() must be configured.
      */
-    public void setServoRotationByPercent(double percent) {
+    public void setSpeed(double percent) {
 
         if (!Double.isFinite(percent) || percent < 0.0 || percent > 100.0) {
             throw new IllegalArgumentException("percentage must be finite and between 0.0% and 100.0%");
@@ -153,9 +144,9 @@ public class Fs90rDriver {
 
         double degree;
 
-        this.rotating = percent != 0.0;
+        this.isRotating = percent != 0.0;
 
-        if (direction == ServoDirection.CCW) {
+        if (direction == ServoDirection.COUNTERCLOCKWISE) {
             degree = 90.0 + (90.0 * percent / 100);
         } else {
             degree = 90.0 - (90.0 * percent / 100);
@@ -166,12 +157,12 @@ public class Fs90rDriver {
 
     /**
      *
-     * @param degree Desired location of the servo output shaft solved for required Duty Cycle.
-     *               See table above.
+     * @param degree Degree value used to set direction and speed of rotation.  This is converted to
+     *               pulse width.
      * @return duty cycle
      */
     double degreeToDutyCycle(double degree) {
-        double targetPulseWidth = this.pwMin + (degree / 180 * totalPwRange);
+        double targetPulseWidth = this.pulseWidthMin + (degree / 180.0 * totalPulseWidthRange);
         return (targetPulseWidth / 20000.0) * 100.0;
     }
 }
