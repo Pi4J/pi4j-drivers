@@ -81,11 +81,17 @@ public class Fs90rDriver {
     }
 
     public void setPwMin(double pwMin) {
+        if (!Double.isFinite(pwMin) || pwMin < 500.0 || pwMin > 1500.0) {
+            throw new IllegalArgumentException("pwMin range 500.0 ... 1500.0 ");
+        }
         this.pwMin = pwMin;
         this.totalPwRange = this.pwMax - this.pwMin;
     }
 
     public void setPwMax(double pwMax) {
+        if (!Double.isFinite(pwMax) || pwMax < 1500.0 || pwMax > 2500.0) {
+            throw new IllegalArgumentException("pwMax range 1500.0 ... 2500.0 ");
+        }
         this.pwMax = pwMax;
         this.totalPwRange = this.pwMax - this.pwMin;
     }
