@@ -135,7 +135,7 @@ public class Fs90rDriver {
      * @return duty cycle
      */
     double degreeToDutyCycle(double degree){
-        double targetPulseWidth  = this.pwMin + (degree * (totalPwRange / 180.0));
+        double targetPulseWidth  = this.pwMin + (degree/180 * totalPwRange);
         return  (targetPulseWidth/ 20000.0)  * 100.0;
     }
 }
