@@ -36,11 +36,9 @@ public class Fs90rDriver {
     public static final int PWM_FREQUENCY = 50;
 
     private final Pwm pwm;
-    private double pwCwMin ;
-    private double pwCcwMax ;
+    private double pwMin ;
+    private double pwMax ;
     private double totalPwRange ;
-
-
 
     /**
      *
@@ -50,42 +48,41 @@ public class Fs90rDriver {
         this(pwm,PW_MIN_CW, PW_MAX_CCW);
     }
 
-
     /**
          *
          * @param pwm           pwm device
-         * @param pwCwMin   value in microseconds for 0 degree position
-         * @param pwCcwMax value in microseconds for 180 degree position
+         * @param pwMin   value in microseconds for 0 degree position
+         * @param pwMax value in microseconds for 180 degree position
          */
-    public Fs90rDriver(Pwm pwm, double pwCwMin, double pwCcwMax ) {
+    public Fs90rDriver(Pwm pwm, double pwMin, double pwMax ) {
             this.pwm = pwm;
-            this.pwCwMin = pwCwMin;
-            this.pwCcwMax = pwCcwMax;
-            this.totalPwRange =  this.pwCcwMax - this.pwCwMin ;
+            this.pwMin = pwMin;
+            this.pwMax = pwMax;
+            this.totalPwRange =  this.pwMax - this.pwMin ;
 
             if(pwm == null){
                 throw new IllegalArgumentException("PWM is null");
             }
-            if (!Double.isFinite(pwCwMin) || pwCwMin < 500.0 || pwCwMin > 1500.0){
+            if (!Double.isFinite(pwMin) || pwMin < 500.0 || pwMin > 1500.0){
                 throw new IllegalArgumentException("pwCwMax range 500.0 ... 1500.0 ");
             }
-            if (!Double.isFinite(pwCcwMax) || pwCcwMax < 1500.0 || pwCcwMax > 2500.0){
+            if (!Double.isFinite(pwMax) || pwMax < 1500.0 || pwMax > 2500.0){
                 throw new IllegalArgumentException("pwCcwMax range 1500.0 ... 2500.0 ");
             }
-            if (pwCwMin >= pwCcwMax) {
+            if (pwMin >= pwMax) {
                 throw new IllegalArgumentException("pwCwMax must be less than pwCcwMax");
             }
         }
 
 
-    public void setPwCwMin(double pwCwMin) {
-        this.pwCwMin = pwCwMin;
-        this.totalPwRange =  this.pwCcwMax - this.pwCwMin ;
+    public void setPwMin(double pwMin) {
+        this.pwMin = pwMin;
+        this.totalPwRange =  this.pwMax - this.pwMin ;
     }
 
-    public void setPwCcwMax(double pwCcwMax) {
-        this.pwCcwMax = pwCcwMax;
-        this.totalPwRange =  this.pwCcwMax - this.pwCwMin ;
+    public void setPwMax(double pwMax) {
+        this.pwMax = pwMax;
+        this.totalPwRange =  this.pwMax - this.pwMin ;
     }
 
     /**
@@ -131,7 +128,6 @@ public class Fs90rDriver {
         pwm.on(degreeToDutyCycle(degree), PWM_FREQUENCY);
     }
 
-
     /**
      *
      * @param degree   Desired location of the servo output shaft solved for required Duty Cycle.
@@ -139,7 +135,7 @@ public class Fs90rDriver {
      * @return duty cycle
      */
     double degreeToDutyCycle(double degree){
-        double targetPulseWidth  = this.pwCwMin + (degree * (totalPwRange / 180.0));
+        double targetPulseWidth  = this.pwMin + (degree * (totalPwRange / 180.0));
         return  (targetPulseWidth/ 20000.0)  * 100.0;
     }
 }
